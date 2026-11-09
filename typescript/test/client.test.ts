@@ -180,7 +180,7 @@ describe("retries", () => {
 		const c = make();
 		ctl.abort(new Error("stop"));
 		const r = await c.api.listWatches({ signal: ctl.signal });
-		expect((r.error as Error).message).toBe("stop"); // client.api never throws; the abort reason comes back untouched
+		expect((r.error as unknown as Error).message).toBe("stop"); // client.api never throws; the abort reason comes back untouched
 		expect(mock.requests).toHaveLength(0);
 	});
 	it("times out a hung request", async () => {
