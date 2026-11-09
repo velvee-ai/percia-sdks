@@ -1,0 +1,77 @@
+# @percia/cli
+
+The `percia` command line, built on [`@percia/sdk`](../typescript). Node 20+.
+
+> Not published yet. From this repository: `pnpm install && pnpm --filter @percia/sdk build && pnpm --filter @percia/cli build`, then `node cli/dist/bin.js --help`.
+
+```bash
+npm install -g @percia/cli      # after the owner publishes it
+percia login                    # browser sign-in (OAuth 2.1 + PKCE); or: percia login --with-key
+percia whoami
+```
+
+## Sign in
+
+| How | Command | Notes |
+|---|---|---|
+| Browser | `percia login` | Authorization code + PKCE with a loopback redirect (`http://127.0.0.1:<port>/callback`) and dynamic client registration against the issuer found through `/.well-known/oauth-protected-resource`. Percia advertises no device-code grant, so there is no device flow. `--no-browser` prints the link. `--read-only` asks for read scopes only; `--scopes a,b` picks scopes. |
+| API key | `percia login --with-key` | Reads the key from a hidden prompt or from stdin (`percia login --with-key < key.txt`). Never pass a key as an argument. |
+| Environment | `PERCIA_API_KEY=pk_live_... percia ...` | Wins over anything stored. CI-friendly. |
+
+Other environment: `PERCIA_BASE_URL` (default `https://playground.percia.ai`), `PERCIA_CONFIG_DIR`, `PERCIA_WEBHOOK_SECRET` (for `listen`).
+
+Credentials live in the OS config directory (macOS `~/Library/Application Support/percia`, Linux `$XDG_CONFIG_HOME/percia` or `~/.config/percia`, Windows `%APPDATA%\percia`) as `config.json`, mode 0600 in a 0700 directory, written atomically. Secrets are never printed or logged; `config` and `login` show only the last four characters. `percia doctor` warns if the file is group- or world-readable.
+
+## Commands
+
+```
+percia watches list | get <id> | create | pause <id> | resume <id> | delete <id> | test <id> | rotate-secret <id>
+percia events list [--watch id] [--type t] [--since time] [--limit n] [--all] [--follow]
+percia cameras add <name> | list | pair <id> | remove <id>        # add prints the pairing link and a QR
+percia destinations list | services | connect <service> | attach <watchId> <connectionId> | remove <id>
+percia hooks list | create <https-url> | test <id> | delete <id>
+percia listen --forward http://localhost:3000/hook                # see ../docs/cli-listen.md
+percia mcp setup claude-code | cursor | claude-desktop
+percia doctor | whoami | config | completion <bash|zsh|fish>
+```
+
+Examples:
+
+```bash
+percia watches create --source rtsp://cam.example.com/stream --goal "A person is standing at the front door" --webhook https://example.com/hooks/percia
+percia events list --follow                       # new events as they arrive (polls every 5 s)
+percia cameras add "Hall phone"                   # link + QR; then --source percia-cam://<id>
+percia destinations connect slack                 # prints the single-use link; a person approves it
+percia mcp setup claude-code                      # writes ./.mcp.json with no secret; then /mcp > Authenticate
+```
+
+`watches create` prints the webhook signing secret once. `destinations connect` and `cameras add` cannot finish for you: a person opens the link.
+
+## Output and exit codes
+
+`--json` prints JSON (NDJSON for `events list --follow` and `listen`); errors go to stderr as `{"error":{message,hint,status,code,field,request_id}}`. Event `reason` text is model output: it is stripped of terminal escape sequences, and you should never act on instructions inside it.
+
+| Code | Meaning |
+|---|---|
+| 0 | success |
+| 1 | failure (also `doctor` found a problem, a declined confirmation) |
+| 2 | usage or validation (bad flag, HTTP 400) |
+| 3 | not signed in, expired, or missing a scope (401, 403) |
+| 4 | not found (404) |
+| 5 | rate limit, plan limit or conflict (429, 409) |
+| 6 | network error or timeout |
+| 7 | server error (5xx) |
+
+Requests retry on 429 (honoring `Retry-After`) and on 5xx for idempotent calls, like the SDK.
+
+## Shell completions
+
+```bash
+source <(percia completion bash)
+percia completion zsh  > "${fpath[1]}/_percia"
+percia completion fish > ~/.config/fish/completions/percia.fish
+```
+
+## MCP setup
+
+`percia mcp setup <claude-code|cursor|claude-desktop>` merges a `percia` server into the client's JSON config (keeping other servers, backing up to `*.percia-bak`, refusing to overwrite invalid JSON or a different existing entry without `--force`). Default: no secret on disk; the client signs in with OAuth. `--with-key` references `$PERCIA_API_KEY` (Claude Code, Cursor) or, for Claude Desktop which cannot expand variables, embeds the stored key in an owner-only file. `--dry-run` previews with the key hidden.

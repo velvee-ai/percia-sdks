@@ -108,7 +108,7 @@ export class MockPercia {
 			for await (const c of nreq) chunks.push(c as Buffer);
 			const origin = `http://${nreq.headers.host}`;
 			const res = await this.handle(new Request(origin + nreq.url, { method: nreq.method, headers: nreq.headers as Record<string, string>, body: ["GET", "HEAD"].includes(nreq.method!) ? undefined : Buffer.concat(chunks) }));
-			nres.writeHead(res.status, Object.fromEntries(res.headers));
+			nres.writeHead(res.status, Object.fromEntries((res.headers as unknown as { entries(): Iterable<[string, string]> }).entries()));
 			nres.end(Buffer.from(await res.arrayBuffer()));
 		});
 		await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
