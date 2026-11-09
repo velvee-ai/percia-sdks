@@ -30,7 +30,7 @@ Nothing here has been done. The assistant never publishes, never creates account
 2. Check `https://pypi.org/project/percia/` is still 404.
 3. Add a **pending trusted publisher** (this reserves the name on first successful publish, no token): pypi.org > Your account > Publishing > "Add a new pending publisher": project name `percia`, owner `percia-ai`, repository `percia-sdks`, workflow `release-python.yml`, environment `pypi`. Repeat on test.pypi.org with environment `testpypi` for a rehearsal.
 4. GitHub > Settings > Environments: create `pypi` (add yourself as a required reviewer so a tag does not publish unattended) and `testpypi`.
-5. Release: bump `version` in `python/pyproject.toml` and `python/percia/__init__.py`/`_config.py` if it is repeated there (`grep -rn "0.1.0" python/percia/*.py`), update `python/CHANGELOG.md`, commit, then `git tag python-v0.1.0 && git push origin python-v0.1.0`. Rehearse first: Actions > "Release (PyPI)" > Run workflow > `testpypi`.
+5. Release: bump `version` in `python/pyproject.toml` and `python/percia/_version.py`, update `python/CHANGELOG.md`, commit, then `git tag python-v0.1.0 && git push origin python-v0.1.0`. Rehearse first: Actions > "Release (PyPI)" > Run workflow > `testpypi`.
 
 ## 3. What only a real account can verify
 

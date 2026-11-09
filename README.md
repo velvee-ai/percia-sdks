@@ -23,9 +23,10 @@ for await (const event of percia.events.iterate({ type: "goal.met" })) console.l
 
 **Python**
 ```python
+import os
 from percia import Percia, verify_webhook_signature
 percia = Percia(api_key=os.environ["PERCIA_API_KEY"])
-for event in percia.events.iterate(type="goal.met"):
+for event in percia.iter_events(type="goal.met"):
     print(event.at, event.reason)
 ```
 
