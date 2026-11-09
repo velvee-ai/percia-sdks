@@ -1,0 +1,18 @@
+extends:
+  - recommended
+rules:
+  # The document is produced by percia-cf; these are style rules we do not own.
+  no-server-example.com: off
+  operation-4xx-response: off
+  security-defined: off
+  info-license: off
+  info-license-strict: off
+  operation-summary: error
+  operation-operationId: error
+  operation-operationId-unique: error
+  no-unresolved-refs: error
+  no-invalid-media-type-examples: warn
+  tag-description: off
+  no-empty-servers: off
+  no-ambiguous-paths: warn
+  no-path-trailing-slash: error
