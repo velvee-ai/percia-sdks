@@ -20,4 +20,4 @@ pnpm generate                       # regenerate TS, Python and Postman from the
 
 ## Current pin
 
-The live host `playground.percia.ai` serves an older build than percia-cf master: it lacks `GET /api/events`, `GET /api/events/sample`, the `/api/hooks` routes and `getStatus`, and names operations mechanically (`postWatchesOwned`). The pin is therefore the document emitted by percia-cf master (`e8b1cc6`), which has descriptive `operationId`s (`createWatch`, `listAccountEvents`, `createHook`...). Until master is deployed, `pnpm spec:check` correctly reports drift. After the deploy: `pnpm spec:sync`, `pnpm generate`, commit.
+The live host `playground.percia.ai` serves an older build than percia-cf master: it lacks `GET /api/events`, `GET /api/events/sample`, the `/api/hooks` routes and `getStatus`, and names operations mechanically (`postWatchesOwned`). The pin is therefore the document emitted by percia-cf master (`2a65ab8`), which has descriptive `operationId`s (`createWatch`, `listAccountEvents`, `createHook`...). Until master is deployed, `pnpm spec:check` correctly reports drift. After the deploy: `pnpm spec:sync`, `pnpm generate`, commit.

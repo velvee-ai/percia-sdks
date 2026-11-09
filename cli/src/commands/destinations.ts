@@ -7,7 +7,7 @@ import { openSession } from "../session.js";
 type Deps = { ctx: Context; globals: () => GlobalOptions };
 
 export function registerDestinations(program: Command, { ctx, globals }: Deps) {
-	const d = program.command("destinations").alias("integrations").description("Alert destinations (Slack, Discord, Telegram, Home Assistant, IFTTT, Teams, PagerDuty, webhook).");
+	const d = program.command("destinations").alias("integrations").description("Alert destinations (Slack, Discord, Telegram, Home Assistant, IFTTT, Teams, PagerDuty, SMS, WhatsApp, webhook): `destinations services` lists what this host offers.");
 	d.command("list")
 		.description("List connected destinations.")
 		.action(async () => {

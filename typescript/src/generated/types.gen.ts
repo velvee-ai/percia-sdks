@@ -202,7 +202,7 @@ export type Connection = {
      * Stable code: why it broke, or why the last delivery failed for good.
      */
     lastError?: string | null;
-    service?: 'slack' | 'discord' | 'telegram' | 'home_assistant' | 'ifttt' | 'teams' | 'pagerduty' | 'webhook';
+    service?: 'slack' | 'discord' | 'telegram' | 'home_assistant' | 'ifttt' | 'teams' | 'pagerduty' | 'sms' | 'whatsapp' | 'webhook';
     /**
      * broken = the service refused the credential: no more deliveries, connect it again.
      */
@@ -366,8 +366,11 @@ export type IntegrationResult = {
      * Stable code, when the last attempt failed.
      */
     error?: string;
-    service: 'slack' | 'discord' | 'telegram' | 'home_assistant' | 'ifttt' | 'teams' | 'pagerduty' | 'webhook';
-    status: 'pending' | 'delivered' | 'failed';
+    service: 'slack' | 'discord' | 'telegram' | 'home_assistant' | 'ifttt' | 'teams' | 'pagerduty' | 'sms' | 'whatsapp' | 'webhook';
+    /**
+     * rate_limited: the connection's own hourly send limit (SMS, WhatsApp) was used up; the connection stays active.
+     */
+    status: 'pending' | 'delivered' | 'failed' | 'rate_limited';
 };
 
 export type IntegrationRule = {
@@ -377,7 +380,7 @@ export type IntegrationRule = {
      * "*" or a concern id of the watch.
      */
     on?: string;
-    service?: 'slack' | 'discord' | 'telegram' | 'home_assistant' | 'ifttt' | 'teams' | 'pagerduty' | 'webhook';
+    service?: 'slack' | 'discord' | 'telegram' | 'home_assistant' | 'ifttt' | 'teams' | 'pagerduty' | 'sms' | 'whatsapp' | 'webhook';
     status?: 'active' | 'broken';
 };
 
@@ -2111,7 +2114,7 @@ export type CreateConnectLinkData = {
          * Make the new connection a default destination: attached to every new watch (B40).
          */
         default?: boolean;
-        service: 'slack' | 'discord' | 'telegram' | 'home_assistant' | 'ifttt' | 'teams' | 'pagerduty' | 'webhook';
+        service: 'slack' | 'discord' | 'telegram' | 'home_assistant' | 'ifttt' | 'teams' | 'pagerduty' | 'sms' | 'whatsapp' | 'webhook';
     };
     path?: never;
     query?: never;
@@ -2189,12 +2192,12 @@ export type GetConnectLinkResponses = {
      * `state` is ready, connected, used, expired, wrong_user or unknown. The last two carry nothing else. `replaceOnly` is true at the connection limit when only the destination of a broken connection of this service can still be connected.
      */
     200: {
-        connectKind?: 'oauth' | 'deeplink' | 'url';
+        connectKind?: 'oauth' | 'deeplink' | 'url' | 'key' | 'fields';
         connection?: Connection;
         expiresAt?: string;
         name?: string;
         replaceOnly?: boolean;
-        service?: 'slack' | 'discord' | 'telegram' | 'home_assistant' | 'ifttt' | 'teams' | 'pagerduty' | 'webhook';
+        service?: 'slack' | 'discord' | 'telegram' | 'home_assistant' | 'ifttt' | 'teams' | 'pagerduty' | 'sms' | 'whatsapp' | 'webhook';
         state?: 'ready' | 'connected' | 'used' | 'expired' | 'wrong_user' | 'unknown';
     };
 };
@@ -2313,6 +2316,71 @@ export type StartConnectResponses = {
 
 export type StartConnectResponse = StartConnectResponses[keyof StartConnectResponses];
 
+export type ConnectWithTwilioData = {
+    body: {
+        accountSid: string;
+        apiKeySid?: string;
+        contentSid?: string;
+        default?: boolean;
+        label?: string;
+        limitPerHour?: number | string;
+        mms?: boolean;
+        secret: string;
+        sender: string;
+        to: string;
+        variables?: string | Array<string>;
+    };
+    path: {
+        token: string;
+    };
+    query?: never;
+    url: '/integrations/connect/{token}/twilio';
+};
+
+export type ConnectWithTwilioErrors = {
+    /**
+     * A field is not allowed (`field` says which), or this service does not take account details.
+     */
+    400: Error;
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * Not your link, or an API key or OAuth token.
+     */
+    403: Error;
+    /**
+     * Unknown link, or integrations are off.
+     */
+    404: Error;
+    /**
+     * The link was used or has expired.
+     */
+    409: Error;
+    /**
+     * plan_limit: 20 connections, or too many requests.
+     */
+    429: Error;
+    /**
+     * integration_unavailable.
+     */
+    503: Error;
+};
+
+export type ConnectWithTwilioError = ConnectWithTwilioErrors[keyof ConnectWithTwilioErrors];
+
+export type ConnectWithTwilioResponses = {
+    /**
+     * Connected. The credentials and the number are stored sealed and never returned: the connection holds only its label (the masked number unless one was given).
+     */
+    201: {
+        connection?: Connection;
+    };
+};
+
+export type ConnectWithTwilioResponse = ConnectWithTwilioResponses[keyof ConnectWithTwilioResponses];
+
 export type ConnectWithUrlData = {
     body: {
         default?: boolean;
@@ -2398,11 +2466,11 @@ export type ListIntegrationServicesResponses = {
     200: Array<{
         available?: boolean;
         /**
-         * oauth: the service's own approval page. deeplink: a link that opens the bot. url: the person pastes a URL.
+         * oauth: the service's own approval page. deeplink: a link that opens the bot. url: the person pastes a URL. key: a key and an event name. fields: account details (SMS, WhatsApp).
          */
-        connectKind?: 'oauth' | 'deeplink' | 'url';
+        connectKind?: 'oauth' | 'deeplink' | 'url' | 'key' | 'fields';
         name?: string;
-        service?: 'slack' | 'discord' | 'telegram' | 'home_assistant' | 'ifttt' | 'teams' | 'pagerduty' | 'webhook';
+        service?: 'slack' | 'discord' | 'telegram' | 'home_assistant' | 'ifttt' | 'teams' | 'pagerduty' | 'sms' | 'whatsapp' | 'webhook';
     }>;
 };
 
@@ -2525,7 +2593,7 @@ export type UpdateIntegrationResponses = {
          * Stable code: why it broke, or why the last delivery failed for good.
          */
         lastError?: string | null;
-        service?: 'slack' | 'discord' | 'telegram' | 'home_assistant' | 'ifttt' | 'teams' | 'pagerduty' | 'webhook';
+        service?: 'slack' | 'discord' | 'telegram' | 'home_assistant' | 'ifttt' | 'teams' | 'pagerduty' | 'sms' | 'whatsapp' | 'webhook';
         /**
          * broken = the service refused the credential: no more deliveries, connect it again.
          */

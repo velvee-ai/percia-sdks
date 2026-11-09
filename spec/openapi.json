@@ -533,6 +533,8 @@
               "ifttt",
               "teams",
               "pagerduty",
+              "sms",
+              "whatsapp",
               "webhook"
             ]
           },
@@ -939,14 +941,18 @@
               "ifttt",
               "teams",
               "pagerduty",
+              "sms",
+              "whatsapp",
               "webhook"
             ]
           },
           "status": {
+            "description": "rate_limited: the connection's own hourly send limit (SMS, WhatsApp) was used up; the connection stays active.",
             "enum": [
               "pending",
               "delivered",
-              "failed"
+              "failed",
+              "rate_limited"
             ]
           }
         },
@@ -979,6 +985,8 @@
               "ifttt",
               "teams",
               "pagerduty",
+              "sms",
+              "whatsapp",
               "webhook"
             ]
           },
@@ -5086,6 +5094,8 @@
                       "ifttt",
                       "teams",
                       "pagerduty",
+                      "sms",
+                      "whatsapp",
                       "webhook"
                     ],
                     "type": "string"
@@ -5211,7 +5221,9 @@
                       "enum": [
                         "oauth",
                         "deeplink",
-                        "url"
+                        "url",
+                        "key",
+                        "fields"
                       ]
                     },
                     "connection": {
@@ -5236,6 +5248,8 @@
                         "ifttt",
                         "teams",
                         "pagerduty",
+                        "sms",
+                        "whatsapp",
                         "webhook"
                       ]
                     },
@@ -5561,6 +5575,196 @@
         ]
       }
     },
+    "/integrations/connect/{token}/twilio": {
+      "post": {
+        "operationId": "connectWithTwilio",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "accountSid": {
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "apiKeySid": {
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "contentSid": {
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "default": {
+                    "type": "boolean"
+                  },
+                  "label": {
+                    "maxLength": 200,
+                    "type": "string"
+                  },
+                  "limitPerHour": {
+                    "anyOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "maxLength": 10,
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "mms": {
+                    "type": "boolean"
+                  },
+                  "secret": {
+                    "maxLength": 200,
+                    "type": "string"
+                  },
+                  "sender": {
+                    "maxLength": 100,
+                    "type": "string"
+                  },
+                  "to": {
+                    "maxLength": 60,
+                    "type": "string"
+                  },
+                  "variables": {
+                    "anyOf": [
+                      {
+                        "maxLength": 200,
+                        "type": "string"
+                      },
+                      {
+                        "items": {
+                          "maxLength": 20,
+                          "type": "string"
+                        },
+                        "maxItems": 8,
+                        "type": "array"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "accountSid",
+                  "secret",
+                  "sender",
+                  "to"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "connection": {
+                      "$ref": "#/components/schemas/Connection"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Connected. The credentials and the number are stored sealed and never returned: the connection holds only its label (the masked number unless one was given)."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "A field is not allowed (`field` says which), or this service does not take account details."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not signed in."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not your link, or an API key or OAuth token."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unknown link, or integrations are off."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The link was used or has expired."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "plan_limit: 20 connections, or too many requests."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "integration_unavailable."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "summary": "Finish an SMS or WhatsApp connect with the person's own Twilio credentials (session only)",
+        "tags": [
+          "integrations"
+        ]
+      }
+    },
     "/integrations/connect/{token}/url": {
       "post": {
         "operationId": "connectWithUrl",
@@ -5717,11 +5921,13 @@
                         "type": "boolean"
                       },
                       "connectKind": {
-                        "description": "oauth: the service's own approval page. deeplink: a link that opens the bot. url: the person pastes a URL.",
+                        "description": "oauth: the service's own approval page. deeplink: a link that opens the bot. url: the person pastes a URL. key: a key and an event name. fields: account details (SMS, WhatsApp).",
                         "enum": [
                           "oauth",
                           "deeplink",
-                          "url"
+                          "url",
+                          "key",
+                          "fields"
                         ]
                       },
                       "name": {
@@ -5736,6 +5942,8 @@
                           "ifttt",
                           "teams",
                           "pagerduty",
+                          "sms",
+                          "whatsapp",
                           "webhook"
                         ]
                       }
@@ -5969,6 +6177,8 @@
                         "ifttt",
                         "teams",
                         "pagerduty",
+                        "sms",
+                        "whatsapp",
                         "webhook"
                       ]
                     },

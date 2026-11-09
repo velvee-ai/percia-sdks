@@ -1,11 +1,11 @@
 {
-  "source": "percia-cf master e8b1cc6 (emitted by its own /api/openapi.json handler)",
+  "source": "percia-cf master 2a65ab8 (emitted by its own /api/openapi.json handler via spec/scripts/emit-from-cf.sh)",
   "checkUrl": "https://playground.percia.ai/api/openapi.json",
-  "sha256": "f0ae92325de0d9e387556031fcdd205460a3156277a96356a93e4e48d0b2a772",
+  "sha256": "72818549339f2eb298b1cac63eef37ddf910fa58258b67b38ee7e24b1301330d",
   "openapi": "3.1.0",
   "title": "Percia API",
   "version": "1.0.0",
-  "operations": 95,
+  "operations": 96,
   "schemas": 20,
   "note": "Live playground.percia.ai is behind master: no /events, /hooks, getStatus, descriptive operationIds. Re-pin from the live URL once stream 4 is deployed."
 }

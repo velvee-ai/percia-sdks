@@ -22,7 +22,8 @@ class IntegrationResult:
         attempts (int):
         connection_id (str):
         service (IntegrationResultService):
-        status (IntegrationResultStatus):
+        status (IntegrationResultStatus): rate_limited: the connection's own hourly send limit (SMS, WhatsApp) was used
+            up; the connection stays active.
         error (Union[Unset, str]): Stable code, when the last attempt failed.
     """
 

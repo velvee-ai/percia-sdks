@@ -39,7 +39,7 @@ Nothing here has been done. The assistant never publishes, never creates account
   ```bash
   PERCIA_API_KEY=pk_live_... percia whoami && percia watches list && percia events list --limit 3
   ```
-  Expect `/events` and `/hooks` to 404 until percia-cf master is deployed (the live host is behind master).
+  Expect `/events`, `/hooks` (and the SMS and WhatsApp destinations) to 404 until percia-cf master is deployed (the live host is behind master).
 - **Real signed deliveries** verified by the TS and Python verifiers: create a webhook watch pointing at a tunnel (`cloudflared tunnel --url http://localhost:3000`) running `examples/node-express`, run `percia watches test <id>`. The verifiers are proven only against the shared vectors and a locally signed body.
 - **`mcp setup`** against installed clients: the file formats follow the documented configs (`.mcp.json`, `~/.cursor/mcp.json`, `claude_desktop_config.json` with `mcp-remote`), unverified against current client versions.
 - **Cloudflare Worker example**: `wrangler dev` / deploy needs your Cloudflare login. **Vapi example**: documentation only; the request shape is unverified (check Vapi's docs, use your own Vapi key).

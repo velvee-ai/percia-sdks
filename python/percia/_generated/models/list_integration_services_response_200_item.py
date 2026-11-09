@@ -25,7 +25,8 @@ class ListIntegrationServicesResponse200Item:
     Attributes:
         available (Union[Unset, bool]):
         connect_kind (Union[Unset, ListIntegrationServicesResponse200ItemConnectKind]): oauth: the service's own
-            approval page. deeplink: a link that opens the bot. url: the person pastes a URL.
+            approval page. deeplink: a link that opens the bot. url: the person pastes a URL. key: a key and an event name.
+            fields: account details (SMS, WhatsApp).
         name (Union[Unset, str]):
         service (Union[Unset, ListIntegrationServicesResponse200ItemService]):
     """

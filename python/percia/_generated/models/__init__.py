@@ -43,6 +43,8 @@ from .claim_camera_device_response_200 import ClaimCameraDeviceResponse200
 from .connect_with_key_body import ConnectWithKeyBody
 from .connect_with_key_body_severity import ConnectWithKeyBodySeverity
 from .connect_with_key_response_201 import ConnectWithKeyResponse201
+from .connect_with_twilio_body import ConnectWithTwilioBody
+from .connect_with_twilio_response_201 import ConnectWithTwilioResponse201
 from .connect_with_url_body import ConnectWithUrlBody
 from .connect_with_url_response_201 import ConnectWithUrlResponse201
 from .connection import Connection
@@ -339,6 +341,8 @@ __all__ = (
     "ConnectWithKeyBody",
     "ConnectWithKeyBodySeverity",
     "ConnectWithKeyResponse201",
+    "ConnectWithTwilioBody",
+    "ConnectWithTwilioResponse201",
     "ConnectWithUrlBody",
     "ConnectWithUrlResponse201",
     "CreateAgentBody",

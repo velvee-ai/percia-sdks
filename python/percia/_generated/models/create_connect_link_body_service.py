@@ -7,9 +7,11 @@ class CreateConnectLinkBodyService(str, Enum):
     IFTTT = "ifttt"
     PAGERDUTY = "pagerduty"
     SLACK = "slack"
+    SMS = "sms"
     TEAMS = "teams"
     TELEGRAM = "telegram"
     WEBHOOK = "webhook"
+    WHATSAPP = "whatsapp"
 
     def __str__(self) -> str:
         return str(self.value)
