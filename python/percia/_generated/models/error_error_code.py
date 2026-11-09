@@ -1,0 +1,40 @@
+from enum import Enum
+
+
+class ErrorErrorCode(str, Enum):
+    AGENT_IN_USE = "agent_in_use"
+    AGENT_LIMIT = "agent_limit"
+    AGENT_NOT_PUBLISHED = "agent_not_published"
+    ASK_UNAVAILABLE = "ask_unavailable"
+    BOT_CHECK_FAILED = "bot_check_failed"
+    BUILDER_UNAVAILABLE = "builder_unavailable"
+    CAMERA_IN_USE = "camera_in_use"
+    CAMERA_LIMIT = "camera_limit"
+    CONFLICT = "conflict"
+    DAILY_CAP = "daily_cap"
+    DELETION_INCOMPLETE = "deletion_incomplete"
+    FORBIDDEN = "forbidden"
+    GOAL_NOT_ALLOWED = "goal_not_allowed"
+    INSTANT_DISABLED = "instant_disabled"
+    INSUFFICIENT_SCOPE = "insufficient_scope"
+    INTEGRATION_UNAVAILABLE = "integration_unavailable"
+    INTERNAL = "internal"
+    INVALID_API_KEY = "invalid_api_key"
+    INVALID_REQUEST = "invalid_request"
+    IP_CAP = "ip_cap"
+    JUDGE_UNAVAILABLE = "judge_unavailable"
+    KEYS_UNAVAILABLE = "keys_unavailable"
+    KEY_INVALID = "key_invalid"
+    LIVE_UNAVAILABLE = "live_unavailable"
+    NOTHING_TO_PUBLISH = "nothing_to_publish"
+    NOT_FOUND = "not_found"
+    PAIRING_INVALID = "pairing_invalid"
+    PLAN_LIMIT = "plan_limit"
+    RATE_LIMITED = "rate_limited"
+    REAUTH_REQUIRED = "reauth_required"
+    SELLING_DISABLED = "selling_disabled"
+    SITE_LIMIT = "site_limit"
+    UNAUTHENTICATED = "unauthenticated"
+
+    def __str__(self) -> str:
+        return str(self.value)

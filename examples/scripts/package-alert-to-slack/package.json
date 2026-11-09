@@ -1,0 +1,14 @@
+{
+  "name": "percia-example-package-alert-to-slack",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Create a 'package at the door' watch and forward its alerts to Slack.",
+  "license": "MIT",
+  "scripts": {
+    "create-watch": "node create-watch.mjs",
+    "serve": "node receiver.mjs",
+    "test": "node --test test/slack.test.mjs"
+  },
+  "engines": { "node": ">=20" }
+}

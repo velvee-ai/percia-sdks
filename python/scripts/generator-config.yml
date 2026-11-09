@@ -1,0 +1,4 @@
+project_name_override: percia-generated
+package_name_override: percia_generated
+use_path_prefixes_for_title_model_names: false
+generate_all_tags: false

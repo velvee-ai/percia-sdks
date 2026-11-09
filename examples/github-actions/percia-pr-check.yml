@@ -1,0 +1,55 @@
+# Copy to .github/workflows/percia-pr-check.yml.
+# Creates a throw-away watch in a pull request, sends a signed test delivery to a test receiver, and ALWAYS deletes the watch.
+# Secrets/variables:
+#   secrets.PERCIA_API_KEY          key with watches:write, watches:delete
+#   vars.PERCIA_TEST_WEBHOOK_URL    a public https receiver you control (it should verify the signature, see ../node-express)
+#   vars.PERCIA_TEST_SOURCE_URL     a public video or rtsp address used only as the watch source
+# Runs only for pull requests from this repository (forks do not get secrets).
+name: percia-pr-check
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: percia-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  ephemeral-watch:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PERCIA_BASE_URL: ${{ vars.PERCIA_BASE_URL || 'https://playground.percia.ai' }}
+      PERCIA_API_KEY: ${{ secrets.PERCIA_API_KEY }}
+    steps:
+      - name: Create a watch
+        id: create
+        run: |
+          set -euo pipefail
+          body=$(jq -n --arg src "${{ vars.PERCIA_TEST_SOURCE_URL }}" --arg hook "${{ vars.PERCIA_TEST_WEBHOOK_URL }}" \
+            '{sourceUrl: $src, goal: "CI smoke test, ignore", notify: {type: "webhook", target: $hook}}')
+          status=$(curl -sS -o create.json -w '%{http_code}' -X POST "$PERCIA_BASE_URL/api/watches/owned" \
+            -H "Authorization: Bearer $PERCIA_API_KEY" -H 'content-type: application/json' -d "$body")
+          [ "$status" = "201" ] || { echo "::error::create answered HTTP $status"; exit 1; }
+          # Only the id leaves this step. create.json holds the one-time webhookSecret: delete it right away.
+          echo "watch_id=$(jq -r .id create.json)" >> "$GITHUB_OUTPUT"
+          rm -f create.json
+
+      - name: Send a signed test delivery
+        run: |
+          set -euo pipefail
+          status=$(curl -sS -o test.json -w '%{http_code}' -X POST "$PERCIA_BASE_URL/api/watches/${{ steps.create.outputs.watch_id }}/test-delivery" \
+            -H "Authorization: Bearer $PERCIA_API_KEY")
+          [ "$status" = "200" ] || { echo "::error::test-delivery answered HTTP $status"; exit 1; }
+          # The receiver's own answer: 2xx means it verified the signature and acknowledged.
+          jq -e '.status >= 200 and .status < 300' test.json
+
+      - name: Delete the watch
+        if: always() && steps.create.outputs.watch_id != ''
+        run: |
+          curl -sS -o /dev/null -w 'delete: HTTP %{http_code}\n' -X DELETE "$PERCIA_BASE_URL/api/watches/${{ steps.create.outputs.watch_id }}" \
+            -H "Authorization: Bearer $PERCIA_API_KEY"

@@ -1,0 +1,66 @@
+# Copy to .github/workflows/percia-smoke.yml.
+# Scheduled smoke check of a Percia account: fails when a delivery failed in the last 24 hours, or when no events arrived at all.
+# Needs one repository secret: PERCIA_API_KEY (scope events:read). Optional repository variable PERCIA_BASE_URL.
+name: percia-smoke
+
+on:
+  schedule:
+    - cron: "17 6 * * *" # daily, off the hour
+  workflow_dispatch:
+    inputs:
+      require_events:
+        description: "Fail when there were no events in the last 24 hours"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PERCIA_BASE_URL: ${{ vars.PERCIA_BASE_URL || 'https://playground.percia.ai' }}
+      PERCIA_API_KEY: ${{ secrets.PERCIA_API_KEY }}
+      REQUIRE_EVENTS: ${{ github.event_name == 'schedule' && 'true' || inputs.require_events }}
+    steps:
+      - name: Read the last 24 hours of events
+        run: |
+          set -euo pipefail
+          since=$(date -u -d '24 hours ago' +%Y-%m-%dT%H:%M:%SZ)
+          # GET /api/events: the account-wide feed (scope events:read), newest first. The key is read from the environment, never echoed.
+          status=$(curl -sS -o events.json -w '%{http_code}' --get "$PERCIA_BASE_URL/api/events" \
+            --data-urlencode "since=$since" --data-urlencode "limit=100" \
+            -H "Authorization: Bearer $PERCIA_API_KEY")
+          if [ "$status" != "200" ]; then
+            echo "::error::GET /api/events answered HTTP $status (request id: $(jq -r '.request_id // "n/a"' events.json 2>/dev/null))"
+            exit 1
+          fi
+      - name: Check delivery outcomes
+        run: |
+          set -euo pipefail
+          total=$(jq '.events | length' events.json)
+          failed=$(jq '[.events[] | select(.deliveryStatus == "failed")] | length' events.json)
+          echo "events in the last 24h: $total, failed deliveries: $failed"
+          if [ "$failed" -gt 0 ]; then
+            jq -r '.events[] | select(.deliveryStatus == "failed") | "::error::failed delivery: event \(.id) on watch \(.watchId) after \(.attempts) attempts"' events.json
+            exit 1
+          fi
+          if [ "$total" -eq 0 ] && [ "$REQUIRE_EVENTS" = "true" ]; then
+            echo "::error::no events in the last 24 hours"
+            exit 1
+          fi
+
+  # The same check with the CLI. Not published yet (see docs/owner-steps.md): enable this job after `@percia/cli` is on npm.
+  # smoke-cli:
+  #   if: false
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/setup-node@v4
+  #       with: { node-version: 22 }
+  #     - env:
+  #         PERCIA_API_KEY: ${{ secrets.PERCIA_API_KEY }}
+  #       run: |
+  #         npx --yes @percia/cli whoami --json
+  #         npx --yes @percia/cli events list --json --limit 100 | jq -e '[.events[] | select(.deliveryStatus == "failed")] | length == 0'

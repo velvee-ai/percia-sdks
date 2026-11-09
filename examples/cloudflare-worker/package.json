@@ -1,0 +1,14 @@
+{
+  "name": "percia-example-cloudflare-worker",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Percia webhook receiver as a Cloudflare Worker (Web Crypto, no dependencies).",
+  "license": "MIT",
+  "scripts": {
+    "dev": "npx wrangler dev",
+    "deploy": "npx wrangler deploy",
+    "test": "node --test test/worker.test.mjs"
+  },
+  "engines": { "node": ">=20" }
+}

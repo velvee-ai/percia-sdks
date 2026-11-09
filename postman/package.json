@@ -1,0 +1,13 @@
+{
+  "name": "@percia/postman",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Postman collection and Insomnia export generated from spec/openapi.json.",
+  "license": "MIT",
+  "scripts": {
+    "generate": "node scripts/generate.mjs",
+    "test": "node --test test/collection.test.mjs"
+  },
+  "engines": { "node": ">=20" }
+}

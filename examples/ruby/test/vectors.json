@@ -1,0 +1,186 @@
+{
+ "_comment": "Expected signatures computed with python hmac/hashlib, independent of the verifiers under test. 'now' is unix seconds. code is the error code a verifier reports.",
+ "tolerance_seconds": 300,
+ "cases": [
+  {
+   "name": "valid signature",
+   "secret": "whsec_test_0123456789abcdef",
+   "body": "{\"id\":\"dec_01J0000000000000000000000\",\"watchId\":\"w_abc\",\"occurrenceId\":\"occ_01J0000000000000000000000\",\"type\":\"goal.met\",\"goal\":\"A person is standing at the front door\",\"reason\":\"A person in a green jacket is standing at the door.\",\"confidence\":0.93,\"at\":\"2026-11-01T09:30:00Z\"}",
+   "now": 1793525400,
+   "header": "t=1793525400,v1=8e5e700cb765e9ab12298aab30c87184ef634bb0410eb66125c6c0ca9dfd700b",
+   "valid": true,
+   "code": null
+  },
+  {
+   "name": "valid, 299 s old",
+   "secret": "whsec_test_0123456789abcdef",
+   "body": "{\"id\":\"dec_01J0000000000000000000000\",\"watchId\":\"w_abc\",\"occurrenceId\":\"occ_01J0000000000000000000000\",\"type\":\"goal.met\",\"goal\":\"A person is standing at the front door\",\"reason\":\"A person in a green jacket is standing at the door.\",\"confidence\":0.93,\"at\":\"2026-11-01T09:30:00Z\"}",
+   "now": 1793525400,
+   "header": "t=1793525101,v1=ba07ced9eb602cb55e889b1832b9a9fd283c2b9d54c79b275c81575191f8483d",
+   "valid": true,
+   "code": null
+  },
+  {
+   "name": "valid, 299 s in the future",
+   "secret": "whsec_test_0123456789abcdef",
+   "body": "{\"id\":\"dec_01J0000000000000000000000\",\"watchId\":\"w_abc\",\"occurrenceId\":\"occ_01J0000000000000000000000\",\"type\":\"goal.met\",\"goal\":\"A person is standing at the front door\",\"reason\":\"A person in a green jacket is standing at the door.\",\"confidence\":0.93,\"at\":\"2026-11-01T09:30:00Z\"}",
+   "now": 1793525400,
+   "header": "t=1793525699,v1=02523dd341e37618e403f58b70e00461e8f58b4f1da57f3f53d210b948525385",
+   "valid": true,
+   "code": null
+  },
+  {
+   "name": "valid unicode body",
+   "secret": "whsec_test_0123456789abcdef",
+   "body": "{\"reason\":\"café ☃ door open\"}",
+   "now": 1793525400,
+   "header": "t=1793525400,v1=6fb5c3c804c5291361333f7f557a39c96d4633d3ab8922ba536cb0c93a9adffe",
+   "valid": true,
+   "code": null
+  },
+  {
+   "name": "valid empty body",
+   "secret": "whsec_test_0123456789abcdef",
+   "body": "",
+   "now": 1793525400,
+   "header": "t=1793525400,v1=eeacc5cdd265e5a4953253c19d6ecc0aeea6ea4150fe0aaef65a3bc96ecfbd52",
+   "valid": true,
+   "code": null
+  },
+  {
+   "name": "valid, extra v1 first then correct",
+   "secret": "whsec_test_0123456789abcdef",
+   "body": "{\"id\":\"dec_01J0000000000000000000000\",\"watchId\":\"w_abc\",\"occurrenceId\":\"occ_01J0000000000000000000000\",\"type\":\"goal.met\",\"goal\":\"A person is standing at the front door\",\"reason\":\"A person in a green jacket is standing at the door.\",\"confidence\":0.93,\"at\":\"2026-11-01T09:30:00Z\"}",
+   "now": 1793525400,
+   "header": "t=1793525400,v1=0000000000000000000000000000000000000000000000000000000000000000,v1=8e5e700cb765e9ab12298aab30c87184ef634bb0410eb66125c6c0ca9dfd700b",
+   "valid": true,
+   "code": null
+  },
+  {
+   "name": "valid with spaces after commas",
+   "secret": "whsec_test_0123456789abcdef",
+   "body": "{\"id\":\"dec_01J0000000000000000000000\",\"watchId\":\"w_abc\",\"occurrenceId\":\"occ_01J0000000000000000000000\",\"type\":\"goal.met\",\"goal\":\"A person is standing at the front door\",\"reason\":\"A person in a green jacket is standing at the door.\",\"confidence\":0.93,\"at\":\"2026-11-01T09:30:00Z\"}",
+   "now": 1793525400,
+   "header": "t=1793525400, v1=8e5e700cb765e9ab12298aab30c87184ef634bb0410eb66125c6c0ca9dfd700b",
+   "valid": true,
+   "code": null
+  },
+  {
+   "name": "stale timestamp (301 s old)",
+   "secret": "whsec_test_0123456789abcdef",
+   "body": "{\"id\":\"dec_01J0000000000000000000000\",\"watchId\":\"w_abc\",\"occurrenceId\":\"occ_01J0000000000000000000000\",\"type\":\"goal.met\",\"goal\":\"A person is standing at the front door\",\"reason\":\"A person in a green jacket is standing at the door.\",\"confidence\":0.93,\"at\":\"2026-11-01T09:30:00Z\"}",
+   "now": 1793525400,
+   "header": "t=1793525099,v1=225c85182db527cd188a7f77190345fc4adbbe29373fecd4a4e73770e891e44f",
+   "valid": false,
+   "code": "stale_timestamp"
+  },
+  {
+   "name": "stale timestamp (301 s in the future)",
+   "secret": "whsec_test_0123456789abcdef",
+   "body": "{\"id\":\"dec_01J0000000000000000000000\",\"watchId\":\"w_abc\",\"occurrenceId\":\"occ_01J0000000000000000000000\",\"type\":\"goal.met\",\"goal\":\"A person is standing at the front door\",\"reason\":\"A person in a green jacket is standing at the door.\",\"confidence\":0.93,\"at\":\"2026-11-01T09:30:00Z\"}",
+   "now": 1793525400,
+   "header": "t=1793525701,v1=9e5de519fbf74110d905403e3555857996f86dbd093b946928586d2b77784562",
+   "valid": false,
+   "code": "stale_timestamp"
+  },
+  {
+   "name": "wrong secret",
+   "secret": "whsec_test_0123456789abcdef",
+   "body": "{\"id\":\"dec_01J0000000000000000000000\",\"watchId\":\"w_abc\",\"occurrenceId\":\"occ_01J0000000000000000000000\",\"type\":\"goal.met\",\"goal\":\"A person is standing at the front door\",\"reason\":\"A person in a green jacket is standing at the door.\",\"confidence\":0.93,\"at\":\"2026-11-01T09:30:00Z\"}",
+   "now": 1793525400,
+   "header": "t=1793525400,v1=a5dd4ca7e358a5ecacd7e50489ee37a8303f0f659370fcbda1556bd16f2f2df6",
+   "valid": false,
+   "code": "mismatch"
+  },
+  {
+   "name": "tampered body",
+   "secret": "whsec_test_0123456789abcdef",
+   "body": "{\"id\":\"dec_01J0000000000000000000000\",\"watchId\":\"w_abc\",\"occurrenceId\":\"occ_01J0000000000000000000000\",\"type\":\"goal.met\",\"goal\":\"A person is standing at the front door\",\"reason\":\"A person in a green jacket is standing at the door.\",\"confidence\":0.99,\"at\":\"2026-11-01T09:30:00Z\"}",
+   "now": 1793525400,
+   "header": "t=1793525400,v1=8e5e700cb765e9ab12298aab30c87184ef634bb0410eb66125c6c0ca9dfd700b",
+   "valid": false,
+   "code": "mismatch"
+  },
+  {
+   "name": "body with trailing newline",
+   "secret": "whsec_test_0123456789abcdef",
+   "body": "{\"id\":\"dec_01J0000000000000000000000\",\"watchId\":\"w_abc\",\"occurrenceId\":\"occ_01J0000000000000000000000\",\"type\":\"goal.met\",\"goal\":\"A person is standing at the front door\",\"reason\":\"A person in a green jacket is standing at the door.\",\"confidence\":0.93,\"at\":\"2026-11-01T09:30:00Z\"}\n",
+   "now": 1793525400,
+   "header": "t=1793525400,v1=8e5e700cb765e9ab12298aab30c87184ef634bb0410eb66125c6c0ca9dfd700b",
+   "valid": false,
+   "code": "mismatch"
+  },
+  {
+   "name": "timestamp altered after signing",
+   "secret": "whsec_test_0123456789abcdef",
+   "body": "{\"id\":\"dec_01J0000000000000000000000\",\"watchId\":\"w_abc\",\"occurrenceId\":\"occ_01J0000000000000000000000\",\"type\":\"goal.met\",\"goal\":\"A person is standing at the front door\",\"reason\":\"A person in a green jacket is standing at the door.\",\"confidence\":0.93,\"at\":\"2026-11-01T09:30:00Z\"}",
+   "now": 1793525400,
+   "header": "t=1793525401,v1=8e5e700cb765e9ab12298aab30c87184ef634bb0410eb66125c6c0ca9dfd700b",
+   "valid": false,
+   "code": "mismatch"
+  },
+  {
+   "name": "uppercase hex",
+   "secret": "whsec_test_0123456789abcdef",
+   "body": "{\"id\":\"dec_01J0000000000000000000000\",\"watchId\":\"w_abc\",\"occurrenceId\":\"occ_01J0000000000000000000000\",\"type\":\"goal.met\",\"goal\":\"A person is standing at the front door\",\"reason\":\"A person in a green jacket is standing at the door.\",\"confidence\":0.93,\"at\":\"2026-11-01T09:30:00Z\"}",
+   "now": 1793525400,
+   "header": "t=1793525400,v1=8E5E700CB765E9AB12298AAB30C87184EF634BB0410EB66125C6C0CA9DFD700B",
+   "valid": false,
+   "code": "mismatch"
+  },
+  {
+   "name": "missing v1",
+   "secret": "whsec_test_0123456789abcdef",
+   "body": "{\"id\":\"dec_01J0000000000000000000000\",\"watchId\":\"w_abc\",\"occurrenceId\":\"occ_01J0000000000000000000000\",\"type\":\"goal.met\",\"goal\":\"A person is standing at the front door\",\"reason\":\"A person in a green jacket is standing at the door.\",\"confidence\":0.93,\"at\":\"2026-11-01T09:30:00Z\"}",
+   "now": 1793525400,
+   "header": "t=1793525400",
+   "valid": false,
+   "code": "malformed"
+  },
+  {
+   "name": "missing t",
+   "secret": "whsec_test_0123456789abcdef",
+   "body": "{\"id\":\"dec_01J0000000000000000000000\",\"watchId\":\"w_abc\",\"occurrenceId\":\"occ_01J0000000000000000000000\",\"type\":\"goal.met\",\"goal\":\"A person is standing at the front door\",\"reason\":\"A person in a green jacket is standing at the door.\",\"confidence\":0.93,\"at\":\"2026-11-01T09:30:00Z\"}",
+   "now": 1793525400,
+   "header": "v1=8e5e700cb765e9ab12298aab30c87184ef634bb0410eb66125c6c0ca9dfd700b",
+   "valid": false,
+   "code": "malformed"
+  },
+  {
+   "name": "non-numeric t",
+   "secret": "whsec_test_0123456789abcdef",
+   "body": "{\"id\":\"dec_01J0000000000000000000000\",\"watchId\":\"w_abc\",\"occurrenceId\":\"occ_01J0000000000000000000000\",\"type\":\"goal.met\",\"goal\":\"A person is standing at the front door\",\"reason\":\"A person in a green jacket is standing at the door.\",\"confidence\":0.93,\"at\":\"2026-11-01T09:30:00Z\"}",
+   "now": 1793525400,
+   "header": "t=abc,v1=8e5e700cb765e9ab12298aab30c87184ef634bb0410eb66125c6c0ca9dfd700b",
+   "valid": false,
+   "code": "malformed"
+  },
+  {
+   "name": "garbage header",
+   "secret": "whsec_test_0123456789abcdef",
+   "body": "{\"id\":\"dec_01J0000000000000000000000\",\"watchId\":\"w_abc\",\"occurrenceId\":\"occ_01J0000000000000000000000\",\"type\":\"goal.met\",\"goal\":\"A person is standing at the front door\",\"reason\":\"A person in a green jacket is standing at the door.\",\"confidence\":0.93,\"at\":\"2026-11-01T09:30:00Z\"}",
+   "now": 1793525400,
+   "header": "garbage",
+   "valid": false,
+   "code": "malformed"
+  },
+  {
+   "name": "empty header",
+   "secret": "whsec_test_0123456789abcdef",
+   "body": "{\"id\":\"dec_01J0000000000000000000000\",\"watchId\":\"w_abc\",\"occurrenceId\":\"occ_01J0000000000000000000000\",\"type\":\"goal.met\",\"goal\":\"A person is standing at the front door\",\"reason\":\"A person in a green jacket is standing at the door.\",\"confidence\":0.93,\"at\":\"2026-11-01T09:30:00Z\"}",
+   "now": 1793525400,
+   "header": "",
+   "valid": false,
+   "code": "malformed"
+  },
+  {
+   "name": "empty secret (header signed with the real secret)",
+   "secret": "",
+   "body": "{\"id\":\"dec_01J0000000000000000000000\",\"watchId\":\"w_abc\",\"occurrenceId\":\"occ_01J0000000000000000000000\",\"type\":\"goal.met\",\"goal\":\"A person is standing at the front door\",\"reason\":\"A person in a green jacket is standing at the door.\",\"confidence\":0.93,\"at\":\"2026-11-01T09:30:00Z\"}",
+   "now": 1793525400,
+   "header": "t=1793525400,v1=8e5e700cb765e9ab12298aab30c87184ef634bb0410eb66125c6c0ca9dfd700b",
+   "valid": false,
+   "code": "mismatch"
+  }
+ ]
+}
