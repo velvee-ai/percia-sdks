@@ -1,6 +1,6 @@
 # Owner steps
 
-Nothing here has been done. The assistant never publishes, never creates accounts and never holds registry credentials. Everything below needs you, logged in. Status of the names on 2026-11-09 (checked read-only): `@percia/sdk` and `@percia/cli` do not exist on npm (a 404 does not prove you own the `@percia` scope: step 1 does), `percia` on PyPI returns 404 (free).
+Nothing here has been done. The assistant never publishes, never creates accounts and never holds registry credentials. Everything below needs you, logged in. Status of the names on 2026-11-09 (checked read-only): `@percia/sdk` and `@percia/cli` do not exist on npm (a 404 does not prove you own the `@percia` scope: step 2 does), `percia` on PyPI returns 404 (free).
 
 ## 0. Put the repo on GitHub
 
@@ -39,20 +39,20 @@ Nothing here has been done. The assistant never publishes, never creates account
   ```bash
   PERCIA_API_KEY=pk_live_... percia whoami && percia watches list && percia events list --limit 3
   ```
-  Expect `/events`, `/hooks` (and the SMS and WhatsApp destinations) to 404 until percia-cf master is deployed (the live host is behind master).
+  The pinned spec matched the live host on 2026-11-09 (`/events`, `/hooks`, SMS and WhatsApp present); if you point at another host, `percia doctor` and `pnpm spec:check --url <host>/api/openapi.json` show whether it is behind.
 - **Real signed deliveries** verified by the TS and Python verifiers: create a webhook watch pointing at a tunnel (`cloudflared tunnel --url http://localhost:3000`) running `examples/node-express`, run `percia watches test <id>`. The verifiers are proven only against the shared vectors and a locally signed body.
 - **`mcp setup`** against installed clients: the file formats follow the documented configs (`.mcp.json`, `~/.cursor/mcp.json`, `claude_desktop_config.json` with `mcp-remote`), unverified against current client versions.
 - **Cloudflare Worker example**: `wrangler dev` / deploy needs your Cloudflare login. **Vapi example**: documentation only; the request shape is unverified (check Vapi's docs, use your own Vapi key).
 - **Pairing and connect links** (`cameras add`, `destinations connect`) need a person to open them on a phone / signed in to Percia.
 
-## 4. After the live host catches up with master
+## 4. When the server API changes
 
 ```bash
 pnpm spec:sync        # pins https://playground.percia.ai/api/openapi.json
 pnpm generate         # TS, Python, Postman
 git diff              # review, then commit
 ```
-The daily "Spec drift" workflow fails (and opens a `spec-drift` issue) whenever the live document differs from the pin. It is red from day one because of the deploy gap above.
+The daily "Spec drift" workflow fails (and opens a `spec-drift` issue) whenever the live document differs from the pin. It was green when this was written (live and pin identical).
 
 ## 5. Optional
 
