@@ -53,10 +53,13 @@ def sync_detailed(
     *,
     client: AuthenticatedClient,
 ) -> Response[Union[Error, GetPlanResponse200]]:
-    """Your plan (free or pro), its limits and your current counts. Limits count active watches only and
-    bind only when `enforced` is true; when it is false they are just reported, so never ask the user to
-    pause or delete anything because of them. `selling` says whether paid plans are on sale (false
-    during the free preview).
+    """Your plan (free, or pro shown as Pay as you go), its limits and your current counts. Limits count
+    active watches only and bind only when `enforced` is true; when it is false they are just reported,
+    so never ask the user to pause or delete anything because of them. `selling` says whether paid plans
+    are on sale (false during the free preview). Pricing: $0.50 per camera-hour per camera (`pricing`),
+    up to 10 active watches per camera (always enforced); `freeMinutesLeft` of the free camera-minutes,
+    `monthToDate` camera-minutes and cost in cents, the spend cap `capCents`; watches pause for billing
+    only when `billingEnforced` is true.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -79,10 +82,13 @@ def sync(
     *,
     client: AuthenticatedClient,
 ) -> Optional[Union[Error, GetPlanResponse200]]:
-    """Your plan (free or pro), its limits and your current counts. Limits count active watches only and
-    bind only when `enforced` is true; when it is false they are just reported, so never ask the user to
-    pause or delete anything because of them. `selling` says whether paid plans are on sale (false
-    during the free preview).
+    """Your plan (free, or pro shown as Pay as you go), its limits and your current counts. Limits count
+    active watches only and bind only when `enforced` is true; when it is false they are just reported,
+    so never ask the user to pause or delete anything because of them. `selling` says whether paid plans
+    are on sale (false during the free preview). Pricing: $0.50 per camera-hour per camera (`pricing`),
+    up to 10 active watches per camera (always enforced); `freeMinutesLeft` of the free camera-minutes,
+    `monthToDate` camera-minutes and cost in cents, the spend cap `capCents`; watches pause for billing
+    only when `billingEnforced` is true.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -101,10 +107,13 @@ async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
 ) -> Response[Union[Error, GetPlanResponse200]]:
-    """Your plan (free or pro), its limits and your current counts. Limits count active watches only and
-    bind only when `enforced` is true; when it is false they are just reported, so never ask the user to
-    pause or delete anything because of them. `selling` says whether paid plans are on sale (false
-    during the free preview).
+    """Your plan (free, or pro shown as Pay as you go), its limits and your current counts. Limits count
+    active watches only and bind only when `enforced` is true; when it is false they are just reported,
+    so never ask the user to pause or delete anything because of them. `selling` says whether paid plans
+    are on sale (false during the free preview). Pricing: $0.50 per camera-hour per camera (`pricing`),
+    up to 10 active watches per camera (always enforced); `freeMinutesLeft` of the free camera-minutes,
+    `monthToDate` camera-minutes and cost in cents, the spend cap `capCents`; watches pause for billing
+    only when `billingEnforced` is true.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -125,10 +134,13 @@ async def asyncio(
     *,
     client: AuthenticatedClient,
 ) -> Optional[Union[Error, GetPlanResponse200]]:
-    """Your plan (free or pro), its limits and your current counts. Limits count active watches only and
-    bind only when `enforced` is true; when it is false they are just reported, so never ask the user to
-    pause or delete anything because of them. `selling` says whether paid plans are on sale (false
-    during the free preview).
+    """Your plan (free, or pro shown as Pay as you go), its limits and your current counts. Limits count
+    active watches only and bind only when `enforced` is true; when it is false they are just reported,
+    so never ask the user to pause or delete anything because of them. `selling` says whether paid plans
+    are on sale (false during the free preview). Pricing: $0.50 per camera-hour per camera (`pricing`),
+    up to 10 active watches per camera (always enforced); `freeMinutesLeft` of the free camera-minutes,
+    `monthToDate` camera-minutes and cost in cents, the spend cap `capCents`; watches pause for billing
+    only when `billingEnforced` is true.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

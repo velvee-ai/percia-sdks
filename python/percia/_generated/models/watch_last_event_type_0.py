@@ -24,11 +24,16 @@ class WatchLastEventType0:
     Attributes:
         at (Union[Unset, datetime.datetime]):
         delivery_status (Union[Unset, WatchLastEventType0DeliveryStatus]):
+        has_keyframe (Union[Unset, bool]): False when no keyframe was kept or it has passed its retention days.
+        id (Union[Unset, str]): The newest event id; with hasKeyframe it addresses GET
+            /watches/{id}/events/{eventId}/keyframe.
         type_ (Union[Unset, str]):
     """
 
     at: Union[Unset, datetime.datetime] = UNSET
     delivery_status: Union[Unset, WatchLastEventType0DeliveryStatus] = UNSET
+    has_keyframe: Union[Unset, bool] = UNSET
+    id: Union[Unset, str] = UNSET
     type_: Union[Unset, str] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -41,6 +46,10 @@ class WatchLastEventType0:
         if not isinstance(self.delivery_status, Unset):
             delivery_status = self.delivery_status.value
 
+        has_keyframe = self.has_keyframe
+
+        id = self.id
+
         type_ = self.type_
 
         field_dict: dict[str, Any] = {}
@@ -50,6 +59,10 @@ class WatchLastEventType0:
             field_dict["at"] = at
         if delivery_status is not UNSET:
             field_dict["deliveryStatus"] = delivery_status
+        if has_keyframe is not UNSET:
+            field_dict["hasKeyframe"] = has_keyframe
+        if id is not UNSET:
+            field_dict["id"] = id
         if type_ is not UNSET:
             field_dict["type"] = type_
 
@@ -72,11 +85,17 @@ class WatchLastEventType0:
         else:
             delivery_status = WatchLastEventType0DeliveryStatus(_delivery_status)
 
+        has_keyframe = d.pop("hasKeyframe", UNSET)
+
+        id = d.pop("id", UNSET)
+
         type_ = d.pop("type", UNSET)
 
         watch_last_event_type_0 = cls(
             at=at,
             delivery_status=delivery_status,
+            has_keyframe=has_keyframe,
+            id=id,
             type_=type_,
         )
 

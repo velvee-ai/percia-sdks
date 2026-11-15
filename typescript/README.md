@@ -40,7 +40,8 @@ Needed scopes follow the API: `watches:read|write|delete`, `events:read`, `camer
 const reg = await percia.cameras.registerPush({ name: "Front door", externalId: "front-door" });
 reg.token;      // the publish token, once; on a repeat call { existing: true, token: null } (or onExisting: "rotate" | "throw")
 await percia.cameras.rotateToken(reg.camera.id); await percia.cameras.revokeToken(reg.camera.id);
-await percia.cameras.status(reg.camera.id);      // online | offline | never
+await percia.cameras.status(reg.camera.id);      // { state: waiting | online | offline | revoked, hint, ... }
+await percia.cameras.bulk([{ name: "Door", externalId: "nvr1-ch1" }]); // POST /cameras/bulk, up to 10 per request
 buildPublishCommands(reg, { rtsp }).ffmpeg;      // uses $PERCIA_CAMERA_TOKEN, never the token
 ```
 See [camera push](../docs/camera-push.md).

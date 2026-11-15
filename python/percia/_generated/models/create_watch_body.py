@@ -11,6 +11,7 @@ from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
 from ..models.create_watch_body_media import CreateWatchBodyMedia
+from ..models.create_watch_body_runtime import CreateWatchBodyRuntime
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
@@ -32,6 +33,7 @@ class CreateWatchBody:
         goal (Union[Unset, str]):
         media (Union[Unset, CreateWatchBodyMedia]):
         notify (Union['CreateWatchBodyNotifyType0', 'CreateWatchBodyNotifyType1', Unset]):
+        runtime (Union[Unset, CreateWatchBodyRuntime]):
         site_id (Union[Unset, str]):
     """
 
@@ -42,6 +44,7 @@ class CreateWatchBody:
     goal: Union[Unset, str] = UNSET
     media: Union[Unset, CreateWatchBodyMedia] = UNSET
     notify: Union["CreateWatchBodyNotifyType0", "CreateWatchBodyNotifyType1", Unset] = UNSET
+    runtime: Union[Unset, CreateWatchBodyRuntime] = UNSET
     site_id: Union[Unset, str] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -73,6 +76,10 @@ class CreateWatchBody:
         else:
             notify = self.notify.to_dict()
 
+        runtime: Union[Unset, str] = UNSET
+        if not isinstance(self.runtime, Unset):
+            runtime = self.runtime.value
+
         site_id = self.site_id
 
         field_dict: dict[str, Any] = {}
@@ -94,6 +101,8 @@ class CreateWatchBody:
             field_dict["media"] = media
         if notify is not UNSET:
             field_dict["notify"] = notify
+        if runtime is not UNSET:
+            field_dict["runtime"] = runtime
         if site_id is not UNSET:
             field_dict["siteId"] = site_id
 
@@ -147,6 +156,13 @@ class CreateWatchBody:
 
         notify = _parse_notify(d.pop("notify", UNSET))
 
+        _runtime = d.pop("runtime", UNSET)
+        runtime: Union[Unset, CreateWatchBodyRuntime]
+        if isinstance(_runtime, Unset):
+            runtime = UNSET
+        else:
+            runtime = CreateWatchBodyRuntime(_runtime)
+
         site_id = d.pop("siteId", UNSET)
 
         create_watch_body = cls(
@@ -157,6 +173,7 @@ class CreateWatchBody:
             goal=goal,
             media=media,
             notify=notify,
+            runtime=runtime,
             site_id=site_id,
         )
 

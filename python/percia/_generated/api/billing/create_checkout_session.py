@@ -39,6 +39,11 @@ def _parse_response(
 
         return response_403
 
+    if response.status_code == 409:
+        response_409 = Error.from_dict(response.json())
+
+        return response_409
+
     if client.raise_on_unexpected_status:
         raise errors.UnexpectedStatus(response.status_code, response.content)
     else:
@@ -60,7 +65,8 @@ def sync_detailed(
     *,
     client: AuthenticatedClient,
 ) -> Response[Union[CreateCheckoutSessionResponse200, Error]]:
-    """Start a Stripe checkout (403 selling_disabled while paid plans are not on sale)
+    """Start a Stripe checkout (403 selling_disabled while paid plans are not on sale; 409
+    already_subscribed when the account already has a subscription: use the portal)
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -83,7 +89,8 @@ def sync(
     *,
     client: AuthenticatedClient,
 ) -> Optional[Union[CreateCheckoutSessionResponse200, Error]]:
-    """Start a Stripe checkout (403 selling_disabled while paid plans are not on sale)
+    """Start a Stripe checkout (403 selling_disabled while paid plans are not on sale; 409
+    already_subscribed when the account already has a subscription: use the portal)
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -102,7 +109,8 @@ async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
 ) -> Response[Union[CreateCheckoutSessionResponse200, Error]]:
-    """Start a Stripe checkout (403 selling_disabled while paid plans are not on sale)
+    """Start a Stripe checkout (403 selling_disabled while paid plans are not on sale; 409
+    already_subscribed when the account already has a subscription: use the portal)
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -123,7 +131,8 @@ async def asyncio(
     *,
     client: AuthenticatedClient,
 ) -> Optional[Union[CreateCheckoutSessionResponse200, Error]]:
-    """Start a Stripe checkout (403 selling_disabled while paid plans are not on sale)
+    """Start a Stripe checkout (403 selling_disabled while paid plans are not on sale; 409
+    already_subscribed when the account already has a subscription: use the portal)
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

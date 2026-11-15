@@ -12,12 +12,16 @@ from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 from dateutil.parser import isoparse
 
+from ..models.create_watch_response_201_core_state import (
+    CreateWatchResponse201CoreState,
+)
 from ..models.create_watch_response_201_display_status import (
     CreateWatchResponse201DisplayStatus,
 )
 from ..models.create_watch_response_201_last_delivery_type_1 import (
     CreateWatchResponse201LastDeliveryType1,
 )
+from ..models.create_watch_response_201_runtime import CreateWatchResponse201Runtime
 from ..models.create_watch_response_201_source_type import (
     CreateWatchResponse201SourceType,
 )
@@ -50,7 +54,14 @@ class CreateWatchResponse201:
         agent (Union['CreateWatchResponse201AgentType0', None, Unset]): Only on watches deployed with an agent. version
             is the one it runs; followsLatest is true when it was not pinned.
         camera (Union['CreateWatchResponse201CameraType0', None, Unset]): Only on phone-camera watches.
+        core_state (Union[Unset, CreateWatchResponse201CoreState]): Only on core watches. running is judging; absent is
+            paused (nothing runs on Percia core); off means the core switch was off when it was created; error: see
+            syncError.
         created_at (Union[Unset, datetime.datetime]):
+        destinations_attached (Union[Unset, int]): Connected destinations that now have a rule on this watch (0 when
+            none).
+        destinations_failed (Union[Unset, bool]): Only present, true, when destinations could not be read or attached:
+            the watch exists without them; add them with PUT /watches/{id}/integrations.
         display_status (Union[Unset, CreateWatchResponse201DisplayStatus]): Needs attention when syncError is set, the
             last delivery failed, a rule of the watch points at a broken integration, or an active watch gets no video
             (noVideoSince set).
@@ -64,8 +75,13 @@ class CreateWatchResponse201:
             active watch is paused automatically 60 minutes after this time (pausedReason no_video). Kept on a no_video
             pause; cleared on resume.
         notify (Union[Unset, CreateWatchResponse201Notify]):
-        paused_reason (Union[None, Unset, str]): Why a paused watch is paused: user (paused by the owner or an agent) or
-            no_video (paused automatically after 60 minutes without video from the camera). Resume with PATCH status active.
+        paused_reason (Union[None, Unset, str]): Why a paused watch is paused: user (paused by the owner or an agent, or
+            an older pause with no recorded reason), no_video (paused automatically after 60 minutes without video from the
+            camera), needs_billing (free minutes and credits used, no card), spend_cap (the monthly cap was reached),
+            payment_failed (a payment failed and the 48-hour grace is over; resumes by itself when the payment succeeds) or
+            ended (a short-term watch reached its end). Resume with PATCH status active.
+        runtime (Union[Unset, CreateWatchResponse201Runtime]): Where the watch is judged: pool (default) or core (Percia
+            core, Percept Cloud). Fixed when the watch is created.
         secret_hint (Union[None, Unset, str]):
         site (Union['CreateWatchResponse201SiteType0', None, Unset]): The site this watch belongs to (shared memory),
             else null.
@@ -80,7 +96,10 @@ class CreateWatchResponse201:
 
     agent: Union["CreateWatchResponse201AgentType0", None, Unset] = UNSET
     camera: Union["CreateWatchResponse201CameraType0", None, Unset] = UNSET
+    core_state: Union[Unset, CreateWatchResponse201CoreState] = UNSET
     created_at: Union[Unset, datetime.datetime] = UNSET
+    destinations_attached: Union[Unset, int] = UNSET
+    destinations_failed: Union[Unset, bool] = UNSET
     display_status: Union[Unset, CreateWatchResponse201DisplayStatus] = UNSET
     event_count: Union[Unset, int] = UNSET
     goal: Union[Unset, str] = UNSET
@@ -90,6 +109,7 @@ class CreateWatchResponse201:
     no_video_since: Union[None, Unset, datetime.datetime] = UNSET
     notify: Union[Unset, "CreateWatchResponse201Notify"] = UNSET
     paused_reason: Union[None, Unset, str] = UNSET
+    runtime: Union[Unset, CreateWatchResponse201Runtime] = UNSET
     secret_hint: Union[None, Unset, str] = UNSET
     site: Union["CreateWatchResponse201SiteType0", None, Unset] = UNSET
     source_type: Union[Unset, CreateWatchResponse201SourceType] = UNSET
@@ -130,9 +150,17 @@ class CreateWatchResponse201:
         else:
             camera = self.camera
 
+        core_state: Union[Unset, str] = UNSET
+        if not isinstance(self.core_state, Unset):
+            core_state = self.core_state.value
+
         created_at: Union[Unset, str] = UNSET
         if not isinstance(self.created_at, Unset):
             created_at = self.created_at.isoformat()
+
+        destinations_attached = self.destinations_attached
+
+        destinations_failed = self.destinations_failed
 
         display_status: Union[Unset, str] = UNSET
         if not isinstance(self.display_status, Unset):
@@ -177,6 +205,10 @@ class CreateWatchResponse201:
             paused_reason = UNSET
         else:
             paused_reason = self.paused_reason
+
+        runtime: Union[Unset, str] = UNSET
+        if not isinstance(self.runtime, Unset):
+            runtime = self.runtime.value
 
         secret_hint: Union[None, Unset, str]
         if isinstance(self.secret_hint, Unset):
@@ -225,8 +257,14 @@ class CreateWatchResponse201:
             field_dict["agent"] = agent
         if camera is not UNSET:
             field_dict["camera"] = camera
+        if core_state is not UNSET:
+            field_dict["coreState"] = core_state
         if created_at is not UNSET:
             field_dict["createdAt"] = created_at
+        if destinations_attached is not UNSET:
+            field_dict["destinationsAttached"] = destinations_attached
+        if destinations_failed is not UNSET:
+            field_dict["destinationsFailed"] = destinations_failed
         if display_status is not UNSET:
             field_dict["displayStatus"] = display_status
         if event_count is not UNSET:
@@ -245,6 +283,8 @@ class CreateWatchResponse201:
             field_dict["notify"] = notify
         if paused_reason is not UNSET:
             field_dict["pausedReason"] = paused_reason
+        if runtime is not UNSET:
+            field_dict["runtime"] = runtime
         if secret_hint is not UNSET:
             field_dict["secretHint"] = secret_hint
         if site is not UNSET:
@@ -322,12 +362,23 @@ class CreateWatchResponse201:
 
         camera = _parse_camera(d.pop("camera", UNSET))
 
+        _core_state = d.pop("coreState", UNSET)
+        core_state: Union[Unset, CreateWatchResponse201CoreState]
+        if isinstance(_core_state, Unset):
+            core_state = UNSET
+        else:
+            core_state = CreateWatchResponse201CoreState(_core_state)
+
         _created_at = d.pop("createdAt", UNSET)
         created_at: Union[Unset, datetime.datetime]
         if isinstance(_created_at, Unset):
             created_at = UNSET
         else:
             created_at = isoparse(_created_at)
+
+        destinations_attached = d.pop("destinationsAttached", UNSET)
+
+        destinations_failed = d.pop("destinationsFailed", UNSET)
 
         _display_status = d.pop("displayStatus", UNSET)
         display_status: Union[Unset, CreateWatchResponse201DisplayStatus]
@@ -415,6 +466,13 @@ class CreateWatchResponse201:
 
         paused_reason = _parse_paused_reason(d.pop("pausedReason", UNSET))
 
+        _runtime = d.pop("runtime", UNSET)
+        runtime: Union[Unset, CreateWatchResponse201Runtime]
+        if isinstance(_runtime, Unset):
+            runtime = UNSET
+        else:
+            runtime = CreateWatchResponse201Runtime(_runtime)
+
         def _parse_secret_hint(data: object) -> Union[None, Unset, str]:
             if data is None:
                 return data
@@ -490,7 +548,10 @@ class CreateWatchResponse201:
         create_watch_response_201 = cls(
             agent=agent,
             camera=camera,
+            core_state=core_state,
             created_at=created_at,
+            destinations_attached=destinations_attached,
+            destinations_failed=destinations_failed,
             display_status=display_status,
             event_count=event_count,
             goal=goal,
@@ -500,6 +561,7 @@ class CreateWatchResponse201:
             no_video_since=no_video_since,
             notify=notify,
             paused_reason=paused_reason,
+            runtime=runtime,
             secret_hint=secret_hint,
             site=site,
             source_type=source_type,

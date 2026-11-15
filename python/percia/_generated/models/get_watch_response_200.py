@@ -12,12 +12,14 @@ from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 from dateutil.parser import isoparse
 
+from ..models.get_watch_response_200_core_state import GetWatchResponse200CoreState
 from ..models.get_watch_response_200_display_status import (
     GetWatchResponse200DisplayStatus,
 )
 from ..models.get_watch_response_200_last_delivery_type_1 import (
     GetWatchResponse200LastDeliveryType1,
 )
+from ..models.get_watch_response_200_runtime import GetWatchResponse200Runtime
 from ..models.get_watch_response_200_source_type import GetWatchResponse200SourceType
 from ..models.get_watch_response_200_status import GetWatchResponse200Status
 from ..types import UNSET, Unset
@@ -28,6 +30,9 @@ if TYPE_CHECKING:
     )
     from ..models.get_watch_response_200_camera_type_0 import (
         GetWatchResponse200CameraType0,
+    )
+    from ..models.get_watch_response_200_engine_type_0 import (
+        GetWatchResponse200EngineType0,
     )
     from ..models.get_watch_response_200_last_event_type_0 import (
         GetWatchResponse200LastEventType0,
@@ -46,10 +51,17 @@ class GetWatchResponse200:
         agent (Union['GetWatchResponse200AgentType0', None, Unset]): Only on watches deployed with an agent. version is
             the one it runs; followsLatest is true when it was not pinned.
         camera (Union['GetWatchResponse200CameraType0', None, Unset]): Only on phone-camera watches.
+        core_state (Union[Unset, GetWatchResponse200CoreState]): Only on core watches. running is judging; absent is
+            paused (nothing runs on Percia core); off means the core switch was off when it was created; error: see
+            syncError.
         created_at (Union[Unset, datetime.datetime]):
         display_status (Union[Unset, GetWatchResponse200DisplayStatus]): Needs attention when syncError is set, the last
             delivery failed, a rule of the watch points at a broken integration, or an active watch gets no video
             (noVideoSince set).
+        engine (Union['GetWatchResponse200EngineType0', None, Unset]): The engine release (Percept version plus Percia's
+            runner revision) that judges this watch, or would when it is active. pinned is true when support fixed it for
+            this watch; otherwise it follows Percia's staged rollout. Null while none is assigned. Informational: there is
+            nothing to set.
         event_count (Union[Unset, int]):
         goal (Union[Unset, str]): For a deployed watch, the agent's name.
         id (Union[Unset, str]):
@@ -60,8 +72,13 @@ class GetWatchResponse200:
             active watch is paused automatically 60 minutes after this time (pausedReason no_video). Kept on a no_video
             pause; cleared on resume.
         notify (Union[Unset, GetWatchResponse200Notify]):
-        paused_reason (Union[None, Unset, str]): Why a paused watch is paused: user (paused by the owner or an agent) or
-            no_video (paused automatically after 60 minutes without video from the camera). Resume with PATCH status active.
+        paused_reason (Union[None, Unset, str]): Why a paused watch is paused: user (paused by the owner or an agent, or
+            an older pause with no recorded reason), no_video (paused automatically after 60 minutes without video from the
+            camera), needs_billing (free minutes and credits used, no card), spend_cap (the monthly cap was reached),
+            payment_failed (a payment failed and the 48-hour grace is over; resumes by itself when the payment succeeds) or
+            ended (a short-term watch reached its end). Resume with PATCH status active.
+        runtime (Union[Unset, GetWatchResponse200Runtime]): Where the watch is judged: pool (default) or core (Percia
+            core, Percept Cloud). Fixed when the watch is created.
         secret_hint (Union[None, Unset, str]):
         site (Union['GetWatchResponse200SiteType0', None, Unset]): The site this watch belongs to (shared memory), else
             null.
@@ -75,8 +92,10 @@ class GetWatchResponse200:
 
     agent: Union["GetWatchResponse200AgentType0", None, Unset] = UNSET
     camera: Union["GetWatchResponse200CameraType0", None, Unset] = UNSET
+    core_state: Union[Unset, GetWatchResponse200CoreState] = UNSET
     created_at: Union[Unset, datetime.datetime] = UNSET
     display_status: Union[Unset, GetWatchResponse200DisplayStatus] = UNSET
+    engine: Union["GetWatchResponse200EngineType0", None, Unset] = UNSET
     event_count: Union[Unset, int] = UNSET
     goal: Union[Unset, str] = UNSET
     id: Union[Unset, str] = UNSET
@@ -85,6 +104,7 @@ class GetWatchResponse200:
     no_video_since: Union[None, Unset, datetime.datetime] = UNSET
     notify: Union[Unset, "GetWatchResponse200Notify"] = UNSET
     paused_reason: Union[None, Unset, str] = UNSET
+    runtime: Union[Unset, GetWatchResponse200Runtime] = UNSET
     secret_hint: Union[None, Unset, str] = UNSET
     site: Union["GetWatchResponse200SiteType0", None, Unset] = UNSET
     source_type: Union[Unset, GetWatchResponse200SourceType] = UNSET
@@ -100,6 +120,9 @@ class GetWatchResponse200:
         )
         from ..models.get_watch_response_200_camera_type_0 import (
             GetWatchResponse200CameraType0,
+        )
+        from ..models.get_watch_response_200_engine_type_0 import (
+            GetWatchResponse200EngineType0,
         )
         from ..models.get_watch_response_200_last_event_type_0 import (
             GetWatchResponse200LastEventType0,
@@ -124,6 +147,10 @@ class GetWatchResponse200:
         else:
             camera = self.camera
 
+        core_state: Union[Unset, str] = UNSET
+        if not isinstance(self.core_state, Unset):
+            core_state = self.core_state.value
+
         created_at: Union[Unset, str] = UNSET
         if not isinstance(self.created_at, Unset):
             created_at = self.created_at.isoformat()
@@ -131,6 +158,14 @@ class GetWatchResponse200:
         display_status: Union[Unset, str] = UNSET
         if not isinstance(self.display_status, Unset):
             display_status = self.display_status.value
+
+        engine: Union[None, Unset, dict[str, Any]]
+        if isinstance(self.engine, Unset):
+            engine = UNSET
+        elif isinstance(self.engine, GetWatchResponse200EngineType0):
+            engine = self.engine.to_dict()
+        else:
+            engine = self.engine
 
         event_count = self.event_count
 
@@ -171,6 +206,10 @@ class GetWatchResponse200:
             paused_reason = UNSET
         else:
             paused_reason = self.paused_reason
+
+        runtime: Union[Unset, str] = UNSET
+        if not isinstance(self.runtime, Unset):
+            runtime = self.runtime.value
 
         secret_hint: Union[None, Unset, str]
         if isinstance(self.secret_hint, Unset):
@@ -217,10 +256,14 @@ class GetWatchResponse200:
             field_dict["agent"] = agent
         if camera is not UNSET:
             field_dict["camera"] = camera
+        if core_state is not UNSET:
+            field_dict["coreState"] = core_state
         if created_at is not UNSET:
             field_dict["createdAt"] = created_at
         if display_status is not UNSET:
             field_dict["displayStatus"] = display_status
+        if engine is not UNSET:
+            field_dict["engine"] = engine
         if event_count is not UNSET:
             field_dict["eventCount"] = event_count
         if goal is not UNSET:
@@ -237,6 +280,8 @@ class GetWatchResponse200:
             field_dict["notify"] = notify
         if paused_reason is not UNSET:
             field_dict["pausedReason"] = paused_reason
+        if runtime is not UNSET:
+            field_dict["runtime"] = runtime
         if secret_hint is not UNSET:
             field_dict["secretHint"] = secret_hint
         if site is not UNSET:
@@ -261,6 +306,9 @@ class GetWatchResponse200:
         )
         from ..models.get_watch_response_200_camera_type_0 import (
             GetWatchResponse200CameraType0,
+        )
+        from ..models.get_watch_response_200_engine_type_0 import (
+            GetWatchResponse200EngineType0,
         )
         from ..models.get_watch_response_200_last_event_type_0 import (
             GetWatchResponse200LastEventType0,
@@ -310,6 +358,13 @@ class GetWatchResponse200:
 
         camera = _parse_camera(d.pop("camera", UNSET))
 
+        _core_state = d.pop("coreState", UNSET)
+        core_state: Union[Unset, GetWatchResponse200CoreState]
+        if isinstance(_core_state, Unset):
+            core_state = UNSET
+        else:
+            core_state = GetWatchResponse200CoreState(_core_state)
+
         _created_at = d.pop("createdAt", UNSET)
         created_at: Union[Unset, datetime.datetime]
         if isinstance(_created_at, Unset):
@@ -323,6 +378,25 @@ class GetWatchResponse200:
             display_status = UNSET
         else:
             display_status = GetWatchResponse200DisplayStatus(_display_status)
+
+        def _parse_engine(
+            data: object,
+        ) -> Union["GetWatchResponse200EngineType0", None, Unset]:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                engine_type_0 = GetWatchResponse200EngineType0.from_dict(data)
+
+                return engine_type_0
+            except:  # noqa: E722
+                pass
+            return cast(Union["GetWatchResponse200EngineType0", None, Unset], data)
+
+        engine = _parse_engine(d.pop("engine", UNSET))
 
         event_count = d.pop("eventCount", UNSET)
 
@@ -403,6 +477,13 @@ class GetWatchResponse200:
 
         paused_reason = _parse_paused_reason(d.pop("pausedReason", UNSET))
 
+        _runtime = d.pop("runtime", UNSET)
+        runtime: Union[Unset, GetWatchResponse200Runtime]
+        if isinstance(_runtime, Unset):
+            runtime = UNSET
+        else:
+            runtime = GetWatchResponse200Runtime(_runtime)
+
         def _parse_secret_hint(data: object) -> Union[None, Unset, str]:
             if data is None:
                 return data
@@ -476,8 +557,10 @@ class GetWatchResponse200:
         get_watch_response_200 = cls(
             agent=agent,
             camera=camera,
+            core_state=core_state,
             created_at=created_at,
             display_status=display_status,
+            engine=engine,
             event_count=event_count,
             goal=goal,
             id=id,
@@ -486,6 +569,7 @@ class GetWatchResponse200:
             no_video_since=no_video_since,
             notify=notify,
             paused_reason=paused_reason,
+            runtime=runtime,
             secret_hint=secret_hint,
             site=site,
             source_type=source_type,

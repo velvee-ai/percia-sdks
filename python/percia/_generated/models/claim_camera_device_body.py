@@ -1,50 +1,46 @@
 from collections.abc import Mapping
-from typing import (
-    Any,
-    TypeVar,
-    Union,
-)
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
-from ..types import UNSET, Unset
-
-T = TypeVar("T", bound="DeleteGeminiKeyResponse200")
+T = TypeVar("T", bound="ClaimCameraDeviceBody")
 
 
 @_attrs_define
-class DeleteGeminiKeyResponse200:
+class ClaimCameraDeviceBody:
     """
     Attributes:
-        ok (Union[Unset, bool]):
+        pairing (str):
     """
 
-    ok: Union[Unset, bool] = UNSET
+    pairing: str
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        ok = self.ok
+        pairing = self.pairing
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
-        field_dict.update({})
-        if ok is not UNSET:
-            field_dict["ok"] = ok
+        field_dict.update(
+            {
+                "pairing": pairing,
+            }
+        )
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        ok = d.pop("ok", UNSET)
+        pairing = d.pop("pairing")
 
-        delete_gemini_key_response_200 = cls(
-            ok=ok,
+        claim_camera_device_body = cls(
+            pairing=pairing,
         )
 
-        delete_gemini_key_response_200.additional_properties = d
-        return delete_gemini_key_response_200
+        claim_camera_device_body.additional_properties = d
+        return claim_camera_device_body
 
     @property
     def additional_keys(self) -> list[str]:

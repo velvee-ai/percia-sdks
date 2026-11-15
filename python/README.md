@@ -53,7 +53,8 @@ asyncio.run(main())
 reg = client.cameras.register_push("Front door", "front-door")  # on_existing="return" | "rotate" | "throw"
 reg.token          # the publish token, once; a repeat call gives existing=True, token=None
 client.cameras.rotate_token(reg.camera.id); client.cameras.revoke_token(reg.camera.id)
-client.cameras.status(reg.camera.id)                             # .status: online | offline | never
+client.cameras.status(reg.camera.id)                             # .state: waiting | online | offline | revoked; .hint
+client.cameras.bulk([{"name": "Door", "external_id": "nvr1-ch1"}])  # POST /cameras/bulk, up to 10 per request
 build_publish_commands(reg.whip_url, rtsp)["ffmpeg"]             # uses $PERCIA_CAMERA_TOKEN, never the token
 ```
 Async twins are on `AsyncPercia`. See [camera push](../docs/camera-push.md).

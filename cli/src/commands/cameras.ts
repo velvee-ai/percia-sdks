@@ -72,12 +72,19 @@ export function registerCameras(program: Command, { ctx, globals }: Deps) {
 			ctx.stdout(`Revoked the publish token of camera ${id}. Publishing is refused until you run: percia cameras token rotate ${id}\n${dropped ? "Removed the saved copy.\n" : ""}`);
 		});
 	c.command("status [id]")
-		.description("Show whether push cameras are online (seen in the last 60 s). One camera by id, or all.")
+		.description("Show whether push cameras are online (seen in the last 60 s). One camera by id (state and what to do next), or all.")
 		.action(async (id?: string) => {
 			const g = globals();
 			const client = (await openSession(ctx, g)).client;
-			const list = id ? [await client.cameras.status(id)] : await client.cameras.list();
-			if (g.json) return json(ctx, id ? list[0] : list);
+			if (id) {
+				const st = await client.cameras.status(id);
+				if (g.json) return json(ctx, st);
+				ctx.stdout(table([{ ...st, lastSeenAt: isoOrDash(st.lastSeenAt), secondsSinceSeen: st.secondsSinceSeen ?? "-" }] as Record<string, unknown>[], [{ key: "id" }, { key: "kind" }, { key: "state" }, { key: "status" }, { key: "lastSeenAt", title: "last seen" }, { key: "secondsSinceSeen", title: "seconds ago" }, { key: "watchCount", title: "watches" }]));
+				if (st.hint) ctx.stdout(`${st.hint}\n`);
+				return;
+			}
+			const list = await client.cameras.list();
+			if (g.json) return json(ctx, list);
 			ctx.stdout(list.length ? table(list.map((x) => ({ ...x, lastSeenAt: isoOrDash(x.lastSeenAt) })) as Record<string, unknown>[], [{ key: "id" }, { key: "name" }, { key: "kind" }, { key: "status" }, { key: "lastSeenAt", title: "last seen" }, { key: "watchCount", title: "watches" }]) : "No cameras.\n");
 		});
 }

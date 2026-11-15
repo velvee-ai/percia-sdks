@@ -90,11 +90,24 @@ describe("cameras token and status", () => {
 		expect(r.code).toBe(5);
 		expect(r.err).toContain("not a push camera");
 	});
-	it("status shows one camera or all; unknown id exits 4", async () => {
-		const cam = existing.body.camera;
-		e.mock.script("listCameras", { status: 200, body: [cam] }, { status: 200, body: [cam] }, { status: 200, body: [] });
+	it("status of one camera uses the status route and prints state and hint; --json is the server shape", async () => {
+		e.mock.script("getCameraStatus", contract.status.online, contract.status.revoked);
+		const r = await e.run("cameras", "status", "cam_push_1");
+		expect(r.out).toMatch(/cam_push_1\s+push\s+online\s+online/);
+		expect(r.out).toContain("Receiving video.");
+		const j = JSON.parse((await e.run("cameras", "status", "cam_push_1", "--json")).out);
+		expect(j).toMatchObject({ state: "revoked", hint: "The token was revoked. Rotate it to publish again." });
+		expect(e.mock.requests.map((x) => x.url.pathname)).toEqual(["/api/cameras/cam_push_1/status", "/api/cameras/cam_push_1/status"]);
+	});
+	it("status without an id lists all cameras", async () => {
+		e.mock.script("listCameras", { status: 200, body: [existing.body.camera] });
 		expect((await e.run("cameras", "status")).out).toMatch(/cam_push_1\s+Hall camera\s+push\s+online/);
-		expect(JSON.parse((await e.run("cameras", "status", "cam_push_1", "--json")).out).status).toBe("online");
+	});
+	it("status on an older server (404 on the route) falls back to the list; unknown id exits 4", async () => {
+		const notFound = { status: 404, body: { error: { code: "not_found", message: "Not found" } } };
+		e.mock.script("getCameraStatus", notFound, notFound);
+		e.mock.script("listCameras", { status: 200, body: [existing.body.camera] }, { status: 200, body: [] });
+		expect(JSON.parse((await e.run("cameras", "status", "cam_push_1", "--json")).out)).toMatchObject({ derived: true, state: "online" });
 		expect((await e.run("cameras", "status", "nope")).code).toBe(4);
 	});
 });

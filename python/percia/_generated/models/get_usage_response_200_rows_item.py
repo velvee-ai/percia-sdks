@@ -19,14 +19,18 @@ class GetUsageResponse200RowsItem:
     Attributes:
         action_calls (Union[Unset, int]):
         ai_calls (Union[Unset, int]):
+        camera_minutes (Union[Unset, int]): Camera time metered that day, in whole minutes (each camera stream once,
+            however many watches use it).
         day (Union[Unset, str]):
         events (Union[Unset, int]):
-        own_key (Union[Unset, int]):
+        own_key (Union[Unset, int]): Always 0 (own provider keys are gone, ADR 0034); kept so older readers do not
+            break.
         watch_hours (Union[Unset, float]):
     """
 
     action_calls: Union[Unset, int] = UNSET
     ai_calls: Union[Unset, int] = UNSET
+    camera_minutes: Union[Unset, int] = UNSET
     day: Union[Unset, str] = UNSET
     events: Union[Unset, int] = UNSET
     own_key: Union[Unset, int] = UNSET
@@ -37,6 +41,8 @@ class GetUsageResponse200RowsItem:
         action_calls = self.action_calls
 
         ai_calls = self.ai_calls
+
+        camera_minutes = self.camera_minutes
 
         day = self.day
 
@@ -53,6 +59,8 @@ class GetUsageResponse200RowsItem:
             field_dict["actionCalls"] = action_calls
         if ai_calls is not UNSET:
             field_dict["aiCalls"] = ai_calls
+        if camera_minutes is not UNSET:
+            field_dict["cameraMinutes"] = camera_minutes
         if day is not UNSET:
             field_dict["day"] = day
         if events is not UNSET:
@@ -71,6 +79,8 @@ class GetUsageResponse200RowsItem:
 
         ai_calls = d.pop("aiCalls", UNSET)
 
+        camera_minutes = d.pop("cameraMinutes", UNSET)
+
         day = d.pop("day", UNSET)
 
         events = d.pop("events", UNSET)
@@ -82,6 +92,7 @@ class GetUsageResponse200RowsItem:
         get_usage_response_200_rows_item = cls(
             action_calls=action_calls,
             ai_calls=ai_calls,
+            camera_minutes=camera_minutes,
             day=day,
             events=events,
             own_key=own_key,

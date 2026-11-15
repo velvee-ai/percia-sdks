@@ -4,7 +4,9 @@
 
 - Camera push (cameras on a private network): `cameras.registerPush({ name, externalId })` (idempotent; returns `whipUrl` and the one-time `token`, or `existing: true, token: null`; `onExisting: "return" | "rotate" | "throw"`), `cameras.rotateToken`, `cameras.revokeToken`, `cameras.status`, `cameras.bulk`.
 - Helpers that never carry the token: `buildPublishCommands` (ffmpeg, OBS, GStreamer, heartbeat), `publishArgv` (for spawning), `redactRegistration`, `scrubToken`.
-- Regenerated from a spec that adds `POST/DELETE /cameras/{id}/token` and `kind`, `externalId` on cameras.
+- `cameras.status(id)` calls `GET /cameras/{id}/status` and returns `state` (`waiting | online | offline | revoked`), `status`, `lastSeenAt`, `secondsSinceSeen`, `watchCount`, `hint` (new `CameraStatus` type). On a 404 (older server) it reads `GET /cameras` and derives the state (`derived: true`).
+- `cameras.bulk(items, { onExisting })` calls `POST /cameras/bulk`, 10 per request (longer lists are chunked), results per item in input order; a 404 falls back to one `registerPush` per item. The `concurrency` option only applies to that fallback.
+- Regenerated from the live spec (105 operations): token routes, `kind`, `externalId`, status, bulk, `/cam/claim` body, credits and billing routes.
 
 ## 0.1.0 (unreleased)
 

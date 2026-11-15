@@ -89,6 +89,13 @@ class Percia:
             raise error_from_response(resp.status_code, resp.content, resp.headers)
         return module._parse_response(client=self._gen, response=resp)
 
+    def _call_json(self, module: Any, **kwargs: Any) -> Any:
+        """Like ``_call`` but returns the parsed JSON body for any 2xx (for responses the OpenAPI document leaves without a schema)."""
+        resp = self._send(**module._get_kwargs(**kwargs))
+        if not _ok(resp.status_code):
+            raise error_from_response(resp.status_code, resp.content, resp.headers)
+        return _parse_json(resp)
+
     def request(
         self,
         method: str,
@@ -208,6 +215,12 @@ class AsyncPercia:
         if not _ok(resp.status_code):
             raise error_from_response(resp.status_code, resp.content, resp.headers)
         return module._parse_response(client=self._gen, response=resp)
+
+    async def _call_json(self, module: Any, **kwargs: Any) -> Any:
+        resp = await self._send(**module._get_kwargs(**kwargs))
+        if not _ok(resp.status_code):
+            raise error_from_response(resp.status_code, resp.content, resp.headers)
+        return _parse_json(resp)
 
     async def request(
         self,

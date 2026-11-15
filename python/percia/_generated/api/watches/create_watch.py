@@ -48,6 +48,16 @@ def _parse_response(
 
         return response_401
 
+    if response.status_code == 402:
+        response_402 = Error.from_dict(response.json())
+
+        return response_402
+
+    if response.status_code == 403:
+        response_403 = Error.from_dict(response.json())
+
+        return response_403
+
     if response.status_code == 429:
         response_429 = Error.from_dict(response.json())
 
@@ -75,9 +85,12 @@ def sync_detailed(
     client: AuthenticatedClient,
     body: CreateWatchBody,
 ) -> Response[Union[CreateWatchResponse201, Error]]:
-    """Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-
+    r"""Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-
     cam://<cameraId> for one of your own phone cameras. Send `goal`, or `agentId` (+ optional
-    `agentVersion`; omitted = follow the latest) to deploy a published agent.
+    `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime:
+    \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has
+    turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out
+    unless the person asked.
 
     Args:
         body (CreateWatchBody):
@@ -106,9 +119,12 @@ def sync(
     client: AuthenticatedClient,
     body: CreateWatchBody,
 ) -> Optional[Union[CreateWatchResponse201, Error]]:
-    """Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-
+    r"""Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-
     cam://<cameraId> for one of your own phone cameras. Send `goal`, or `agentId` (+ optional
-    `agentVersion`; omitted = follow the latest) to deploy a published agent.
+    `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime:
+    \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has
+    turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out
+    unless the person asked.
 
     Args:
         body (CreateWatchBody):
@@ -132,9 +148,12 @@ async def asyncio_detailed(
     client: AuthenticatedClient,
     body: CreateWatchBody,
 ) -> Response[Union[CreateWatchResponse201, Error]]:
-    """Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-
+    r"""Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-
     cam://<cameraId> for one of your own phone cameras. Send `goal`, or `agentId` (+ optional
-    `agentVersion`; omitted = follow the latest) to deploy a published agent.
+    `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime:
+    \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has
+    turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out
+    unless the person asked.
 
     Args:
         body (CreateWatchBody):
@@ -161,9 +180,12 @@ async def asyncio(
     client: AuthenticatedClient,
     body: CreateWatchBody,
 ) -> Optional[Union[CreateWatchResponse201, Error]]:
-    """Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-
+    r"""Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-
     cam://<cameraId> for one of your own phone cameras. Send `goal`, or `agentId` (+ optional
-    `agentVersion`; omitted = follow the latest) to deploy a published agent.
+    `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime:
+    \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has
+    turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out
+    unless the person asked.
 
     Args:
         body (CreateWatchBody):

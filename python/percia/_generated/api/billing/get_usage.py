@@ -64,7 +64,7 @@ def sync_detailed(
     client: AuthenticatedClient,
     days: Union[Unset, int] = UNSET,
 ) -> Response[Union[Error, GetUsageResponse200]]:
-    """Daily usage (UTC days): active watch-hours, events, model calls (and how many used your own key) and
+    """Daily usage (UTC days): active watch-hours, camera-minutes (what is priced), events, model calls and
     action calls
 
     Args:
@@ -94,7 +94,7 @@ def sync(
     client: AuthenticatedClient,
     days: Union[Unset, int] = UNSET,
 ) -> Optional[Union[Error, GetUsageResponse200]]:
-    """Daily usage (UTC days): active watch-hours, events, model calls (and how many used your own key) and
+    """Daily usage (UTC days): active watch-hours, camera-minutes (what is priced), events, model calls and
     action calls
 
     Args:
@@ -119,7 +119,7 @@ async def asyncio_detailed(
     client: AuthenticatedClient,
     days: Union[Unset, int] = UNSET,
 ) -> Response[Union[Error, GetUsageResponse200]]:
-    """Daily usage (UTC days): active watch-hours, events, model calls (and how many used your own key) and
+    """Daily usage (UTC days): active watch-hours, camera-minutes (what is priced), events, model calls and
     action calls
 
     Args:
@@ -147,7 +147,7 @@ async def asyncio(
     client: AuthenticatedClient,
     days: Union[Unset, int] = UNSET,
 ) -> Optional[Union[Error, GetUsageResponse200]]:
-    """Daily usage (UTC days): active watch-hours, events, model calls (and how many used your own key) and
+    """Daily usage (UTC days): active watch-hours, camera-minutes (what is priced), events, model calls and
     action calls
 
     Args:

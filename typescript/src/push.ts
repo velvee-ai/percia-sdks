@@ -92,3 +92,23 @@ export type BulkItem = { name: string; externalId: string };
 export type BulkResult =
 	| { externalId: string; ok: true; registration: PushRegistration }
 	| { externalId: string; ok: false; error: unknown };
+
+/**
+ * `cameras.status(id)`: what `GET /cameras/{id}/status` returns. `state` is the one to act on: `waiting` (never seen),
+ * `online`, `offline`, `revoked` (token revoked). `hint` names the likely reason and the next step.
+ * `derived` is set (and `hint` is null, `revoked` never appears) only when an older server had no status route and the
+ * SDK worked it out from the camera list; `name` and `externalId` are filled in the same case.
+ */
+export type CameraStatus = {
+	id: string;
+	kind: "phone" | "push";
+	state: "waiting" | "online" | "offline" | "revoked";
+	status: "online" | "offline" | "never";
+	lastSeenAt: string | null;
+	secondsSinceSeen: number | null;
+	watchCount: number;
+	hint: string | null;
+	name?: string;
+	externalId?: string | null;
+	derived?: true;
+};

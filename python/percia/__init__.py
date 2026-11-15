@@ -24,6 +24,7 @@ from ._errors import (
 from ._push import (
     TOKEN_ENV,
     TOKEN_PLACEHOLDER,
+    CameraStatus,
     PushRegistration,
     build_publish_commands,
     publish_argv,
@@ -53,6 +54,7 @@ __all__ = [
     "PerciaError",
     "PermissionDeniedError",
     "RateLimitError",
+    "CameraStatus",
     "PushRegistration",
     "RetryPolicy",
     "ServerError",

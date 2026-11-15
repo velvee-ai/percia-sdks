@@ -5,17 +5,28 @@ import httpx
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
+from ...models.claim_camera_device_body import ClaimCameraDeviceBody
 from ...models.claim_camera_device_response_200 import ClaimCameraDeviceResponse200
 from ...models.error import Error
 from ...types import Response
 
 
-def _get_kwargs() -> dict[str, Any]:
+def _get_kwargs(
+    *,
+    body: ClaimCameraDeviceBody,
+) -> dict[str, Any]:
+    headers: dict[str, Any] = {}
+
     _kwargs: dict[str, Any] = {
         "method": "post",
         "url": "/cam/claim",
     }
 
+    _kwargs["json"] = body.to_dict()
+
+    headers["Content-Type"] = "application/json"
+
+    _kwargs["headers"] = headers
     return _kwargs
 
 
@@ -62,9 +73,13 @@ def _build_response(
 def sync_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
+    body: ClaimCameraDeviceBody,
 ) -> Response[Union[ClaimCameraDeviceResponse200, Error]]:
     """Pair a phone: exchange the single-use pairing token for the camera token (returned once). Public,
     rate limited per IP.
+
+    Args:
+        body (ClaimCameraDeviceBody):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -74,7 +89,9 @@ def sync_detailed(
         Response[Union[ClaimCameraDeviceResponse200, Error]]
     """
 
-    kwargs = _get_kwargs()
+    kwargs = _get_kwargs(
+        body=body,
+    )
 
     response = client.get_httpx_client().request(
         **kwargs,
@@ -86,9 +103,13 @@ def sync_detailed(
 def sync(
     *,
     client: Union[AuthenticatedClient, Client],
+    body: ClaimCameraDeviceBody,
 ) -> Optional[Union[ClaimCameraDeviceResponse200, Error]]:
     """Pair a phone: exchange the single-use pairing token for the camera token (returned once). Public,
     rate limited per IP.
+
+    Args:
+        body (ClaimCameraDeviceBody):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -100,15 +121,20 @@ def sync(
 
     return sync_detailed(
         client=client,
+        body=body,
     ).parsed
 
 
 async def asyncio_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
+    body: ClaimCameraDeviceBody,
 ) -> Response[Union[ClaimCameraDeviceResponse200, Error]]:
     """Pair a phone: exchange the single-use pairing token for the camera token (returned once). Public,
     rate limited per IP.
+
+    Args:
+        body (ClaimCameraDeviceBody):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -118,7 +144,9 @@ async def asyncio_detailed(
         Response[Union[ClaimCameraDeviceResponse200, Error]]
     """
 
-    kwargs = _get_kwargs()
+    kwargs = _get_kwargs(
+        body=body,
+    )
 
     response = await client.get_async_httpx_client().request(**kwargs)
 
@@ -128,9 +156,13 @@ async def asyncio_detailed(
 async def asyncio(
     *,
     client: Union[AuthenticatedClient, Client],
+    body: ClaimCameraDeviceBody,
 ) -> Optional[Union[ClaimCameraDeviceResponse200, Error]]:
     """Pair a phone: exchange the single-use pairing token for the camera token (returned once). Public,
     rate limited per IP.
+
+    Args:
+        body (ClaimCameraDeviceBody):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -143,5 +175,6 @@ async def asyncio(
     return (
         await asyncio_detailed(
             client=client,
+            body=body,
         )
     ).parsed

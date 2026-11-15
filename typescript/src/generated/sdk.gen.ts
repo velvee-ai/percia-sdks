@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AskSiteData, AskSiteErrors, AskSiteResponses, BuildAgentData, BuildAgentErrors, BuildAgentResponses, ChatWithAgentData, ChatWithAgentErrors, ChatWithAgentResponses, CheckCameraPairingData, CheckCameraPairingErrors, CheckCameraPairingResponses, ClaimCameraDeviceData, ClaimCameraDeviceErrors, ClaimCameraDeviceResponses, ClearSiteMemoryData, ClearSiteMemoryErrors, ClearSiteMemoryResponses, ConnectWithKeyData, ConnectWithKeyErrors, ConnectWithKeyResponses, ConnectWithTwilioData, ConnectWithTwilioErrors, ConnectWithTwilioResponses, ConnectWithUrlData, ConnectWithUrlErrors, ConnectWithUrlResponses, CreateAgentData, CreateAgentErrors, CreateAgentResponses, CreateApiKeyData, CreateApiKeyErrors, CreateApiKeyResponses, CreateCameraData, CreateCameraErrors, CreateCameraPairingData, CreateCameraPairingErrors, CreateCameraPairingResponses, CreateCameraResponses, CreateCheckoutSessionData, CreateCheckoutSessionErrors, CreateCheckoutSessionResponses, CreateConnectLinkData, CreateConnectLinkErrors, CreateConnectLinkResponses, CreateHookData, CreateHookErrors, CreateHookResponses, CreateInstantWatchData, CreateInstantWatchErrors, CreateInstantWatchResponses, CreatePortalSessionData, CreatePortalSessionErrors, CreatePortalSessionResponses, CreatePublicWatchData, CreatePublicWatchErrors, CreatePublicWatchResponses, CreateSiteData, CreateSiteErrors, CreateSiteResponses, CreateWatchData, CreateWatchErrors, CreateWatchResponses, DeleteAccountData, DeleteAccountErrors, DeleteAccountResponses, DeleteAgentData, DeleteAgentErrors, DeleteAgentResponses, DeleteApiKeyData, DeleteApiKeyErrors, DeleteApiKeyResponses, DeleteCameraData, DeleteCameraErrors, DeleteCameraResponses, DeleteDeviceData, DeleteDeviceErrors, DeleteDeviceResponses, DeleteGeminiKeyData, DeleteGeminiKeyErrors, DeleteGeminiKeyResponses, DeleteHookData, DeleteHookErrors, DeleteHookResponses, DeleteIntegrationData, DeleteIntegrationErrors, DeleteIntegrationResponses, DeleteSiteData, DeleteSiteErrors, DeleteSiteResponses, DeleteTestCaseData, DeleteTestCaseErrors, DeleteTestCaseResponses, DeleteWatchData, DeleteWatchErrors, DeleteWatchResponses, FinishOAuthConnectData, FinishOAuthConnectErrors, GetAccountData, GetAccountErrors, GetAccountResponses, GetAgentData, GetAgentErrors, GetAgentResponses, GetAgentVersionData, GetAgentVersionErrors, GetAgentVersionResponses, GetAuthResourceData, GetAuthResourceErrors, GetAuthResourceResponses, GetConfigData, GetConfigErrors, GetConfigResponses, GetConnectLinkData, GetConnectLinkErrors, GetConnectLinkResponses, GetEventKeyframeData, GetEventKeyframeErrors, GetEventKeyframeLinkData, GetEventKeyframeLinkErrors, GetEventKeyframeLinkResponses, GetEventKeyframeResponses, GetHealthData, GetHealthErrors, GetHealthResponses, GetManagedWatchData, GetManagedWatchErrors, GetManagedWatchResponses, GetMetricsData, GetMetricsErrors, GetMetricsResponses, GetOpenApiDocumentData, GetOpenApiDocumentErrors, GetOpenApiDocumentResponses, GetPlanData, GetPlanErrors, GetPlanResponses, GetSampleEventData, GetSampleEventErrors, GetSampleEventResponses, GetSignedImageData, GetSignedImageErrors, GetSignedImageResponses, GetSiteData, GetSiteErrors, GetSiteResponses, GetSiteTimelineData, GetSiteTimelineErrors, GetSiteTimelineResponses, GetStatusData, GetStatusErrors, GetStatusResponses, GetTestCaseImageData, GetTestCaseImageErrors, GetTestCaseImageLinkData, GetTestCaseImageLinkErrors, GetTestCaseImageLinkResponses, GetTestCaseImageResponses, GetUsageData, GetUsageErrors, GetUsageResponses, GetWatchClaimData, GetWatchClaimErrors, GetWatchClaimResponses, GetWatchData, GetWatchErrors, GetWatchResponses, ListAccountEventsData, ListAccountEventsErrors, ListAccountEventsResponses, ListAgentMessagesData, ListAgentMessagesErrors, ListAgentMessagesResponses, ListAgentsData, ListAgentsErrors, ListAgentsResponses, ListAgentTestRunsData, ListAgentTestRunsErrors, ListAgentTestRunsResponses, ListAgentTestsData, ListAgentTestsErrors, ListAgentTestsResponses, ListApiKeysData, ListApiKeysErrors, ListApiKeysResponses, ListCamerasData, ListCamerasErrors, ListCamerasResponses, ListConnectedAppsData, ListConnectedAppsErrors, ListConnectedAppsResponses, ListDeploymentsData, ListDeploymentsErrors, ListDeploymentsResponses, ListDevicesData, ListDevicesErrors, ListDevicesResponses, ListHooksData, ListHooksErrors, ListHooksResponses, ListIntegrationsData, ListIntegrationsErrors, ListIntegrationServicesData, ListIntegrationServicesErrors, ListIntegrationServicesResponses, ListIntegrationsResponses, ListProviderKeysData, ListProviderKeysErrors, ListProviderKeysResponses, ListSitesData, ListSitesErrors, ListSitesResponses, ListWatchesData, ListWatchesErrors, ListWatchesResponses, ListWatchEventsData, ListWatchEventsErrors, ListWatchEventsResponses, ListWatchIntegrationsData, ListWatchIntegrationsErrors, ListWatchIntegrationsResponses, PublishAgentData, PublishAgentErrors, PublishAgentResponses, ReceiveStripeWebhookData, ReceiveStripeWebhookErrors, ReceiveStripeWebhookResponses, ReceiveTelegramUpdateData, ReceiveTelegramUpdateErrors, ReceiveTelegramUpdateResponses, RegisterDeviceData, RegisterDeviceErrors, RegisterDeviceResponses, RevokeCameraTokenData, RevokeCameraTokenErrors, RevokeCameraTokenResponses, RevokeConnectedAppData, RevokeConnectedAppErrors, RevokeConnectedAppResponses, RotateCameraTokenData, RotateCameraTokenErrors, RotateCameraTokenResponses, RotateWatchSecretData, RotateWatchSecretErrors, RotateWatchSecretResponses, RunAgentTestsData, RunAgentTestsErrors, RunAgentTestsResponses, SendCameraHeartbeatData, SendCameraHeartbeatErrors, SendCameraHeartbeatResponses, SendEventFeedbackData, SendEventFeedbackErrors, SendEventFeedbackResponses, SetGeminiKeyData, SetGeminiKeyErrors, SetGeminiKeyResponses, SetWatchIntegrationsData, SetWatchIntegrationsErrors, SetWatchIntegrationsResponses, StartConnectData, StartConnectErrors, StartConnectResponses, StartLiveViewData, StartLiveViewErrors, StartLiveViewResponses, SubmitAuthActionData, SubmitAuthActionErrors, SubmitAuthActionResponses, TestAgentActionData, TestAgentActionErrors, TestAgentActionResponses, TestHookData, TestHookErrors, TestHookResponses, TestWatchDeliveryData, TestWatchDeliveryErrors, TestWatchDeliveryResponses, UpdateAgentData, UpdateAgentErrors, UpdateAgentResponses, UpdateIntegrationData, UpdateIntegrationErrors, UpdateIntegrationResponses, UpdateSiteData, UpdateSiteErrors, UpdateSiteMemoryData, UpdateSiteMemoryErrors, UpdateSiteMemoryResponses, UpdateSiteResponses, UpdateWatchData, UpdateWatchErrors, UpdateWatchResponses } from './types.gen';
+import type { AskSiteData, AskSiteErrors, AskSiteResponses, BuildAgentData, BuildAgentErrors, BuildAgentResponses, ChatWithAgentData, ChatWithAgentErrors, ChatWithAgentResponses, CheckCameraPairingData, CheckCameraPairingErrors, CheckCameraPairingResponses, ClaimCameraDeviceData, ClaimCameraDeviceErrors, ClaimCameraDeviceResponses, ClearSiteMemoryData, ClearSiteMemoryErrors, ClearSiteMemoryResponses, ConnectWithKeyData, ConnectWithKeyErrors, ConnectWithKeyResponses, ConnectWithTwilioData, ConnectWithTwilioErrors, ConnectWithTwilioResponses, ConnectWithUrlData, ConnectWithUrlErrors, ConnectWithUrlResponses, CreateAgentData, CreateAgentErrors, CreateAgentResponses, CreateApiKeyData, CreateApiKeyErrors, CreateApiKeyResponses, CreateCameraData, CreateCameraErrors, CreateCameraPairingData, CreateCameraPairingErrors, CreateCameraPairingResponses, CreateCameraResponses, CreateCamerasData, CreateCamerasErrors, CreateCamerasResponses, CreateCheckoutSessionData, CreateCheckoutSessionErrors, CreateCheckoutSessionResponses, CreateConnectLinkData, CreateConnectLinkErrors, CreateConnectLinkResponses, CreateHookData, CreateHookErrors, CreateHookResponses, CreateInstantWatchData, CreateInstantWatchErrors, CreateInstantWatchResponses, CreatePortalSessionData, CreatePortalSessionErrors, CreatePortalSessionResponses, CreatePublicWatchData, CreatePublicWatchErrors, CreatePublicWatchResponses, CreateSiteData, CreateSiteErrors, CreateSiteResponses, CreateWatchData, CreateWatchErrors, CreateWatchResponses, DeleteAccountData, DeleteAccountErrors, DeleteAccountResponses, DeleteAgentData, DeleteAgentErrors, DeleteAgentResponses, DeleteApiKeyData, DeleteApiKeyErrors, DeleteApiKeyResponses, DeleteCameraData, DeleteCameraErrors, DeleteCameraResponses, DeleteDeviceData, DeleteDeviceErrors, DeleteDeviceResponses, DeleteHookData, DeleteHookErrors, DeleteHookResponses, DeleteIntegrationData, DeleteIntegrationErrors, DeleteIntegrationResponses, DeleteSiteData, DeleteSiteErrors, DeleteSiteResponses, DeleteTestCaseData, DeleteTestCaseErrors, DeleteTestCaseResponses, DeleteWatchData, DeleteWatchErrors, DeleteWatchResponses, FinishOAuthConnectData, FinishOAuthConnectErrors, GetAccountData, GetAccountErrors, GetAccountResponses, GetAgentData, GetAgentErrors, GetAgentResponses, GetAgentVersionData, GetAgentVersionErrors, GetAgentVersionResponses, GetAuthResourceData, GetAuthResourceErrors, GetAuthResourceResponses, GetCameraStatusData, GetCameraStatusErrors, GetCameraStatusResponses, GetCameraUsageData, GetCameraUsageErrors, GetCameraUsageResponses, GetConfigData, GetConfigErrors, GetConfigResponses, GetConnectLinkData, GetConnectLinkErrors, GetConnectLinkResponses, GetCreditsData, GetCreditsErrors, GetCreditsResponses, GetEventKeyframeData, GetEventKeyframeErrors, GetEventKeyframeLinkData, GetEventKeyframeLinkErrors, GetEventKeyframeLinkResponses, GetEventKeyframeResponses, GetHealthData, GetHealthErrors, GetHealthResponses, GetManagedWatchData, GetManagedWatchErrors, GetManagedWatchResponses, GetMetricsData, GetMetricsErrors, GetMetricsResponses, GetOpenApiDocumentData, GetOpenApiDocumentErrors, GetOpenApiDocumentResponses, GetPlanData, GetPlanErrors, GetPlanResponses, GetSampleEventData, GetSampleEventErrors, GetSampleEventResponses, GetSessionHintData, GetSessionHintErrors, GetSessionHintResponses, GetSignedImageData, GetSignedImageErrors, GetSignedImageResponses, GetSignInMethodsData, GetSignInMethodsErrors, GetSignInMethodsResponses, GetSiteData, GetSiteErrors, GetSiteResponses, GetSiteTimelineData, GetSiteTimelineErrors, GetSiteTimelineResponses, GetStatusData, GetStatusErrors, GetStatusResponses, GetTestCaseImageData, GetTestCaseImageErrors, GetTestCaseImageLinkData, GetTestCaseImageLinkErrors, GetTestCaseImageLinkResponses, GetTestCaseImageResponses, GetUsageData, GetUsageErrors, GetUsageResponses, GetWatchClaimData, GetWatchClaimErrors, GetWatchClaimResponses, GetWatchData, GetWatchErrors, GetWatchResponses, ListAccountEventsData, ListAccountEventsErrors, ListAccountEventsResponses, ListAgentMessagesData, ListAgentMessagesErrors, ListAgentMessagesResponses, ListAgentsData, ListAgentsErrors, ListAgentsResponses, ListAgentTestRunsData, ListAgentTestRunsErrors, ListAgentTestRunsResponses, ListAgentTestsData, ListAgentTestsErrors, ListAgentTestsResponses, ListApiKeysData, ListApiKeysErrors, ListApiKeysResponses, ListCamerasData, ListCamerasErrors, ListCamerasResponses, ListConnectedAppsData, ListConnectedAppsErrors, ListConnectedAppsResponses, ListDeploymentsData, ListDeploymentsErrors, ListDeploymentsResponses, ListDevicesData, ListDevicesErrors, ListDevicesResponses, ListHooksData, ListHooksErrors, ListHooksResponses, ListIntegrationsData, ListIntegrationsErrors, ListIntegrationServicesData, ListIntegrationServicesErrors, ListIntegrationServicesResponses, ListIntegrationsResponses, ListSitesData, ListSitesErrors, ListSitesResponses, ListWatchesData, ListWatchesErrors, ListWatchesResponses, ListWatchEventsData, ListWatchEventsErrors, ListWatchEventsResponses, ListWatchIntegrationsData, ListWatchIntegrationsErrors, ListWatchIntegrationsResponses, PayInvoiceData, PayInvoiceErrors, PayInvoiceResponses, PublishAgentData, PublishAgentErrors, PublishAgentResponses, ReceiveStripeWebhookData, ReceiveStripeWebhookErrors, ReceiveStripeWebhookResponses, ReceiveTelegramUpdateData, ReceiveTelegramUpdateErrors, ReceiveTelegramUpdateResponses, RedeemCreditCodeData, RedeemCreditCodeErrors, RedeemCreditCodeResponses, RegisterDeviceData, RegisterDeviceErrors, RegisterDeviceResponses, RevokeCameraTokenData, RevokeCameraTokenErrors, RevokeCameraTokenResponses, RevokeConnectedAppData, RevokeConnectedAppErrors, RevokeConnectedAppResponses, RotateCameraTokenData, RotateCameraTokenErrors, RotateCameraTokenResponses, RotateWatchSecretData, RotateWatchSecretErrors, RotateWatchSecretResponses, RunAgentTestsData, RunAgentTestsErrors, RunAgentTestsResponses, SendCameraHeartbeatData, SendCameraHeartbeatErrors, SendCameraHeartbeatResponses, SendEventFeedbackData, SendEventFeedbackErrors, SendEventFeedbackResponses, SetBillingCapData, SetBillingCapErrors, SetBillingCapResponses, SetWatchIntegrationsData, SetWatchIntegrationsErrors, SetWatchIntegrationsResponses, StartConnectData, StartConnectErrors, StartConnectResponses, StartLiveViewData, StartLiveViewErrors, StartLiveViewResponses, SubmitAuthActionData, SubmitAuthActionErrors, SubmitAuthActionResponses, TestAgentActionData, TestAgentActionErrors, TestAgentActionResponses, TestHookData, TestHookErrors, TestHookResponses, TestIntegrationData, TestIntegrationErrors, TestIntegrationResponses, TestWatchDeliveryData, TestWatchDeliveryErrors, TestWatchDeliveryResponses, UpdateAgentData, UpdateAgentErrors, UpdateAgentResponses, UpdateIntegrationData, UpdateIntegrationErrors, UpdateIntegrationResponses, UpdateSiteData, UpdateSiteErrors, UpdateSiteMemoryData, UpdateSiteMemoryErrors, UpdateSiteMemoryResponses, UpdateSiteResponses, UpdateWatchData, UpdateWatchErrors, UpdateWatchResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -235,7 +235,24 @@ export const getAuthResource = <ThrowOnError extends boolean = false>(options: O
 export const submitAuthAction = <ThrowOnError extends boolean = false>(options: Options<SubmitAuthActionData, ThrowOnError>): RequestResult<SubmitAuthActionResponses, SubmitAuthActionErrors, ThrowOnError> => (options.client ?? client).post<SubmitAuthActionResponses, SubmitAuthActionErrors, ThrowOnError>({ url: '/auth/{path}', ...options });
 
 /**
- * Start a Stripe checkout (403 selling_disabled while paid plans are not on sale)
+ * Set your monthly spend cap in cents ($5 to $10,000; default $200). When this month's camera time reaches it, watches pause (only while billing is enforced). Change it only when the person asks.
+ */
+export const setBillingCap = <ThrowOnError extends boolean = false>(options: Options<SetBillingCapData, ThrowOnError>): RequestResult<SetBillingCapResponses, SetBillingCapErrors, ThrowOnError> => (options.client ?? client).patch<SetBillingCapResponses, SetBillingCapErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/billing/cap',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Start a Stripe checkout (403 selling_disabled while paid plans are not on sale; 409 already_subscribed when the account already has a subscription: use the portal)
  */
 export const createCheckoutSession = <ThrowOnError extends boolean = false>(options?: Options<CreateCheckoutSessionData, ThrowOnError>): RequestResult<CreateCheckoutSessionResponses, CreateCheckoutSessionErrors, ThrowOnError> => (options?.client ?? client).post<CreateCheckoutSessionResponses, CreateCheckoutSessionErrors, ThrowOnError>({
     security: [{
@@ -248,7 +265,33 @@ export const createCheckoutSession = <ThrowOnError extends boolean = false>(opti
 });
 
 /**
- * Open the Stripe customer portal
+ * Your credit grants (minutes, remaining, source, expiry) and your last 20 redemptions. Never returns a code.
+ */
+export const getCredits = <ThrowOnError extends boolean = false>(options?: Options<GetCreditsData, ThrowOnError>): RequestResult<GetCreditsResponses, GetCreditsErrors, ThrowOnError> => (options?.client ?? client).get<GetCreditsResponses, GetCreditsErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/billing/credits',
+    ...options
+});
+
+/**
+ * Retry paying the open failed invoice with the stored payment method (session only; allowed while blocked). To change the card use the portal.
+ */
+export const payInvoice = <ThrowOnError extends boolean = false>(options?: Options<PayInvoiceData, ThrowOnError>): RequestResult<PayInvoiceResponses, PayInvoiceErrors, ThrowOnError> => (options?.client ?? client).post<PayInvoiceResponses, PayInvoiceErrors, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'better-auth.session_token',
+            type: 'apiKey'
+        }],
+    url: '/billing/pay-invoice',
+    ...options
+});
+
+/**
+ * Open the Stripe customer portal (also the way to update a failed payment method)
  */
 export const createPortalSession = <ThrowOnError extends boolean = false>(options?: Options<CreatePortalSessionData, ThrowOnError>): RequestResult<CreatePortalSessionResponses, CreatePortalSessionErrors, ThrowOnError> => (options?.client ?? client).post<CreatePortalSessionResponses, CreatePortalSessionErrors, ThrowOnError>({
     security: [{
@@ -261,12 +304,36 @@ export const createPortalSession = <ThrowOnError extends boolean = false>(option
 });
 
 /**
- * Pair a phone: exchange the single-use pairing token for the camera token (returned once). Public, rate limited per IP.
+ * Redeem a credit code for camera-minutes (credits are minutes of watching, used before the free minutes and before the card). A code is shown to its owner once: pass it in the body, never in a URL. Unknown, disabled, expired and used-up codes all answer 404 code_invalid; the same person redeeming twice is 409 code_already_redeemed; too many tries is 429 rate_limited with Retry-After.
  */
-export const claimCameraDevice = <ThrowOnError extends boolean = false>(options?: Options<ClaimCameraDeviceData, ThrowOnError>): RequestResult<ClaimCameraDeviceResponses, ClaimCameraDeviceErrors, ThrowOnError> => (options?.client ?? client).post<ClaimCameraDeviceResponses, ClaimCameraDeviceErrors, ThrowOnError>({ url: '/cam/claim', ...options });
+export const redeemCreditCode = <ThrowOnError extends boolean = false>(options: Options<RedeemCreditCodeData, ThrowOnError>): RequestResult<RedeemCreditCodeResponses, RedeemCreditCodeErrors, ThrowOnError> => (options.client ?? client).post<RedeemCreditCodeResponses, RedeemCreditCodeErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/billing/redeem',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
- * Camera is alive. Authorization: Bearer <camera token>.
+ * Pair a phone: exchange the single-use pairing token for the camera token (returned once). Public, rate limited per IP.
+ */
+export const claimCameraDevice = <ThrowOnError extends boolean = false>(options: Options<ClaimCameraDeviceData, ThrowOnError>): RequestResult<ClaimCameraDeviceResponses, ClaimCameraDeviceErrors, ThrowOnError> => (options.client ?? client).post<ClaimCameraDeviceResponses, ClaimCameraDeviceErrors, ThrowOnError>({
+    url: '/cam/claim',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Camera is alive (no request body). Authorization: Bearer <camera token>: a phone's token or a push camera's publish token. Send it every 20 s while publishing; online = under 60 s since the last heartbeat or allowed publish. 401 for a wrong, rotated or revoked token or a deleted camera.
  */
 export const sendCameraHeartbeat = <ThrowOnError extends boolean = false>(options?: Options<SendCameraHeartbeatData, ThrowOnError>): RequestResult<SendCameraHeartbeatResponses, SendCameraHeartbeatErrors, ThrowOnError> => (options?.client ?? client).post<SendCameraHeartbeatResponses, SendCameraHeartbeatErrors, ThrowOnError>({ url: '/cam/heartbeat', ...options });
 
@@ -293,6 +360,23 @@ export const createCamera = <ThrowOnError extends boolean = false>(options: Opti
             type: 'http'
         }],
     url: '/cameras',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Register up to 10 push cameras at once (an NVR connector). Each needs name and externalId and is idempotent by externalId (existing ones come back with token null). All or nothing against the 10-camera limit (429 camera_limit, nothing created).
+ */
+export const createCameras = <ThrowOnError extends boolean = false>(options: Options<CreateCamerasData, ThrowOnError>): RequestResult<CreateCamerasResponses, CreateCamerasErrors, ThrowOnError> => (options.client ?? client).post<CreateCamerasResponses, CreateCamerasErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/cameras/bulk',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -331,7 +415,7 @@ export const deleteCamera = <ThrowOnError extends boolean = false>(options: Opti
 });
 
 /**
- * Issue a new pairing link; any unused earlier link stops working
+ * Issue a new pairing link; any unused earlier link stops working (no request body; phone cameras)
  */
 export const createCameraPairing = <ThrowOnError extends boolean = false>(options: Options<CreateCameraPairingData, ThrowOnError>): RequestResult<CreateCameraPairingResponses, CreateCameraPairingErrors, ThrowOnError> => (options.client ?? client).post<CreateCameraPairingResponses, CreateCameraPairingErrors, ThrowOnError>({
     security: [{
@@ -340,6 +424,19 @@ export const createCameraPairing = <ThrowOnError extends boolean = false>(option
             type: 'http'
         }],
     url: '/cameras/{id}/pair',
+    ...options
+});
+
+/**
+ * Poll one camera: state waiting (never published), online, offline or revoked, lastSeenAt, secondsSinceSeen and a hint with the likely reason and next step. Online means a heartbeat or allowed publish under 60 s ago. Codec, resolution and bitrate are not available (media server API is off).
+ */
+export const getCameraStatus = <ThrowOnError extends boolean = false>(options: Options<GetCameraStatusData, ThrowOnError>): RequestResult<GetCameraStatusResponses, GetCameraStatusErrors, ThrowOnError> => (options.client ?? client).get<GetCameraStatusResponses, GetCameraStatusErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/cameras/{id}/status',
     ...options
 });
 
@@ -742,6 +839,19 @@ export const updateIntegration = <ThrowOnError extends boolean = false>(options:
 });
 
 /**
+ * Send one labelled test alert ("Percia test: ignore") to one of your connected destinations, to check it works. No event or delivery is recorded and the connection is not changed. At most 5 an hour per connection (2 for SMS and WhatsApp).
+ */
+export const testIntegration = <ThrowOnError extends boolean = false>(options: Options<TestIntegrationData, ThrowOnError>): RequestResult<TestIntegrationResponses, TestIntegrationErrors, ThrowOnError> => (options.client ?? client).post<TestIntegrationResponses, TestIntegrationErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/integrations/{id}/test',
+    ...options
+});
+
+/**
  * List your API keys (prefix, scopes, created, last used, revoked). Never the key itself.
  */
 export const listApiKeys = <ThrowOnError extends boolean = false>(options?: Options<ListApiKeysData, ThrowOnError>): RequestResult<ListApiKeysResponses, ListApiKeysErrors, ThrowOnError> => (options?.client ?? client).get<ListApiKeysResponses, ListApiKeysErrors, ThrowOnError>({
@@ -820,6 +930,19 @@ export const deleteAccount = <ThrowOnError extends boolean = false>(options?: Op
 });
 
 /**
+ * How this account signs in: the linked providers (Google, GitHub, Apple) with when they were linked, and whether it has an email and password. Session only; never a token or provider id.
+ */
+export const getSignInMethods = <ThrowOnError extends boolean = false>(options?: Options<GetSignInMethodsData, ThrowOnError>): RequestResult<GetSignInMethodsResponses, GetSignInMethodsErrors, ThrowOnError> => (options?.client ?? client).get<GetSignInMethodsResponses, GetSignInMethodsErrors, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'better-auth.session_token',
+            type: 'apiKey'
+        }],
+    url: '/me/sign-in-methods',
+    ...options
+});
+
+/**
  * Per watch and per agent: events per day, feedback counts, false-alarm rate and the last test pass rate
  */
 export const getMetrics = <ThrowOnError extends boolean = false>(options?: Options<GetMetricsData, ThrowOnError>): RequestResult<GetMetricsResponses, GetMetricsErrors, ThrowOnError> => (options?.client ?? client).get<GetMetricsResponses, GetMetricsErrors, ThrowOnError>({
@@ -838,7 +961,7 @@ export const getMetrics = <ThrowOnError extends boolean = false>(options?: Optio
 export const getOpenApiDocument = <ThrowOnError extends boolean = false>(options?: Options<GetOpenApiDocumentData, ThrowOnError>): RequestResult<GetOpenApiDocumentResponses, GetOpenApiDocumentErrors, ThrowOnError> => (options?.client ?? client).get<GetOpenApiDocumentResponses, GetOpenApiDocumentErrors, ThrowOnError>({ url: '/openapi.json', ...options });
 
 /**
- * Your plan (free or pro), its limits and your current counts. Limits count active watches only and bind only when `enforced` is true; when it is false they are just reported, so never ask the user to pause or delete anything because of them. `selling` says whether paid plans are on sale (false during the free preview).
+ * Your plan (free, or pro shown as Pay as you go), its limits and your current counts. Limits count active watches only and bind only when `enforced` is true; when it is false they are just reported, so never ask the user to pause or delete anything because of them. `selling` says whether paid plans are on sale (false during the free preview). Pricing: $0.50 per camera-hour per camera (`pricing`), up to 10 active watches per camera (always enforced); `freeMinutesLeft` of the free camera-minutes, `monthToDate` camera-minutes and cost in cents, the spend cap `capCents`; watches pause for billing only when `billingEnforced` is true.
  */
 export const getPlan = <ThrowOnError extends boolean = false>(options?: Options<GetPlanData, ThrowOnError>): RequestResult<GetPlanResponses, GetPlanErrors, ThrowOnError> => (options?.client ?? client).get<GetPlanResponses, GetPlanErrors, ThrowOnError>({
     security: [{
@@ -851,47 +974,9 @@ export const getPlan = <ThrowOnError extends boolean = false>(options?: Options<
 });
 
 /**
- * Your stored provider keys (last 4 characters only, never the key)
+ * Is this browser signed in? Reads the session cookie only and answers {signedIn} (no user data). For the percia.ai landing page: CORS with credentials for https://percia.ai and https://www.percia.ai only; any failure is {signedIn:false}.
  */
-export const listProviderKeys = <ThrowOnError extends boolean = false>(options?: Options<ListProviderKeysData, ThrowOnError>): RequestResult<ListProviderKeysResponses, ListProviderKeysErrors, ThrowOnError> => (options?.client ?? client).get<ListProviderKeysResponses, ListProviderKeysErrors, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'better-auth.session_token',
-            type: 'apiKey'
-        }],
-    url: '/settings/provider-keys',
-    ...options
-});
-
-/**
- * Remove your Gemini key; your watches go back to Percia's key
- */
-export const deleteGeminiKey = <ThrowOnError extends boolean = false>(options?: Options<DeleteGeminiKeyData, ThrowOnError>): RequestResult<DeleteGeminiKeyResponses, DeleteGeminiKeyErrors, ThrowOnError> => (options?.client ?? client).delete<DeleteGeminiKeyResponses, DeleteGeminiKeyErrors, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'better-auth.session_token',
-            type: 'apiKey'
-        }],
-    url: '/settings/provider-keys/gemini',
-    ...options
-});
-
-/**
- * Validate (one cheap call) and store your own Gemini key, encrypted. Your watches then judge with it.
- */
-export const setGeminiKey = <ThrowOnError extends boolean = false>(options: Options<SetGeminiKeyData, ThrowOnError>): RequestResult<SetGeminiKeyResponses, SetGeminiKeyErrors, ThrowOnError> => (options.client ?? client).put<SetGeminiKeyResponses, SetGeminiKeyErrors, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'better-auth.session_token',
-            type: 'apiKey'
-        }],
-    url: '/settings/provider-keys/gemini',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
+export const getSessionHint = <ThrowOnError extends boolean = false>(options?: Options<GetSessionHintData, ThrowOnError>): RequestResult<GetSessionHintResponses, GetSessionHintErrors, ThrowOnError> => (options?.client ?? client).get<GetSessionHintResponses, GetSessionHintErrors, ThrowOnError>({ url: '/session-hint', ...options });
 
 /**
  * List your sites with watchCount and memoryUpdatedAt
@@ -1076,7 +1161,7 @@ export const getTestCaseImageLink = <ThrowOnError extends boolean = false>(optio
 });
 
 /**
- * Daily usage (UTC days): active watch-hours, events, model calls (and how many used your own key) and action calls
+ * Daily usage (UTC days): active watch-hours, camera-minutes (what is priced), events, model calls and action calls
  */
 export const getUsage = <ThrowOnError extends boolean = false>(options?: Options<GetUsageData, ThrowOnError>): RequestResult<GetUsageResponses, GetUsageErrors, ThrowOnError> => (options?.client ?? client).get<GetUsageResponses, GetUsageErrors, ThrowOnError>({
     security: [{
@@ -1085,6 +1170,19 @@ export const getUsage = <ThrowOnError extends boolean = false>(options?: Options
             type: 'http'
         }],
     url: '/usage',
+    ...options
+});
+
+/**
+ * This UTC month's camera minutes per camera (a phone camera by its name, a video link by its host), priced at the list price. `costCents` is list price, not what was charged: free and credit minutes are used first (see /plan). `unattributedMinutes` are minutes metered before per-camera counting began.
+ */
+export const getCameraUsage = <ThrowOnError extends boolean = false>(options?: Options<GetCameraUsageData, ThrowOnError>): RequestResult<GetCameraUsageResponses, GetCameraUsageErrors, ThrowOnError> => (options?.client ?? client).get<GetCameraUsageResponses, GetCameraUsageErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/usage/cameras',
     ...options
 });
 
@@ -1126,7 +1224,7 @@ export const listWatches = <ThrowOnError extends boolean = false>(options?: Opti
 });
 
 /**
- * Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone cameras. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent.
+ * Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone cameras. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: "core"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked.
  */
 export const createWatch = <ThrowOnError extends boolean = false>(options: Options<CreateWatchData, ThrowOnError>): RequestResult<CreateWatchResponses, CreateWatchErrors, ThrowOnError> => (options.client ?? client).post<CreateWatchResponses, CreateWatchErrors, ThrowOnError>({
     security: [{
@@ -1199,7 +1297,7 @@ export const listWatchEvents = <ThrowOnError extends boolean = false>(options: O
 });
 
 /**
- * Mark an event correct or a false alarm. With a keyframe it becomes (or updates) a test case with the image pinned.
+ * Mark an event correct or a false alarm. With a keyframe it becomes (or updates) a test case with the image pinned. Leave `note` out to keep the note already stored; send an empty string to clear it.
  */
 export const sendEventFeedback = <ThrowOnError extends boolean = false>(options: Options<SendEventFeedbackData, ThrowOnError>): RequestResult<SendEventFeedbackResponses, SendEventFeedbackErrors, ThrowOnError> => (options.client ?? client).post<SendEventFeedbackResponses, SendEventFeedbackErrors, ThrowOnError>({
     security: [{

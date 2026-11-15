@@ -1,11 +1,12 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union, cast
+from typing import Any, Optional, Union
 
 import httpx
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.error import Error
+from ...models.revoke_connected_app_response_200 import RevokeConnectedAppResponse200
 from ...types import Response
 
 
@@ -24,15 +25,21 @@ def _get_kwargs(
 
 def _parse_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Any, Error]]:
+) -> Optional[Union[Error, RevokeConnectedAppResponse200]]:
     if response.status_code == 200:
-        response_200 = cast(Any, None)
+        response_200 = RevokeConnectedAppResponse200.from_dict(response.json())
+
         return response_200
 
     if response.status_code == 401:
         response_401 = Error.from_dict(response.json())
 
         return response_401
+
+    if response.status_code == 402:
+        response_402 = Error.from_dict(response.json())
+
+        return response_402
 
     if response.status_code == 404:
         response_404 = Error.from_dict(response.json())
@@ -47,7 +54,7 @@ def _parse_response(
 
 def _build_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Any, Error]]:
+) -> Response[Union[Error, RevokeConnectedAppResponse200]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -60,7 +67,7 @@ def sync_detailed(
     client_id: str,
     *,
     client: AuthenticatedClient,
-) -> Response[Union[Any, Error]]:
+) -> Response[Union[Error, RevokeConnectedAppResponse200]]:
     """Revoke an OAuth app immediately (session only)
 
     Args:
@@ -71,7 +78,7 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Any, Error]]
+        Response[Union[Error, RevokeConnectedAppResponse200]]
     """
 
     kwargs = _get_kwargs(
@@ -89,7 +96,7 @@ def sync(
     client_id: str,
     *,
     client: AuthenticatedClient,
-) -> Optional[Union[Any, Error]]:
+) -> Optional[Union[Error, RevokeConnectedAppResponse200]]:
     """Revoke an OAuth app immediately (session only)
 
     Args:
@@ -100,7 +107,7 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Any, Error]
+        Union[Error, RevokeConnectedAppResponse200]
     """
 
     return sync_detailed(
@@ -113,7 +120,7 @@ async def asyncio_detailed(
     client_id: str,
     *,
     client: AuthenticatedClient,
-) -> Response[Union[Any, Error]]:
+) -> Response[Union[Error, RevokeConnectedAppResponse200]]:
     """Revoke an OAuth app immediately (session only)
 
     Args:
@@ -124,7 +131,7 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Any, Error]]
+        Response[Union[Error, RevokeConnectedAppResponse200]]
     """
 
     kwargs = _get_kwargs(
@@ -140,7 +147,7 @@ async def asyncio(
     client_id: str,
     *,
     client: AuthenticatedClient,
-) -> Optional[Union[Any, Error]]:
+) -> Optional[Union[Error, RevokeConnectedAppResponse200]]:
     """Revoke an OAuth app immediately (session only)
 
     Args:
@@ -151,7 +158,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Any, Error]
+        Union[Error, RevokeConnectedAppResponse200]
     """
 
     return (

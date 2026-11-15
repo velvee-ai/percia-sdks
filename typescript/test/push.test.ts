@@ -67,20 +67,97 @@ describe("token routes, status, bulk", () => {
 		const limited = createClient({ apiKey: "pk_live_limited", baseUrl: "https://percia.test", fetch: mock.handle as typeof fetch });
 		await expect(limited.cameras.rotateToken("cam_push_1")).rejects.toMatchObject({ status: 403, code: "insufficient_scope" });
 	});
-	it("status reads the list; unknown id is a NotFoundError", async () => {
-		mock.script("listCameras", { status: 200, body: [existing.body.camera] }, { status: 200, body: [] });
-		expect(await c().cameras.status("cam_push_1")).toMatchObject({ status: "online", kind: "push", watchCount: 1 });
+	it("status calls GET /cameras/:id/status and returns the server's state and hint", async () => {
+		mock.script("getCameraStatus", contract.status.online);
+		const st = await c().cameras.status("cam_push_1");
+		expect(st).toMatchObject({ id: "cam_push_1", state: "online", status: "online", secondsSinceSeen: 12, watchCount: 1, hint: "Receiving video." });
+		expect(st.derived).toBeUndefined();
+		expect(mock.requests.map((r) => `${r.method} ${r.url.pathname}`)).toEqual(["GET /api/cameras/cam_push_1/status"]);
+	});
+	it("status passes revoked and waiting through", async () => {
+		mock.script("getCameraStatus", contract.status.revoked, contract.status.waiting);
+		expect((await c().cameras.status("cam_push_1")).state).toBe("revoked");
+		expect(await c().cameras.status("cam_push_1")).toMatchObject({ state: "waiting", lastSeenAt: null, secondsSinceSeen: null });
+	});
+	it("status falls back to the list when the server has no status route (404), deriving the state", async () => {
+		mock.script("getCameraStatus", { status: 404, body: { error: { code: "not_found", message: "Not found" } } });
+		mock.script("listCameras", { status: 200, body: [existing.body.camera] });
+		const st = await c().cameras.status("cam_push_1");
+		expect(st).toMatchObject({ derived: true, state: "online", status: "online", kind: "push", watchCount: 1, hint: null, name: "Hall camera" });
+		expect(mock.requests.map((r) => r.url.pathname)).toEqual(["/api/cameras/cam_push_1/status", "/api/cameras"]);
+	});
+	it("status: a camera that is on neither route is a NotFoundError (the original 404)", async () => {
+		mock.script("getCameraStatus", { status: 404, body: { error: { code: "not_found", message: "No such camera" } } });
+		mock.script("listCameras", { status: 200, body: [] });
 		await expect(c().cameras.status("nope")).rejects.toBeInstanceOf(NotFoundError);
 	});
-	it("bulk registers each item, keeps order and reports failures without stopping", async () => {
+	it("status: other errors (403) do not trigger the fallback", async () => {
+		mock.script("getCameraStatus", { status: 403, body: { error: { code: "insufficient_scope", message: "needs cameras:read" } } });
+		await expect(c().cameras.status("cam_push_1")).rejects.toMatchObject({ status: 403, code: "insufficient_scope" });
+		expect(mock.requests).toHaveLength(1);
+	});
+	it("bulk sends one POST /cameras/bulk and maps every entry in order (token once, existing null)", async () => {
+		mock.script("createCameras", contract.bulk.created);
+		const res = await c().cameras.bulk(contract.bulk.request.cameras);
+		expect(mock.requests).toHaveLength(1);
+		expect(mock.requests[0]!.body).toEqual(contract.bulk.request);
+		expect(res.map((r) => [r.externalId, r.ok])).toEqual([["a", true], ["b", true]]);
+		const [a, b] = res as Extract<(typeof res)[number], { ok: true }>[];
+		expect(a!.registration).toMatchObject({ existing: false, token: "pc_FAKE_TOKEN_bulk_a_0003" });
+		expect(b!.registration).toMatchObject({ existing: true, token: null });
+	});
+	it("bulk: the 200 (every camera existed) is read like the 201", async () => {
+		mock.script("createCameras", contract.bulk.allExisting);
+		const res = await c().cameras.bulk(contract.bulk.request.cameras);
+		expect(res.map((r) => r.ok && r.registration.existing && r.registration.token === null)).toEqual([true, true]);
+	});
+	it("bulk onExisting rotate mints a token only for the existing ones", async () => {
+		mock.script("createCameras", contract.bulk.created);
+		mock.script("rotateCameraToken", contract.rotate);
+		const res = await c().cameras.bulk(contract.bulk.request.cameras, { onExisting: "rotate" });
+		expect(res.map((r) => r.ok)).toEqual([true, true]);
+		expect((res[1] as { registration: { token: string; rotated: boolean } }).registration).toMatchObject({ rotated: true, token: contract.rotate.body.token });
+		expect(mock.requests.map((r) => `${r.method} ${r.url.pathname}`)).toEqual(["POST /api/cameras/bulk", "POST /api/cameras/cam_push_2/token"]);
+	});
+	it("bulk onExisting throw reports the existing item as failed and keeps the new one", async () => {
+		mock.script("createCameras", contract.bulk.created);
+		const res = await c().cameras.bulk(contract.bulk.request.cameras, { onExisting: "throw" });
+		expect(res.map((r) => r.ok)).toEqual([true, false]);
+	});
+	it("bulk splits more than 10 items into chunks of 10", async () => {
+		const items = Array.from({ length: 12 }, (_, i) => ({ name: `n${i}`, externalId: `id${i}` }));
+		mock.handlers.set("createCameras", (rec) => {
+			const cams = (rec.body as { cameras: { name: string; externalId: string }[] }).cameras;
+			return { status: 201, body: { cameras: cams.map((x, i) => ({ camera: { id: `c_${x.externalId}`, name: x.name, kind: "push", externalId: x.externalId }, whipUrl: "https://m/whip", token: `pc_${i}` })) } };
+		});
+		const res = await c().cameras.bulk(items);
+		expect(mock.requests.map((r) => (r.body as { cameras: unknown[] }).cameras.length)).toEqual([10, 2]);
+		expect(res.every((r) => r.ok)).toBe(true);
+		expect(res.map((r) => r.externalId)).toEqual(items.map((i) => i.externalId));
+	});
+	it("bulk: 429 camera_limit is all or nothing for the chunk and reported on every item", async () => {
+		mock.script("createCameras", { status: 429, body: { error: { code: "camera_limit", message: "at most 10 cameras" } } });
+		const res = await c().cameras.bulk(contract.bulk.request.cameras);
+		expect(res.map((r) => r.ok)).toEqual([false, false]);
+		expect(res.every((r) => !r.ok && (r.error as { code?: string }).code === "camera_limit")).toBe(true);
+		expect(mock.requests).toHaveLength(1);
+	});
+	it("bulk falls back to one registerPush per item when the server has no bulk route (404), asking the bulk route once", async () => {
+		mock.script("createCameras", { status: 404, body: { error: { code: "not_found", message: "Not found" } } });
 		mock.handlers.set("createCamera", (rec) => {
 			const b = rec.body as { externalId: string };
 			return b.externalId === "bad" ? { status: 429, body: { error: { code: "camera_limit", message: "limit" } } } : { status: 201, body: { ...created.body, camera: { ...created.body.camera, externalId: b.externalId } } };
 		});
 		const res = await c().cameras.bulk([{ name: "a", externalId: "a" }, { name: "b", externalId: "bad" }, { name: "c", externalId: "c" }], { concurrency: 2 });
 		expect(res.map((r) => [r.externalId, r.ok])).toEqual([["a", true], ["bad", false], ["c", true]]);
+		expect(mock.requests.filter((r) => r.url.pathname === "/api/cameras/bulk")).toHaveLength(1);
 		const failed = res[1]!;
 		expect(!failed.ok && (failed.error as { code?: string }).code).toBe("camera_limit");
+	});
+	it("bulk: a 400 (duplicate externalIds) is reported on the items, not thrown", async () => {
+		mock.script("createCameras", { status: 400, body: { error: { code: "invalid_request", message: "externalIds must be unique" } } });
+		const res = await c().cameras.bulk([{ name: "a", externalId: "a" }, { name: "a2", externalId: "a" }]);
+		expect(res.map((r) => r.ok)).toEqual([false, false]);
 	});
 });
 

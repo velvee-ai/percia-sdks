@@ -6,14 +6,14 @@ import httpx
 from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.error import Error
-from ...models.list_provider_keys_response_200 import ListProviderKeysResponse200
+from ...models.get_credits_response_200 import GetCreditsResponse200
 from ...types import Response
 
 
 def _get_kwargs() -> dict[str, Any]:
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": "/settings/provider-keys",
+        "url": "/billing/credits",
     }
 
     return _kwargs
@@ -21,9 +21,9 @@ def _get_kwargs() -> dict[str, Any]:
 
 def _parse_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, ListProviderKeysResponse200]]:
+) -> Optional[Union[Error, GetCreditsResponse200]]:
     if response.status_code == 200:
-        response_200 = ListProviderKeysResponse200.from_dict(response.json())
+        response_200 = GetCreditsResponse200.from_dict(response.json())
 
         return response_200
 
@@ -40,7 +40,7 @@ def _parse_response(
 
 def _build_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, ListProviderKeysResponse200]]:
+) -> Response[Union[Error, GetCreditsResponse200]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -52,15 +52,16 @@ def _build_response(
 def sync_detailed(
     *,
     client: AuthenticatedClient,
-) -> Response[Union[Error, ListProviderKeysResponse200]]:
-    """Your stored provider keys (last 4 characters only, never the key)
+) -> Response[Union[Error, GetCreditsResponse200]]:
+    """Your credit grants (minutes, remaining, source, expiry) and your last 20 redemptions. Never returns
+    a code.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, ListProviderKeysResponse200]]
+        Response[Union[Error, GetCreditsResponse200]]
     """
 
     kwargs = _get_kwargs()
@@ -75,15 +76,16 @@ def sync_detailed(
 def sync(
     *,
     client: AuthenticatedClient,
-) -> Optional[Union[Error, ListProviderKeysResponse200]]:
-    """Your stored provider keys (last 4 characters only, never the key)
+) -> Optional[Union[Error, GetCreditsResponse200]]:
+    """Your credit grants (minutes, remaining, source, expiry) and your last 20 redemptions. Never returns
+    a code.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, ListProviderKeysResponse200]
+        Union[Error, GetCreditsResponse200]
     """
 
     return sync_detailed(
@@ -94,15 +96,16 @@ def sync(
 async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
-) -> Response[Union[Error, ListProviderKeysResponse200]]:
-    """Your stored provider keys (last 4 characters only, never the key)
+) -> Response[Union[Error, GetCreditsResponse200]]:
+    """Your credit grants (minutes, remaining, source, expiry) and your last 20 redemptions. Never returns
+    a code.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, ListProviderKeysResponse200]]
+        Response[Union[Error, GetCreditsResponse200]]
     """
 
     kwargs = _get_kwargs()
@@ -115,15 +118,16 @@ async def asyncio_detailed(
 async def asyncio(
     *,
     client: AuthenticatedClient,
-) -> Optional[Union[Error, ListProviderKeysResponse200]]:
-    """Your stored provider keys (last 4 characters only, never the key)
+) -> Optional[Union[Error, GetCreditsResponse200]]:
+    """Your credit grants (minutes, remaining, source, expiry) and your last 20 redemptions. Never returns
+    a code.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, ListProviderKeysResponse200]
+        Union[Error, GetCreditsResponse200]
     """
 
     return (

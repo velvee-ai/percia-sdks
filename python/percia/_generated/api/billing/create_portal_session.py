@@ -55,7 +55,7 @@ def sync_detailed(
     *,
     client: AuthenticatedClient,
 ) -> Response[Union[Any, Error]]:
-    """Open the Stripe customer portal
+    """Open the Stripe customer portal (also the way to update a failed payment method)
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -78,7 +78,7 @@ def sync(
     *,
     client: AuthenticatedClient,
 ) -> Optional[Union[Any, Error]]:
-    """Open the Stripe customer portal
+    """Open the Stripe customer portal (also the way to update a failed payment method)
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -97,7 +97,7 @@ async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
 ) -> Response[Union[Any, Error]]:
-    """Open the Stripe customer portal
+    """Open the Stripe customer portal (also the way to update a failed payment method)
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -118,7 +118,7 @@ async def asyncio(
     *,
     client: AuthenticatedClient,
 ) -> Optional[Union[Any, Error]]:
-    """Open the Stripe customer portal
+    """Open the Stripe customer portal (also the way to update a failed payment method)
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

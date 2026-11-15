@@ -12,8 +12,10 @@ from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 from dateutil.parser import isoparse
 
+from ..models.watch_core_state import WatchCoreState
 from ..models.watch_display_status import WatchDisplayStatus
 from ..models.watch_last_delivery_type_1 import WatchLastDeliveryType1
+from ..models.watch_runtime import WatchRuntime
 from ..models.watch_source_type import WatchSourceType
 from ..models.watch_status import WatchStatus
 from ..types import UNSET, Unset
@@ -36,6 +38,8 @@ class Watch:
         agent (Union['WatchAgentType0', None, Unset]): Only on watches deployed with an agent. version is the one it
             runs; followsLatest is true when it was not pinned.
         camera (Union['WatchCameraType0', None, Unset]): Only on phone-camera watches.
+        core_state (Union[Unset, WatchCoreState]): Only on core watches. running is judging; absent is paused (nothing
+            runs on Percia core); off means the core switch was off when it was created; error: see syncError.
         created_at (Union[Unset, datetime.datetime]):
         display_status (Union[Unset, WatchDisplayStatus]): Needs attention when syncError is set, the last delivery
             failed, a rule of the watch points at a broken integration, or an active watch gets no video (noVideoSince set).
@@ -49,8 +53,13 @@ class Watch:
             active watch is paused automatically 60 minutes after this time (pausedReason no_video). Kept on a no_video
             pause; cleared on resume.
         notify (Union[Unset, WatchNotify]):
-        paused_reason (Union[None, Unset, str]): Why a paused watch is paused: user (paused by the owner or an agent) or
-            no_video (paused automatically after 60 minutes without video from the camera). Resume with PATCH status active.
+        paused_reason (Union[None, Unset, str]): Why a paused watch is paused: user (paused by the owner or an agent, or
+            an older pause with no recorded reason), no_video (paused automatically after 60 minutes without video from the
+            camera), needs_billing (free minutes and credits used, no card), spend_cap (the monthly cap was reached),
+            payment_failed (a payment failed and the 48-hour grace is over; resumes by itself when the payment succeeds) or
+            ended (a short-term watch reached its end). Resume with PATCH status active.
+        runtime (Union[Unset, WatchRuntime]): Where the watch is judged: pool (default) or core (Percia core, Percept
+            Cloud). Fixed when the watch is created.
         site (Union['WatchSiteType0', None, Unset]): The site this watch belongs to (shared memory), else null.
         source_type (Union[Unset, WatchSourceType]): phone = a paired phone or laptop camera; sourceUrl is then percia-
             cam://<cameraId>.
@@ -62,6 +71,7 @@ class Watch:
 
     agent: Union["WatchAgentType0", None, Unset] = UNSET
     camera: Union["WatchCameraType0", None, Unset] = UNSET
+    core_state: Union[Unset, WatchCoreState] = UNSET
     created_at: Union[Unset, datetime.datetime] = UNSET
     display_status: Union[Unset, WatchDisplayStatus] = UNSET
     event_count: Union[Unset, int] = UNSET
@@ -72,6 +82,7 @@ class Watch:
     no_video_since: Union[None, Unset, datetime.datetime] = UNSET
     notify: Union[Unset, "WatchNotify"] = UNSET
     paused_reason: Union[None, Unset, str] = UNSET
+    runtime: Union[Unset, WatchRuntime] = UNSET
     site: Union["WatchSiteType0", None, Unset] = UNSET
     source_type: Union[Unset, WatchSourceType] = UNSET
     source_url: Union[Unset, str] = UNSET
@@ -101,6 +112,10 @@ class Watch:
             camera = self.camera.to_dict()
         else:
             camera = self.camera
+
+        core_state: Union[Unset, str] = UNSET
+        if not isinstance(self.core_state, Unset):
+            core_state = self.core_state.value
 
         created_at: Union[Unset, str] = UNSET
         if not isinstance(self.created_at, Unset):
@@ -150,6 +165,10 @@ class Watch:
         else:
             paused_reason = self.paused_reason
 
+        runtime: Union[Unset, str] = UNSET
+        if not isinstance(self.runtime, Unset):
+            runtime = self.runtime.value
+
         site: Union[None, Unset, dict[str, Any]]
         if isinstance(self.site, Unset):
             site = UNSET
@@ -189,6 +208,8 @@ class Watch:
             field_dict["agent"] = agent
         if camera is not UNSET:
             field_dict["camera"] = camera
+        if core_state is not UNSET:
+            field_dict["coreState"] = core_state
         if created_at is not UNSET:
             field_dict["createdAt"] = created_at
         if display_status is not UNSET:
@@ -209,6 +230,8 @@ class Watch:
             field_dict["notify"] = notify
         if paused_reason is not UNSET:
             field_dict["pausedReason"] = paused_reason
+        if runtime is not UNSET:
+            field_dict["runtime"] = runtime
         if site is not UNSET:
             field_dict["site"] = site
         if source_type is not UNSET:
@@ -267,6 +290,13 @@ class Watch:
             return cast(Union["WatchCameraType0", None, Unset], data)
 
         camera = _parse_camera(d.pop("camera", UNSET))
+
+        _core_state = d.pop("coreState", UNSET)
+        core_state: Union[Unset, WatchCoreState]
+        if isinstance(_core_state, Unset):
+            core_state = UNSET
+        else:
+            core_state = WatchCoreState(_core_state)
 
         _created_at = d.pop("createdAt", UNSET)
         created_at: Union[Unset, datetime.datetime]
@@ -361,6 +391,13 @@ class Watch:
 
         paused_reason = _parse_paused_reason(d.pop("pausedReason", UNSET))
 
+        _runtime = d.pop("runtime", UNSET)
+        runtime: Union[Unset, WatchRuntime]
+        if isinstance(_runtime, Unset):
+            runtime = UNSET
+        else:
+            runtime = WatchRuntime(_runtime)
+
         def _parse_site(data: object) -> Union["WatchSiteType0", None, Unset]:
             if data is None:
                 return data
@@ -423,6 +460,7 @@ class Watch:
         watch = cls(
             agent=agent,
             camera=camera,
+            core_state=core_state,
             created_at=created_at,
             display_status=display_status,
             event_count=event_count,
@@ -433,6 +471,7 @@ class Watch:
             no_video_since=no_video_since,
             notify=notify,
             paused_reason=paused_reason,
+            runtime=runtime,
             site=site,
             source_type=source_type,
             source_url=source_url,

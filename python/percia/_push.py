@@ -6,9 +6,13 @@ printable commands use the placeholder ``$PERCIA_CAMERA_TOKEN``. Only ``publish_
 
 from __future__ import annotations
 
+import datetime
 import shlex
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
+
+from ._errors import PerciaError
+from ._generated.models.camera import Camera
 
 TOKEN_PLACEHOLDER = "$PERCIA_CAMERA_TOKEN"
 TOKEN_ENV = "PERCIA_CAMERA_TOKEN"
@@ -88,3 +92,93 @@ def build_publish_commands(
         "heartbeat": f'curl -fsS -X POST -H "Authorization: Bearer {TOKEN_PLACEHOLDER}" {api}/api/cam/heartbeat',
         "env": f"export {TOKEN_ENV}=<the token from registration>",
     }
+
+
+# Bulk: the server takes 1 to 10 cameras per request.
+BULK_MAX = 10
+
+
+@dataclass(frozen=True)
+class CameraStatus:
+    """``cameras.status(id)``: what ``GET /cameras/{id}/status`` returns.
+
+    ``state`` is the one to act on: ``waiting`` (never seen), ``online``, ``offline``, ``revoked`` (token revoked); ``hint``
+    names the likely reason and the next step. ``derived`` is True (``hint`` is None, ``revoked`` never appears) only when an
+    older server had no status route and the SDK worked it out from the camera list; ``name`` and ``external_id`` are filled in then.
+    """
+
+    id: str
+    kind: str
+    state: str
+    status: str
+    last_seen_at: Optional[datetime.datetime]
+    seconds_since_seen: Optional[int]
+    watch_count: int
+    hint: Optional[str]
+    name: Optional[str] = None
+    external_id: Optional[str] = None
+    derived: bool = False
+
+
+def _set(value: Any) -> Any:
+    """None for an unset generated attribute (``UNSET`` is falsy and not a value)."""
+    return None if type(value).__name__ == "Unset" else value
+
+
+def _enum(value: Any) -> Optional[str]:
+    value = _set(value)
+    return None if value is None else str(getattr(value, "value", value))
+
+
+def status_from_model(m: Any) -> CameraStatus:
+    """Convert the generated status response into a ``CameraStatus``."""
+    return CameraStatus(
+        id=_set(m.id) or "",
+        kind=_enum(m.kind) or "phone",
+        state=_enum(m.state) or "waiting",
+        status=_enum(m.status) or "never",
+        last_seen_at=_set(m.last_seen_at),
+        seconds_since_seen=_set(m.seconds_since_seen),
+        watch_count=_set(m.watch_count) or 0,
+        hint=_set(m.hint),
+    )
+
+
+def derive_status(cam: Any) -> CameraStatus:
+    """A ``CameraStatus`` from a ``GET /cameras`` row, for servers without the status route."""
+    status = _enum(getattr(cam, "status", None)) or "never"
+    seen = _set(getattr(cam, "last_seen_at", None))
+    secs = None
+    if isinstance(seen, datetime.datetime):
+        now = datetime.datetime.now(seen.tzinfo)
+        secs = max(0, round((now - seen).total_seconds()))
+    return CameraStatus(
+        id=_set(cam.id) or "",
+        kind=_enum(getattr(cam, "kind", None)) or "phone",
+        state={"online": "online", "offline": "offline"}.get(status, "waiting"),
+        status=status,
+        last_seen_at=seen,
+        seconds_since_seen=secs,
+        watch_count=_set(getattr(cam, "watch_count", None)) or 0,
+        hint=None,
+        name=_set(getattr(cam, "name", None)),
+        external_id=_set(getattr(cam, "external_id", None)),
+        derived=True,
+    )
+
+
+def registration_from_dict(entry: Dict[str, Any]) -> PushRegistration:
+    """One ``{camera, whipUrl, token, existing}`` entry (a ``POST /cameras/bulk`` item) as a ``PushRegistration``."""
+    camera = entry.get("camera")
+    whip_url = entry.get("whipUrl")
+    if not isinstance(camera, dict) or not camera.get("id") or not isinstance(whip_url, str):
+        raise PerciaError("Percia did not return a push camera (no id or whipUrl) for this item.")
+    token = entry.get("token")
+    publish = entry.get("publish")
+    return PushRegistration(
+        camera=Camera.from_dict(camera),
+        whip_url=whip_url,
+        token=token if isinstance(token, str) else None,
+        existing=entry.get("existing") is True,
+        publish=publish if isinstance(publish, dict) else None,
+    )

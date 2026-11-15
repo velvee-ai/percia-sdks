@@ -53,6 +53,11 @@ def _parse_response(
 
         return response_401
 
+    if response.status_code == 402:
+        response_402 = Error.from_dict(response.json())
+
+        return response_402
+
     if response.status_code == 404:
         response_404 = Error.from_dict(response.json())
 
@@ -83,7 +88,7 @@ def sync_detailed(
     body: SendEventFeedbackBody,
 ) -> Response[Union[Error, SendEventFeedbackResponse200]]:
     """Mark an event correct or a false alarm. With a keyframe it becomes (or updates) a test case with the
-    image pinned.
+    image pinned. Leave `note` out to keep the note already stored; send an empty string to clear it.
 
     Args:
         id (str):
@@ -119,7 +124,7 @@ def sync(
     body: SendEventFeedbackBody,
 ) -> Optional[Union[Error, SendEventFeedbackResponse200]]:
     """Mark an event correct or a false alarm. With a keyframe it becomes (or updates) a test case with the
-    image pinned.
+    image pinned. Leave `note` out to keep the note already stored; send an empty string to clear it.
 
     Args:
         id (str):
@@ -150,7 +155,7 @@ async def asyncio_detailed(
     body: SendEventFeedbackBody,
 ) -> Response[Union[Error, SendEventFeedbackResponse200]]:
     """Mark an event correct or a false alarm. With a keyframe it becomes (or updates) a test case with the
-    image pinned.
+    image pinned. Leave `note` out to keep the note already stored; send an empty string to clear it.
 
     Args:
         id (str):
@@ -184,7 +189,7 @@ async def asyncio(
     body: SendEventFeedbackBody,
 ) -> Optional[Union[Error, SendEventFeedbackResponse200]]:
     """Mark an event correct or a false alarm. With a keyframe it becomes (or updates) a test case with the
-    image pinned.
+    image pinned. Leave `note` out to keep the note already stored; send an empty string to clear it.
 
     Args:
         id (str):

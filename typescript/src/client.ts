@@ -3,7 +3,7 @@ import type { Client } from "./generated/client/index.js";
 import * as sdk from "./generated/sdk.gen.js";
 import type { Camera, Event, EventPage, Watch } from "./generated/types.gen.js";
 import { NotFoundError, PerciaError, errorFromResponse } from "./errors.js";
-import type { BulkItem, BulkResult, PushRegistration } from "./push.js";
+import type { BulkItem, BulkResult, CameraStatus, PushRegistration } from "./push.js";
 import { createRetryingFetch, type RetryOptions } from "./retry.js";
 import { paginate } from "./pagination.js";
 
@@ -154,6 +154,28 @@ export type RegisterPushOptions = {
 	onExisting?: "return" | "rotate" | "throw";
 };
 
+/** The server accepts 1 to 10 cameras per bulk request. */
+const BULK_MAX = 10;
+
+type PushResponse = { camera?: Camera; whipUrl?: string; token?: string | null; existing?: boolean; publish?: Record<string, unknown> };
+
+function toRegistration(res: PushResponse): PushRegistration {
+	if (!res.camera?.id || !res.whipUrl) throw new PerciaError("Percia did not return a push camera (no id or whipUrl). Is the server new enough for kind: \"push\"?");
+	return { camera: res.camera, whipUrl: res.whipUrl, token: res.token ?? null, existing: res.existing === true, rotated: false, publish: res.publish };
+}
+
+/** Status of a camera from a `GET /cameras` row, for servers that have no status route. */
+function deriveStatus(cam: Camera): CameraStatus {
+	const seen = cam.lastSeenAt ? Date.parse(cam.lastSeenAt) : NaN;
+	return {
+		id: cam.id ?? "", kind: cam.kind ?? "phone", name: cam.name, externalId: cam.externalId ?? null,
+		state: cam.status === "online" ? "online" : cam.status === "offline" ? "offline" : "waiting",
+		status: cam.status ?? "never", lastSeenAt: cam.lastSeenAt ?? null,
+		secondsSinceSeen: Number.isNaN(seen) ? null : Math.max(0, Math.round((Date.now() - seen) / 1000)),
+		watchCount: cam.watchCount ?? 0, hint: null, derived: true,
+	};
+}
+
 class Cameras {
 	constructor(private c: PerciaClient) {}
 	list() { return unwrap(this.c.api.listCameras({})); }
@@ -169,17 +191,15 @@ class Cameras {
 	 * same camera with `token: null` and `existing: true` unless `onExisting` says otherwise.
 	 */
 	async registerPush(options: RegisterPushOptions): Promise<PushRegistration> {
-		const res = (await unwrap(this.c.api.createCamera({ body: { name: options.name, kind: "push", externalId: options.externalId } }))) as { camera?: Camera; whipUrl?: string; token?: string | null; existing?: boolean; publish?: Record<string, unknown> };
-		if (!res.camera?.id || !res.whipUrl) throw new PerciaError("Percia did not return a push camera (no id or whipUrl). Is the server new enough for kind: \"push\"?");
-		const existing = res.existing === true;
-		let reg: PushRegistration = { camera: res.camera, whipUrl: res.whipUrl, token: res.token ?? null, existing, rotated: false, publish: res.publish };
-		if (existing && !reg.token) {
-			const mode = options.onExisting ?? "return";
-			if (mode === "throw") throw new PerciaError(`Camera with externalId "${options.externalId}" already exists (${res.camera.id}) and its token is shown only once. Use cameras.rotateToken("${res.camera.id}") for a new one.`);
-			if (mode === "rotate") {
-				const rot = await this.rotateToken(res.camera.id);
-				reg = { ...reg, token: rot.token ?? null, whipUrl: rot.whipUrl ?? reg.whipUrl, rotated: true };
-			}
+		const res = (await unwrap(this.c.api.createCamera({ body: { name: options.name, kind: "push", externalId: options.externalId } }))) as PushResponse;
+		return this.applyOnExisting(toRegistration(res), options.externalId, options.onExisting);
+	}
+	private async applyOnExisting(reg: PushRegistration, externalId: string, mode: RegisterPushOptions["onExisting"] = "return"): Promise<PushRegistration> {
+		if (!reg.existing || reg.token) return reg;
+		if (mode === "throw") throw new PerciaError(`Camera with externalId "${externalId}" already exists (${reg.camera.id}) and its token is shown only once. Use cameras.rotateToken("${reg.camera.id}") for a new one.`);
+		if (mode === "rotate") {
+			const rot = await this.rotateToken(reg.camera.id!);
+			return { ...reg, token: rot.token ?? null, whipUrl: rot.whipUrl ?? reg.whipUrl, rotated: true };
 		}
 		return reg;
 	}
@@ -188,29 +208,67 @@ class Cameras {
 	/** Stop accepting publishes for a push camera; the camera stays. `rotateToken` publishes again. Needs `cameras:write` and `watches:delete`. */
 	revokeToken(id: string) { return unwrap(this.c.api.revokeCameraToken({ path: { id } })); }
 	/**
-	 * `id`, `name`, `kind`, `externalId`, `status` (`online` = seen in the last 60 s, `offline`, `never`), `lastSeenAt` and `watchCount`
-	 * of one camera. The API has no per-camera status route; this reads the list, so it costs one request.
+	 * One camera's state from `GET /cameras/{id}/status`: `state` (`waiting` | `online` | `offline` | `revoked`), `status`
+	 * (`online` = seen in the last 60 s, `offline`, `never`), `lastSeenAt`, `secondsSinceSeen`, `watchCount` and a `hint` that
+	 * names the likely reason and the next step. Needs `cameras:read`.
+	 *
+	 * Older servers without that route answer 404: the SDK then reads `GET /cameras` instead and derives `state`
+	 * (`derived: true`, `hint: null`, no `revoked`). A camera that is not yours is a `NotFoundError` either way.
 	 */
-	async status(id: string) {
-		const found = (await this.list()).find((c) => c.id === id);
-		if (!found) throw new NotFoundError({ status: 404, code: "not_found", message: `No camera ${id} on this account.` });
-		return found;
+	async status(id: string): Promise<CameraStatus> {
+		try {
+			return (await unwrap(this.c.api.getCameraStatus({ path: { id } }))) as CameraStatus;
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) throw error;
+			const found = (await this.list()).find((cam) => cam.id === id);
+			if (!found) throw error;
+			return deriveStatus(found);
+		}
 	}
 	/**
-	 * Register many push cameras (idempotent each). The API has no bulk route, so this runs `registerPush` with a small
-	 * concurrency and reports each outcome: one failure (`camera_limit`, a bad id) does not stop the rest.
+	 * Register many push cameras (idempotent each) with `POST /cameras/bulk`: up to 10 per request, so longer lists are sent
+	 * in chunks of 10. Each chunk is all or nothing against the camera limit (429 `camera_limit`, nothing created); that
+	 * failure is reported on every item of that chunk and the next chunks still run. Results keep the input order.
+	 * A server without the bulk route answers 404: the SDK then registers the items one by one with `registerPush`.
+	 * Needs `cameras:write`; `externalId`s must be unique within a chunk.
 	 */
 	async bulk(items: BulkItem[], options: { concurrency?: number; onExisting?: RegisterPushOptions["onExisting"] } = {}): Promise<BulkResult[]> {
 		const out: BulkResult[] = new Array(items.length);
-		let next = 0;
-		const worker = async () => {
-			for (let i = next++; i < items.length; i = next++) {
-				const item = items[i]!;
-				try { out[i] = { externalId: item.externalId, ok: true, registration: await this.registerPush({ ...item, onExisting: options.onExisting }) }; }
-				catch (error) { out[i] = { externalId: item.externalId, ok: false, error }; }
-			}
+		const finish = async (i: number, reg: PushRegistration) => {
+			const item = items[i]!;
+			try { out[i] = { externalId: item.externalId, ok: true, registration: await this.applyOnExisting(reg, item.externalId, options.onExisting) }; }
+			catch (error) { out[i] = { externalId: item.externalId, ok: false, error }; }
 		};
-		await Promise.all(Array.from({ length: Math.max(1, Math.min(options.concurrency ?? 3, items.length || 1)) }, worker));
+		const one = async (i: number) => {
+			const item = items[i]!;
+			try { out[i] = { externalId: item.externalId, ok: true, registration: await this.registerPush({ ...item, onExisting: options.onExisting }) }; }
+			catch (error) { out[i] = { externalId: item.externalId, ok: false, error }; }
+		};
+		let legacy = false;
+		for (let from = 0; from < items.length; from += BULK_MAX) {
+			const idx = Array.from({ length: Math.min(BULK_MAX, items.length - from) }, (_, k) => from + k);
+			if (!legacy) {
+				try {
+					const res = (await unwrap(this.c.api.createCameras({ body: { cameras: idx.map((i) => ({ name: items[i]!.name, externalId: items[i]!.externalId })) } }))) as { cameras?: PushResponse[] };
+					const entries = res.cameras ?? [];
+					for (const [k, i] of idx.entries()) {
+						const entry = entries.find((e) => e.camera?.externalId === items[i]!.externalId) ?? entries[k];
+						try { await finish(i, toRegistration(entry ?? {})); }
+						catch (error) { out[i] = { externalId: items[i]!.externalId, ok: false, error }; }
+					}
+					continue;
+				} catch (error) {
+					if (!(error instanceof NotFoundError)) {
+						for (const i of idx) out[i] = { externalId: items[i]!.externalId, ok: false, error };
+						continue;
+					}
+					legacy = true; // no bulk route on this server (or phone cameras are off: registerPush then reports the 404 per item)
+				}
+			}
+			let next = 0;
+			const worker = async () => { for (let k = next++; k < idx.length; k = next++) await one(idx[k]!); };
+			await Promise.all(Array.from({ length: Math.max(1, Math.min(options.concurrency ?? 3, idx.length)) }, worker));
+		}
 		return out;
 	}
 }

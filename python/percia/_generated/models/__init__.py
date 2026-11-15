@@ -40,6 +40,7 @@ from .chat_with_agent_body import ChatWithAgentBody
 from .chat_with_agent_response_200 import ChatWithAgentResponse200
 from .check_camera_pairing_body import CheckCameraPairingBody
 from .check_camera_pairing_response_200 import CheckCameraPairingResponse200
+from .claim_camera_device_body import ClaimCameraDeviceBody
 from .claim_camera_device_response_200 import ClaimCameraDeviceResponse200
 from .connect_with_key_body import ConnectWithKeyBody
 from .connect_with_key_body_severity import ConnectWithKeyBodySeverity
@@ -49,6 +50,9 @@ from .connect_with_twilio_response_201 import ConnectWithTwilioResponse201
 from .connect_with_url_body import ConnectWithUrlBody
 from .connect_with_url_response_201 import ConnectWithUrlResponse201
 from .connection import Connection
+from .connection_deliveries_week_type_0 import ConnectionDeliveriesWeekType0
+from .connection_last_delivery_type_0 import ConnectionLastDeliveryType0
+from .connection_last_delivery_type_0_status import ConnectionLastDeliveryType0Status
 from .connection_service import ConnectionService
 from .connection_status import ConnectionStatus
 from .create_agent_body import CreateAgentBody
@@ -77,6 +81,12 @@ from .create_camera_pairing_response_200 import CreateCameraPairingResponse200
 from .create_camera_response_200 import CreateCameraResponse200
 from .create_camera_response_201 import CreateCameraResponse201
 from .create_camera_response_201_publish import CreateCameraResponse201Publish
+from .create_cameras_body import CreateCamerasBody
+from .create_cameras_body_cameras_item import CreateCamerasBodyCamerasItem
+from .create_cameras_response_201 import CreateCamerasResponse201
+from .create_cameras_response_201_cameras_item import (
+    CreateCamerasResponse201CamerasItem,
+)
 from .create_checkout_session_response_200 import CreateCheckoutSessionResponse200
 from .create_connect_link_body import CreateConnectLinkBody
 from .create_connect_link_body_service import CreateConnectLinkBodyService
@@ -97,12 +107,14 @@ from .create_watch_body import CreateWatchBody
 from .create_watch_body_media import CreateWatchBodyMedia
 from .create_watch_body_notify_type_0 import CreateWatchBodyNotifyType0
 from .create_watch_body_notify_type_1 import CreateWatchBodyNotifyType1
+from .create_watch_body_runtime import CreateWatchBodyRuntime
 from .create_watch_response_201 import CreateWatchResponse201
 from .create_watch_response_201_agent_type_0 import CreateWatchResponse201AgentType0
 from .create_watch_response_201_camera_type_0 import CreateWatchResponse201CameraType0
 from .create_watch_response_201_camera_type_0_status import (
     CreateWatchResponse201CameraType0Status,
 )
+from .create_watch_response_201_core_state import CreateWatchResponse201CoreState
 from .create_watch_response_201_display_status import (
     CreateWatchResponse201DisplayStatus,
 )
@@ -117,11 +129,12 @@ from .create_watch_response_201_last_event_type_0_delivery_status import (
 )
 from .create_watch_response_201_notify import CreateWatchResponse201Notify
 from .create_watch_response_201_notify_type import CreateWatchResponse201NotifyType
+from .create_watch_response_201_runtime import CreateWatchResponse201Runtime
 from .create_watch_response_201_site_type_0 import CreateWatchResponse201SiteType0
 from .create_watch_response_201_source_type import CreateWatchResponse201SourceType
 from .create_watch_response_201_status import CreateWatchResponse201Status
 from .delete_agent_response_200 import DeleteAgentResponse200
-from .delete_gemini_key_response_200 import DeleteGeminiKeyResponse200
+from .delete_camera_response_200 import DeleteCameraResponse200
 from .delete_hook_response_200 import DeleteHookResponse200
 from .delete_integration_response_200 import DeleteIntegrationResponse200
 from .delete_site_response_200 import DeleteSiteResponse200
@@ -137,6 +150,17 @@ from .event_delivery_status import EventDeliveryStatus
 from .event_feedback_type_1 import EventFeedbackType1
 from .event_page import EventPage
 from .get_agent_version_response_200 import GetAgentVersionResponse200
+from .get_camera_status_response_200 import GetCameraStatusResponse200
+from .get_camera_status_response_200_kind import GetCameraStatusResponse200Kind
+from .get_camera_status_response_200_state import GetCameraStatusResponse200State
+from .get_camera_status_response_200_status import GetCameraStatusResponse200Status
+from .get_camera_usage_response_200 import GetCameraUsageResponse200
+from .get_camera_usage_response_200_cameras_item import (
+    GetCameraUsageResponse200CamerasItem,
+)
+from .get_camera_usage_response_200_cameras_item_kind import (
+    GetCameraUsageResponse200CamerasItemKind,
+)
 from .get_config_response_200 import GetConfigResponse200
 from .get_connect_link_response_200 import GetConnectLinkResponse200
 from .get_connect_link_response_200_connect_kind import (
@@ -144,13 +168,32 @@ from .get_connect_link_response_200_connect_kind import (
 )
 from .get_connect_link_response_200_service import GetConnectLinkResponse200Service
 from .get_connect_link_response_200_state import GetConnectLinkResponse200State
+from .get_credits_response_200 import GetCreditsResponse200
+from .get_credits_response_200_grants_item import GetCreditsResponse200GrantsItem
+from .get_credits_response_200_grants_item_source import (
+    GetCreditsResponse200GrantsItemSource,
+)
+from .get_credits_response_200_redemptions_item import (
+    GetCreditsResponse200RedemptionsItem,
+)
 from .get_health_response_200 import GetHealthResponse200
 from .get_metrics_days import GetMetricsDays
 from .get_metrics_response_200 import GetMetricsResponse200
 from .get_plan_response_200 import GetPlanResponse200
 from .get_plan_response_200_counts import GetPlanResponse200Counts
 from .get_plan_response_200_limits import GetPlanResponse200Limits
+from .get_plan_response_200_month_to_date import GetPlanResponse200MonthToDate
+from .get_plan_response_200_payment import GetPlanResponse200Payment
+from .get_plan_response_200_payment_state import GetPlanResponse200PaymentState
 from .get_plan_response_200_plan import GetPlanResponse200Plan
+from .get_plan_response_200_pricing import GetPlanResponse200Pricing
+from .get_sign_in_methods_response_200 import GetSignInMethodsResponse200
+from .get_sign_in_methods_response_200_providers_item import (
+    GetSignInMethodsResponse200ProvidersItem,
+)
+from .get_sign_in_methods_response_200_providers_item_provider import (
+    GetSignInMethodsResponse200ProvidersItemProvider,
+)
 from .get_site_timeline_response_200 import GetSiteTimelineResponse200
 from .get_site_timeline_response_200_events_item import (
     GetSiteTimelineResponse200EventsItem,
@@ -169,7 +212,9 @@ from .get_watch_response_200_camera_type_0 import GetWatchResponse200CameraType0
 from .get_watch_response_200_camera_type_0_status import (
     GetWatchResponse200CameraType0Status,
 )
+from .get_watch_response_200_core_state import GetWatchResponse200CoreState
 from .get_watch_response_200_display_status import GetWatchResponse200DisplayStatus
+from .get_watch_response_200_engine_type_0 import GetWatchResponse200EngineType0
 from .get_watch_response_200_last_delivery_type_1 import (
     GetWatchResponse200LastDeliveryType1,
 )
@@ -179,6 +224,7 @@ from .get_watch_response_200_last_event_type_0_delivery_status import (
 )
 from .get_watch_response_200_notify import GetWatchResponse200Notify
 from .get_watch_response_200_notify_type import GetWatchResponse200NotifyType
+from .get_watch_response_200_runtime import GetWatchResponse200Runtime
 from .get_watch_response_200_site_type_0 import GetWatchResponse200SiteType0
 from .get_watch_response_200_source_type import GetWatchResponse200SourceType
 from .get_watch_response_200_status import GetWatchResponse200Status
@@ -193,6 +239,10 @@ from .integration_result import IntegrationResult
 from .integration_result_service import IntegrationResultService
 from .integration_result_status import IntegrationResultStatus
 from .integration_rule import IntegrationRule
+from .integration_rule_last_delivery_type_0 import IntegrationRuleLastDeliveryType0
+from .integration_rule_last_delivery_type_0_status import (
+    IntegrationRuleLastDeliveryType0Status,
+)
 from .integration_rule_service import IntegrationRuleService
 from .integration_rule_status import IntegrationRuleStatus
 from .list_agent_messages_response_200 import ListAgentMessagesResponse200
@@ -215,19 +265,17 @@ from .list_integration_services_response_200_item_connect_kind import (
 from .list_integration_services_response_200_item_service import (
     ListIntegrationServicesResponse200ItemService,
 )
-from .list_provider_keys_response_200 import ListProviderKeysResponse200
-from .list_provider_keys_response_200_keys_item import (
-    ListProviderKeysResponse200KeysItem,
-)
-from .list_provider_keys_response_200_keys_item_provider import (
-    ListProviderKeysResponse200KeysItemProvider,
-)
 from .metric import Metric
 from .metric_events_per_day_item import MetricEventsPerDayItem
 from .metric_feedback import MetricFeedback
+from .pay_invoice_response_200 import PayInvoiceResponse200
+from .pay_invoice_response_200_state import PayInvoiceResponse200State
 from .publish_agent_body import PublishAgentBody
+from .redeem_credit_code_body import RedeemCreditCodeBody
+from .redeem_credit_code_response_200 import RedeemCreditCodeResponse200
 from .register_device_body import RegisterDeviceBody
 from .register_device_response_200 import RegisterDeviceResponse200
+from .revoke_connected_app_response_200 import RevokeConnectedAppResponse200
 from .rotate_camera_token_response_200 import RotateCameraTokenResponse200
 from .rotate_watch_secret_response_200 import RotateWatchSecretResponse200
 from .run_agent_tests_body import RunAgentTestsBody
@@ -237,9 +285,8 @@ from .send_event_feedback_response_200 import SendEventFeedbackResponse200
 from .send_event_feedback_response_200_feedback import (
     SendEventFeedbackResponse200Feedback,
 )
-from .set_gemini_key_body import SetGeminiKeyBody
-from .set_gemini_key_response_200 import SetGeminiKeyResponse200
-from .set_gemini_key_response_200_provider import SetGeminiKeyResponse200Provider
+from .set_billing_cap_body import SetBillingCapBody
+from .set_billing_cap_response_200 import SetBillingCapResponse200
 from .set_watch_integrations_body import SetWatchIntegrationsBody
 from .set_watch_integrations_body_rules_item import SetWatchIntegrationsBodyRulesItem
 from .site import Site
@@ -253,6 +300,7 @@ from .test_agent_action_response_200 import TestAgentActionResponse200
 from .test_case_type_0 import TestCaseType0
 from .test_case_type_0_expected import TestCaseType0Expected
 from .test_hook_response_200 import TestHookResponse200
+from .test_integration_response_200 import TestIntegrationResponse200
 from .test_run import TestRun
 from .test_run_results_item import TestRunResultsItem
 from .test_run_results_item_expected import TestRunResultsItemExpected
@@ -278,6 +326,15 @@ from .update_agent_body_config_outputs_item_type import (
 )
 from .update_integration_body import UpdateIntegrationBody
 from .update_integration_response_200 import UpdateIntegrationResponse200
+from .update_integration_response_200_deliveries_week_type_0 import (
+    UpdateIntegrationResponse200DeliveriesWeekType0,
+)
+from .update_integration_response_200_last_delivery_type_0 import (
+    UpdateIntegrationResponse200LastDeliveryType0,
+)
+from .update_integration_response_200_last_delivery_type_0_status import (
+    UpdateIntegrationResponse200LastDeliveryType0Status,
+)
 from .update_integration_response_200_service import UpdateIntegrationResponse200Service
 from .update_integration_response_200_status import UpdateIntegrationResponse200Status
 from .update_site_body import UpdateSiteBody
@@ -295,12 +352,14 @@ from .watch import Watch
 from .watch_agent_type_0 import WatchAgentType0
 from .watch_camera_type_0 import WatchCameraType0
 from .watch_camera_type_0_status import WatchCameraType0Status
+from .watch_core_state import WatchCoreState
 from .watch_display_status import WatchDisplayStatus
 from .watch_last_delivery_type_1 import WatchLastDeliveryType1
 from .watch_last_event_type_0 import WatchLastEventType0
 from .watch_last_event_type_0_delivery_status import WatchLastEventType0DeliveryStatus
 from .watch_notify import WatchNotify
 from .watch_notify_type import WatchNotifyType
+from .watch_runtime import WatchRuntime
 from .watch_site_type_0 import WatchSiteType0
 from .watch_source_type import WatchSourceType
 from .watch_status import WatchStatus
@@ -340,8 +399,12 @@ __all__ = (
     "ChatWithAgentResponse200",
     "CheckCameraPairingBody",
     "CheckCameraPairingResponse200",
+    "ClaimCameraDeviceBody",
     "ClaimCameraDeviceResponse200",
     "Connection",
+    "ConnectionDeliveriesWeekType0",
+    "ConnectionLastDeliveryType0",
+    "ConnectionLastDeliveryType0Status",
     "ConnectionService",
     "ConnectionStatus",
     "ConnectWithKeyBody",
@@ -369,6 +432,10 @@ __all__ = (
     "CreateCameraResponse200",
     "CreateCameraResponse201",
     "CreateCameraResponse201Publish",
+    "CreateCamerasBody",
+    "CreateCamerasBodyCamerasItem",
+    "CreateCamerasResponse201",
+    "CreateCamerasResponse201CamerasItem",
     "CreateCheckoutSessionResponse200",
     "CreateConnectLinkBody",
     "CreateConnectLinkBodyService",
@@ -387,21 +454,24 @@ __all__ = (
     "CreateWatchBodyMedia",
     "CreateWatchBodyNotifyType0",
     "CreateWatchBodyNotifyType1",
+    "CreateWatchBodyRuntime",
     "CreateWatchResponse201",
     "CreateWatchResponse201AgentType0",
     "CreateWatchResponse201CameraType0",
     "CreateWatchResponse201CameraType0Status",
+    "CreateWatchResponse201CoreState",
     "CreateWatchResponse201DisplayStatus",
     "CreateWatchResponse201LastDeliveryType1",
     "CreateWatchResponse201LastEventType0",
     "CreateWatchResponse201LastEventType0DeliveryStatus",
     "CreateWatchResponse201Notify",
     "CreateWatchResponse201NotifyType",
+    "CreateWatchResponse201Runtime",
     "CreateWatchResponse201SiteType0",
     "CreateWatchResponse201SourceType",
     "CreateWatchResponse201Status",
     "DeleteAgentResponse200",
-    "DeleteGeminiKeyResponse200",
+    "DeleteCameraResponse200",
     "DeleteHookResponse200",
     "DeleteIntegrationResponse200",
     "DeleteSiteResponse200",
@@ -417,18 +487,36 @@ __all__ = (
     "EventFeedbackType1",
     "EventPage",
     "GetAgentVersionResponse200",
+    "GetCameraStatusResponse200",
+    "GetCameraStatusResponse200Kind",
+    "GetCameraStatusResponse200State",
+    "GetCameraStatusResponse200Status",
+    "GetCameraUsageResponse200",
+    "GetCameraUsageResponse200CamerasItem",
+    "GetCameraUsageResponse200CamerasItemKind",
     "GetConfigResponse200",
     "GetConnectLinkResponse200",
     "GetConnectLinkResponse200ConnectKind",
     "GetConnectLinkResponse200Service",
     "GetConnectLinkResponse200State",
+    "GetCreditsResponse200",
+    "GetCreditsResponse200GrantsItem",
+    "GetCreditsResponse200GrantsItemSource",
+    "GetCreditsResponse200RedemptionsItem",
     "GetHealthResponse200",
     "GetMetricsDays",
     "GetMetricsResponse200",
     "GetPlanResponse200",
     "GetPlanResponse200Counts",
     "GetPlanResponse200Limits",
+    "GetPlanResponse200MonthToDate",
+    "GetPlanResponse200Payment",
+    "GetPlanResponse200PaymentState",
     "GetPlanResponse200Plan",
+    "GetPlanResponse200Pricing",
+    "GetSignInMethodsResponse200",
+    "GetSignInMethodsResponse200ProvidersItem",
+    "GetSignInMethodsResponse200ProvidersItemProvider",
     "GetSiteTimelineResponse200",
     "GetSiteTimelineResponse200EventsItem",
     "GetStatusResponse200",
@@ -441,12 +529,15 @@ __all__ = (
     "GetWatchResponse200AgentType0",
     "GetWatchResponse200CameraType0",
     "GetWatchResponse200CameraType0Status",
+    "GetWatchResponse200CoreState",
     "GetWatchResponse200DisplayStatus",
+    "GetWatchResponse200EngineType0",
     "GetWatchResponse200LastDeliveryType1",
     "GetWatchResponse200LastEventType0",
     "GetWatchResponse200LastEventType0DeliveryStatus",
     "GetWatchResponse200Notify",
     "GetWatchResponse200NotifyType",
+    "GetWatchResponse200Runtime",
     "GetWatchResponse200SiteType0",
     "GetWatchResponse200SourceType",
     "GetWatchResponse200Status",
@@ -461,6 +552,8 @@ __all__ = (
     "IntegrationResultService",
     "IntegrationResultStatus",
     "IntegrationRule",
+    "IntegrationRuleLastDeliveryType0",
+    "IntegrationRuleLastDeliveryType0Status",
     "IntegrationRuleService",
     "IntegrationRuleStatus",
     "ListAgentMessagesResponse200",
@@ -473,15 +566,17 @@ __all__ = (
     "ListIntegrationServicesResponse200Item",
     "ListIntegrationServicesResponse200ItemConnectKind",
     "ListIntegrationServicesResponse200ItemService",
-    "ListProviderKeysResponse200",
-    "ListProviderKeysResponse200KeysItem",
-    "ListProviderKeysResponse200KeysItemProvider",
     "Metric",
     "MetricEventsPerDayItem",
     "MetricFeedback",
+    "PayInvoiceResponse200",
+    "PayInvoiceResponse200State",
     "PublishAgentBody",
+    "RedeemCreditCodeBody",
+    "RedeemCreditCodeResponse200",
     "RegisterDeviceBody",
     "RegisterDeviceResponse200",
+    "RevokeConnectedAppResponse200",
     "RotateCameraTokenResponse200",
     "RotateWatchSecretResponse200",
     "RunAgentTestsBody",
@@ -489,9 +584,8 @@ __all__ = (
     "SendEventFeedbackBodyVerdict",
     "SendEventFeedbackResponse200",
     "SendEventFeedbackResponse200Feedback",
-    "SetGeminiKeyBody",
-    "SetGeminiKeyResponse200",
-    "SetGeminiKeyResponse200Provider",
+    "SetBillingCapBody",
+    "SetBillingCapResponse200",
     "SetWatchIntegrationsBody",
     "SetWatchIntegrationsBodyRulesItem",
     "Site",
@@ -505,6 +599,7 @@ __all__ = (
     "TestCaseType0",
     "TestCaseType0Expected",
     "TestHookResponse200",
+    "TestIntegrationResponse200",
     "TestRun",
     "TestRunResultsItem",
     "TestRunResultsItemExpected",
@@ -522,6 +617,9 @@ __all__ = (
     "UpdateAgentBodyConfigOutputsItemType",
     "UpdateIntegrationBody",
     "UpdateIntegrationResponse200",
+    "UpdateIntegrationResponse200DeliveriesWeekType0",
+    "UpdateIntegrationResponse200LastDeliveryType0",
+    "UpdateIntegrationResponse200LastDeliveryType0Status",
     "UpdateIntegrationResponse200Service",
     "UpdateIntegrationResponse200Status",
     "UpdateSiteBody",
@@ -537,12 +635,14 @@ __all__ = (
     "WatchAgentType0",
     "WatchCameraType0",
     "WatchCameraType0Status",
+    "WatchCoreState",
     "WatchDisplayStatus",
     "WatchLastDeliveryType1",
     "WatchLastEventType0",
     "WatchLastEventType0DeliveryStatus",
     "WatchNotify",
     "WatchNotifyType",
+    "WatchRuntime",
     "WatchSiteType0",
     "WatchSourceType",
     "WatchStatus",

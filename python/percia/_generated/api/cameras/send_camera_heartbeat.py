@@ -56,7 +56,9 @@ def sync_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Response[Union[Any, Error]]:
-    """Camera is alive. Authorization: Bearer <camera token>.
+    """Camera is alive (no request body). Authorization: Bearer <camera token>: a phone's token or a push
+    camera's publish token. Send it every 20 s while publishing; online = under 60 s since the last
+    heartbeat or allowed publish. 401 for a wrong, rotated or revoked token or a deleted camera.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -79,7 +81,9 @@ def sync(
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Optional[Union[Any, Error]]:
-    """Camera is alive. Authorization: Bearer <camera token>.
+    """Camera is alive (no request body). Authorization: Bearer <camera token>: a phone's token or a push
+    camera's publish token. Send it every 20 s while publishing; online = under 60 s since the last
+    heartbeat or allowed publish. 401 for a wrong, rotated or revoked token or a deleted camera.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -98,7 +102,9 @@ async def asyncio_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Response[Union[Any, Error]]:
-    """Camera is alive. Authorization: Bearer <camera token>.
+    """Camera is alive (no request body). Authorization: Bearer <camera token>: a phone's token or a push
+    camera's publish token. Send it every 20 s while publishing; online = under 60 s since the last
+    heartbeat or allowed publish. 401 for a wrong, rotated or revoked token or a deleted camera.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -119,7 +125,9 @@ async def asyncio(
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Optional[Union[Any, Error]]:
-    """Camera is alive. Authorization: Bearer <camera token>.
+    """Camera is alive (no request body). Authorization: Bearer <camera token>: a phone's token or a push
+    camera's publish token. Send it every 20 s while publishing; online = under 60 s since the last
+    heartbeat or allowed publish. 401 for a wrong, rotated or revoked token or a deleted camera.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

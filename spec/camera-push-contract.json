@@ -1,11 +1,23 @@
 {
-  "source": "percia-cf docs/specs/cameras/camera-push-api.md and ADR 0042 (branch divi-vijayakumar/camera-push-api, caa8b4c), recorded 2026-11-14. Shared by the TypeScript, Python and CLI tests. Tokens here are fakes.",
+  "source": "percia-cf docs/specs/cameras/camera-push-api.md and ADR 0042 (master bb95c92, deployed as Worker versions d7aff9a6 then 5a591ed8), recorded 2026-11-14. Shared by the TypeScript, Python and CLI tests. Tokens here are fakes.",
   "register": {
-    "request": { "name": "Hall camera", "kind": "push", "externalId": "lan-cam-1" },
+    "request": {
+      "name": "Hall camera",
+      "kind": "push",
+      "externalId": "lan-cam-1"
+    },
     "created": {
       "status": 201,
       "body": {
-        "camera": { "id": "cam_push_1", "name": "Hall camera", "kind": "push", "externalId": "lan-cam-1", "status": "never", "lastSeenAt": null, "watchCount": 0 },
+        "camera": {
+          "id": "cam_push_1",
+          "name": "Hall camera",
+          "kind": "push",
+          "externalId": "lan-cam-1",
+          "status": "never",
+          "lastSeenAt": null,
+          "watchCount": 0
+        },
         "whipUrl": "https://media.percia.test/cam/11111111-2222-3333-4444-555555555555/whip",
         "token": "pc_FAKE_TOKEN_one_time_0001",
         "expiresAt": null,
@@ -18,7 +30,15 @@
     "existing": {
       "status": 200,
       "body": {
-        "camera": { "id": "cam_push_1", "name": "Hall camera", "kind": "push", "externalId": "lan-cam-1", "status": "online", "lastSeenAt": "2026-11-14T10:00:00.000Z", "watchCount": 1 },
+        "camera": {
+          "id": "cam_push_1",
+          "name": "Hall camera",
+          "kind": "push",
+          "externalId": "lan-cam-1",
+          "status": "online",
+          "lastSeenAt": "2026-11-14T10:00:00.000Z",
+          "watchCount": 1
+        },
         "whipUrl": "https://media.percia.test/cam/11111111-2222-3333-4444-555555555555/whip",
         "token": null,
         "existing": true
@@ -27,17 +47,161 @@
   },
   "rotate": {
     "status": 200,
-    "body": { "token": "pc_FAKE_TOKEN_rotated_0002", "whipUrl": "https://media.percia.test/cam/11111111-2222-3333-4444-555555555555/whip", "expiresAt": null }
+    "body": {
+      "token": "pc_FAKE_TOKEN_rotated_0002",
+      "whipUrl": "https://media.percia.test/cam/11111111-2222-3333-4444-555555555555/whip",
+      "expiresAt": null
+    }
   },
   "errors": {
-    "wrongKind": { "status": 409, "code": "wrong_kind" },
-    "cameraLimit": { "status": 429, "code": "camera_limit" },
-    "badExternalId": { "status": 400, "code": "invalid_request", "field": "externalId" }
+    "wrongKind": {
+      "status": 409,
+      "code": "wrong_kind"
+    },
+    "cameraLimit": {
+      "status": 429,
+      "code": "camera_limit"
+    },
+    "badExternalId": {
+      "status": 400,
+      "code": "invalid_request",
+      "field": "externalId"
+    },
+    "badBulk": {
+      "status": 400,
+      "code": "invalid_request"
+    }
   },
   "assumptions": [
-    "POST /api/cameras with kind:'push' answers 201 {camera, whipUrl, token, expiresAt:null, publish} and, for a known (user, externalId), 200 {camera, whipUrl, token:null, existing:true}.",
+    "POST /api/cameras with kind:'push' answers 201 {camera, whipUrl, token, expiresAt:null, publish} and, for a known (user, externalId), 200 {camera, whipUrl, token:null, existing:true}. An Idempotency-Key header counts as the externalId when the body has none.",
     "POST /api/cameras/:id/token answers 200 {token, whipUrl, expiresAt:null}; DELETE answers 200; a phone camera answers 409 wrong_kind.",
-    "There is no GET /api/cameras/:id/status route and no bulk route (the spec lists bulk create as a non-goal): the SDKs derive status from GET /api/cameras and bulk from registerPush.",
+    "GET /api/cameras/:id/status answers {id, kind, state: waiting|online|offline|revoked, status: online|offline|never, lastSeenAt, secondsSinceSeen, watchCount, hint}.",
+    "POST /api/cameras/bulk {cameras:[{name, externalId}]} (1-10, unique externalIds) answers 201 {cameras:[{camera, whipUrl, token, existing?}]} (200 when every one existed); 429 camera_limit creates nothing.",
+    "A server older than the status/bulk routes answers 404 for them: the SDKs fall back to GET /api/cameras and to per-item registration.",
     "ffmpeg's whip muxer takes the publish token with -authorization (a Bearer token); heartbeat is POST /api/cam/heartbeat with Authorization: Bearer <camera token>, every 20 s."
-  ]
+  ],
+  "status": {
+    "online": {
+      "status": 200,
+      "body": {
+        "id": "cam_push_1",
+        "kind": "push",
+        "state": "online",
+        "status": "online",
+        "lastSeenAt": "2026-11-14T10:00:00.000Z",
+        "secondsSinceSeen": 12,
+        "watchCount": 1,
+        "hint": "Receiving video."
+      }
+    },
+    "waiting": {
+      "status": 200,
+      "body": {
+        "id": "cam_push_1",
+        "kind": "push",
+        "state": "waiting",
+        "status": "never",
+        "lastSeenAt": null,
+        "secondsSinceSeen": null,
+        "watchCount": 0,
+        "hint": "Waiting for the connector: publish to the WHIP URL with the token."
+      }
+    },
+    "revoked": {
+      "status": 200,
+      "body": {
+        "id": "cam_push_1",
+        "kind": "push",
+        "state": "revoked",
+        "status": "offline",
+        "lastSeenAt": "2026-11-14T09:00:00.000Z",
+        "secondsSinceSeen": 3600,
+        "watchCount": 1,
+        "hint": "The token was revoked. Rotate it to publish again."
+      }
+    }
+  },
+  "bulk": {
+    "request": {
+      "cameras": [
+        {
+          "name": "Camera a",
+          "externalId": "a"
+        },
+        {
+          "name": "Camera b",
+          "externalId": "b"
+        }
+      ]
+    },
+    "created": {
+      "status": 201,
+      "body": {
+        "cameras": [
+          {
+            "camera": {
+              "id": "cam_push_1",
+              "name": "Camera a",
+              "kind": "push",
+              "externalId": "a",
+              "status": "never",
+              "lastSeenAt": null,
+              "watchCount": 0
+            },
+            "whipUrl": "https://media.percia.test/cam/11111111-2222-3333-4444-555555555555/whip",
+            "token": "pc_FAKE_TOKEN_bulk_a_0003"
+          },
+          {
+            "camera": {
+              "id": "cam_push_2",
+              "name": "Camera b",
+              "kind": "push",
+              "externalId": "b",
+              "status": "never",
+              "lastSeenAt": null,
+              "watchCount": 0
+            },
+            "whipUrl": "https://media.percia.test/cam/21111111-2222-3333-4444-555555555555/whip",
+            "token": null,
+            "existing": true
+          }
+        ]
+      }
+    },
+    "allExisting": {
+      "status": 200,
+      "body": {
+        "cameras": [
+          {
+            "camera": {
+              "id": "cam_push_1",
+              "name": "Camera a",
+              "kind": "push",
+              "externalId": "a",
+              "status": "never",
+              "lastSeenAt": null,
+              "watchCount": 0
+            },
+            "whipUrl": "https://media.percia.test/cam/11111111-2222-3333-4444-555555555555/whip",
+            "token": null,
+            "existing": true
+          },
+          {
+            "camera": {
+              "id": "cam_push_2",
+              "name": "Camera b",
+              "kind": "push",
+              "externalId": "b",
+              "status": "never",
+              "lastSeenAt": null,
+              "watchCount": 0
+            },
+            "whipUrl": "https://media.percia.test/cam/21111111-2222-3333-4444-555555555555/whip",
+            "token": null,
+            "existing": true
+          }
+        ]
+      }
+    }
+  }
 }

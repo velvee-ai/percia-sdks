@@ -30,7 +30,8 @@ class Event:
 
         Attributes:
             at (datetime.datetime):
-            id (str): Stable, unique id of the event (use it to deduplicate).
+            id (str): Stable, unique id of the event (use it to deduplicate). Webhook bodies carry it as `eventId` (their
+                own `id` is the decisionId), so a receiver can fetch the keyframe or send feedback without listing events.
             type_ (str): `goal.met`.
             watch_id (str):
             action_results (Union[Unset, Any]): One result per agent action that ran, else null.

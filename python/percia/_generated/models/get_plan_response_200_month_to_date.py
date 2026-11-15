@@ -1,46 +1,59 @@
 from collections.abc import Mapping
-from typing import Any, TypeVar
+from typing import (
+    Any,
+    TypeVar,
+    Union,
+)
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
-T = TypeVar("T", bound="SetGeminiKeyBody")
+from ..types import UNSET, Unset
+
+T = TypeVar("T", bound="GetPlanResponse200MonthToDate")
 
 
 @_attrs_define
-class SetGeminiKeyBody:
+class GetPlanResponse200MonthToDate:
     """
     Attributes:
-        api_key (str):
+        camera_minutes (Union[Unset, int]):
+        cents (Union[Unset, int]):
     """
 
-    api_key: str
+    camera_minutes: Union[Unset, int] = UNSET
+    cents: Union[Unset, int] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        api_key = self.api_key
+        camera_minutes = self.camera_minutes
+
+        cents = self.cents
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
-        field_dict.update(
-            {
-                "apiKey": api_key,
-            }
-        )
+        field_dict.update({})
+        if camera_minutes is not UNSET:
+            field_dict["cameraMinutes"] = camera_minutes
+        if cents is not UNSET:
+            field_dict["cents"] = cents
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        api_key = d.pop("apiKey")
+        camera_minutes = d.pop("cameraMinutes", UNSET)
 
-        set_gemini_key_body = cls(
-            api_key=api_key,
+        cents = d.pop("cents", UNSET)
+
+        get_plan_response_200_month_to_date = cls(
+            camera_minutes=camera_minutes,
+            cents=cents,
         )
 
-        set_gemini_key_body.additional_properties = d
-        return set_gemini_key_body
+        get_plan_response_200_month_to_date.additional_properties = d
+        return get_plan_response_200_month_to_date
 
     @property
     def additional_keys(self) -> list[str]:

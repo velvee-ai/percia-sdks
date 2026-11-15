@@ -13,7 +13,9 @@ from ._config import coerce_body, time_param
 from ._errors import NotFoundError, PerciaError
 from ._generated.api.cameras import create_camera as _create_camera
 from ._generated.api.cameras import create_camera_pairing as _create_camera_pairing
+from ._generated.api.cameras import create_cameras as _create_cameras
 from ._generated.api.cameras import delete_camera as _delete_camera
+from ._generated.api.cameras import get_camera_status as _get_camera_status
 from ._generated.api.cameras import list_cameras as _list_cameras
 from ._generated.api.cameras import revoke_camera_token as _revoke_camera_token
 from ._generated.api.cameras import rotate_camera_token as _rotate_camera_token
@@ -39,12 +41,20 @@ from ._generated.api.watches import rotate_watch_secret as _rotate_watch_secret
 from ._generated.api.watches import test_watch_delivery as _test_watch_delivery
 from ._generated.api.watches import update_watch as _update_watch
 from ._generated.models.create_camera_body import CreateCameraBody
+from ._generated.models.create_cameras_body import CreateCamerasBody
 from ._generated.models.create_connect_link_body import CreateConnectLinkBody
 from ._generated.models.create_hook_body import CreateHookBody
 from ._generated.models.create_watch_body import CreateWatchBody
 from ._generated.models.set_watch_integrations_body import SetWatchIntegrationsBody
 from ._generated.models.update_watch_body import UpdateWatchBody
-from ._push import PushRegistration
+from ._push import (
+    BULK_MAX,
+    CameraStatus,
+    PushRegistration,
+    derive_status,
+    registration_from_dict,
+    status_from_model,
+)
 
 if TYPE_CHECKING:
     from ._client import AsyncPercia
@@ -157,19 +167,7 @@ class AsyncCameras:
         publish = getattr(res, "publish", None)
         publish = publish.to_dict() if publish is not None and hasattr(publish, "to_dict") else None
         reg = PushRegistration(camera=camera, whip_url=whip_url, token=token, existing=existing, publish=publish)
-        if existing and token is None:
-            if on_existing == "throw":
-                raise PerciaError(
-                    f'Camera with external_id "{external_id}" already exists ({camera.id}) and its token is shown only once. '
-                    f'Use cameras.rotate_token("{camera.id}") for a new one.'
-                )
-            if on_existing == "rotate":
-                rot = await self.rotate_token(camera.id)
-                new_token = rot.token if isinstance(rot.token, str) else None
-                new_url = rot.whip_url if isinstance(rot.whip_url, str) else whip_url
-                reg = PushRegistration(
-                    camera=camera, whip_url=new_url, token=new_token, existing=True, rotated=True, publish=publish
-                )
+        reg = await self._apply_on_existing(reg, external_id, on_existing)
         return reg
 
     async def rotate_token(self, id: str) -> Any:  # noqa: A002
@@ -181,27 +179,86 @@ class AsyncCameras:
         """Stop accepting publishes for a push camera; the camera stays. ``rotate_token`` publishes again."""
         return await self._c._call(_revoke_camera_token, id=id)
 
-    async def status(self, id: str) -> Any:  # noqa: A002
-        """One camera's ``id, name, kind, external_id, status`` (online = seen in the last 60 s, offline, never), ``last_seen_at``
-        and ``watch_count``. The API has no per-camera status route: this reads the list (one request)."""
-        cams = await self.list()
-        for cam in cams or []:
-            if getattr(cam, "id", None) == id:
-                return cam
-        raise NotFoundError(404, f"No camera {id} on this account.", code="not_found")
+    async def status(self, id: str) -> CameraStatus:  # noqa: A002
+        """One camera's state from ``GET /cameras/{id}/status``: ``state`` (``waiting`` | ``online`` | ``offline`` | ``revoked``),
+        ``status`` (online = seen in the last 60 s, offline, never), ``last_seen_at``, ``seconds_since_seen``, ``watch_count``
+        and a ``hint`` naming the likely reason and the next step. Needs ``cameras:read``.
+
+        An older server without that route answers 404: the SDK then reads ``GET /cameras`` and derives ``state``
+        (``derived=True``, ``hint=None``, never ``revoked``). A camera that is not yours raises ``NotFoundError`` either way."""
+        try:
+            res = await self._c._call(_get_camera_status, id=id)
+            return status_from_model(res)
+        except NotFoundError as err:
+            cams = await self.list()
+            for cam in cams or []:
+                if getattr(cam, "id", None) == id:
+                    return derive_status(cam)
+            raise err
 
     async def bulk(self, items: List[Mapping[str, str]], *, on_existing: str = "return") -> List[Dict[str, Any]]:
-        """Register many push cameras (idempotent each). The API has no bulk route, so this calls ``register_push`` per
-        item and reports each outcome in order: ``{"external_id", "ok", "registration"}`` or ``{"external_id", "ok": False,
-        "error"}``. One failure (``camera_limit``, a bad id) does not stop the rest."""
-        out: List[Dict[str, Any]] = []
-        for item in items:
-            try:
-                reg = await self.register_push(item["name"], item["external_id"], on_existing=on_existing)
-                out.append({"external_id": item["external_id"], "ok": True, "registration": reg})
-            except PerciaError as exc:
-                out.append({"external_id": item["external_id"], "ok": False, "error": exc})
-        return out
+        """Register many push cameras (idempotent each) with ``POST /cameras/bulk``: up to 10 per request, so longer lists go
+        in chunks of 10. Each chunk is all or nothing against the camera limit (429 ``camera_limit``, nothing created): that
+        error is reported on every item of the chunk and later chunks still run. Results keep the input order:
+        ``{"external_id", "ok": True, "registration"}`` or ``{"external_id", "ok": False, "error"}``.
+        A server without the bulk route answers 404: the SDK then calls ``register_push`` per item. Needs ``cameras:write``;
+        ``external_id`` must be unique within a chunk."""
+        out: List[Optional[Dict[str, Any]]] = [None] * len(items)
+        legacy = False
+        for start in range(0, len(items), BULK_MAX):
+            idx = list(range(start, min(start + BULK_MAX, len(items))))
+            if not legacy:
+                try:
+                    body = coerce_body(
+                        CreateCamerasBody,
+                        {"cameras": [{"name": items[i]["name"], "externalId": items[i]["external_id"]} for i in idx]},
+                    )
+                    res = await self._c._call_json(_create_cameras, body=body)
+                except NotFoundError:
+                    legacy = True
+                except PerciaError as exc:
+                    for i in idx:
+                        out[i] = {"external_id": items[i]["external_id"], "ok": False, "error": exc}
+                    continue
+                else:
+                    entries = [e for e in ((res or {}).get("cameras") or []) if isinstance(e, dict)]
+                    for k, i in enumerate(idx):
+                        ext = items[i]["external_id"]
+                        entry = next((e for e in entries if (e.get("camera") or {}).get("externalId") == ext), None)
+                        if entry is None and k < len(entries):
+                            entry = entries[k]
+                        try:
+                            reg = registration_from_dict(entry or {})
+                            reg = await self._apply_on_existing(reg, ext, on_existing)
+                            out[i] = {"external_id": ext, "ok": True, "registration": reg}
+                        except PerciaError as exc:
+                            out[i] = {"external_id": ext, "ok": False, "error": exc}
+                    continue
+            for i in idx:
+                ext = items[i]["external_id"]
+                try:
+                    reg = await self.register_push(items[i]["name"], ext, on_existing=on_existing)
+                    out[i] = {"external_id": ext, "ok": True, "registration": reg}
+                except PerciaError as exc:
+                    out[i] = {"external_id": ext, "ok": False, "error": exc}
+        return [o for o in out if o is not None]
+
+    async def _apply_on_existing(self, reg: PushRegistration, external_id: str, mode: str) -> PushRegistration:
+        if not reg.existing or reg.token is not None:
+            return reg
+        if mode == "throw":
+            raise PerciaError(
+                f'Camera with external_id "{external_id}" already exists ({reg.camera.id}) and its token is shown only once. '
+                f'Use cameras.rotate_token("{reg.camera.id}") for a new one.'
+            )
+        if mode == "rotate":
+            rot = await self.rotate_token(reg.camera.id)
+            new_token = rot.token if isinstance(rot.token, str) else None
+            new_url = rot.whip_url if isinstance(rot.whip_url, str) else reg.whip_url
+            return PushRegistration(
+                camera=reg.camera, whip_url=new_url, token=new_token, existing=True, rotated=True, publish=reg.publish
+            )
+        return reg
 
 
 class AsyncIntegrations:

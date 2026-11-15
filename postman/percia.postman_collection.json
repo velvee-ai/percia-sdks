@@ -164,7 +164,7 @@
                 "owned"
               ]
             },
-            "description": "The response is the only time you see `webhookSecret`. The test saves it as the `webhookSecret` variable (never logged). Set `webhookUrl` first: a public https address of your receiver.\n\noperationId: createWatch\n\nCreate a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone cameras. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent.\n\nScopes: watches:write."
+            "description": "The response is the only time you see `webhookSecret`. The test saves it as the `webhookSecret` variable (never logged). Set `webhookUrl` first: a public https address of your receiver.\n\noperationId: createWatch\n\nCreate a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone cameras. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked.\n\nScopes: watches:write."
           },
           "response": []
         },
@@ -785,7 +785,7 @@
           "response": []
         },
         {
-          "name": "Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone cameras. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent.",
+          "name": "Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone cameras. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked.",
           "event": [
             {
               "listen": "test",
@@ -852,7 +852,7 @@
                 "owned"
               ]
             },
-            "description": "operationId: createWatch\n\nCreate a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone cameras. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent.\n\nScopes: watches:write."
+            "description": "operationId: createWatch\n\nCreate a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone cameras. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked.\n\nScopes: watches:write."
           },
           "response": []
         }
@@ -1427,7 +1427,7 @@
                 "cameras"
               ]
             },
-            "description": "For a camera on a LAN: a connector there pulls it once and pushes WHIP to Percia. Idempotent by `externalId`: a second call returns 200 with `token: null` (the token is never shown twice; use Rotate token). The test saves `cameraId`, `whipUrl` and `cameraToken` (never logged). Publish with: ffmpeg -rtsp_transport tcp -i RTSP -an -c:v copy -f whip -authorization \"{{cameraToken}}\" {{whipUrl}}\n\noperationId: createCamera\n\nCreate a camera. Default (phone): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.\n\nScopes: cameras:write."
+            "description": "For a camera on a LAN: a connector there pulls it once and pushes WHIP to Percia. Idempotent by `externalId` (or an `Idempotency-Key` header): a second call returns 200 with `token: null` and `existing: true` (the token is never shown twice; use Rotate token). The test saves `cameraId`, `whipUrl` and `cameraToken` (never logged). Publish with: ffmpeg -rtsp_transport tcp -i RTSP -an -c:v copy -f whip -authorization \"{{cameraToken}}\" {{whipUrl}}\n\noperationId: createCamera\n\nCreate a camera. Default (phone): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.\n\nScopes: cameras:write."
           },
           "response": []
         },
@@ -1444,6 +1444,10 @@
                   "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
                   "});",
                   "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
                   "pm.test(\"errors use the shared envelope\", function () {",
                   "  if (pm.response.code < 400) return;",
                   "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
@@ -1478,7 +1482,7 @@
           "response": []
         },
         {
-          "name": "Issue a new pairing link; any unused earlier link stops working",
+          "name": "Issue a new pairing link; any unused earlier link stops working (no request body; phone cameras)",
           "event": [
             {
               "listen": "test",
@@ -1524,7 +1528,58 @@
                 "pair"
               ]
             },
-            "description": "operationId: createCameraPairing\n\nIssue a new pairing link; any unused earlier link stops working\n\nScopes: cameras:write."
+            "description": "operationId: createCameraPairing\n\nIssue a new pairing link; any unused earlier link stops working (no request body; phone cameras)\n\nScopes: cameras:write."
+          },
+          "response": []
+        },
+        {
+          "name": "Poll one camera: state waiting (never published), online, offline or revoked, lastSeenAt, secondsSinceSeen and a hint with the likely reason and next step. Online means a heartbeat or allowed publish under 60 s ago. Codec, resolution and bitrate are not available (media server API is off).",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cameras/{{cameraId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cameras",
+                "{{cameraId}}",
+                "status"
+              ]
+            },
+            "description": "operationId: getCameraStatus\n\nPoll one camera: state waiting (never published), online, offline or revoked, lastSeenAt, secondsSinceSeen and a hint with the likely reason and next step. Online means a heartbeat or allowed publish under 60 s ago. Codec, resolution and bitrate are not available (media server API is off).\n\nScopes: cameras:read."
           },
           "response": []
         },
@@ -1632,6 +1687,81 @@
               ]
             },
             "description": "operationId: rotateCameraToken\n\nRotate the publish token of a push camera (no request body); the old one stops working at once. Returns the new token once. Phone cameras: 409 wrong_kind (pair again).\n\nScopes: cameras:write, watches:delete."
+          },
+          "response": []
+        },
+        {
+          "name": "Register up to 10 push cameras at once (an NVR connector). Each needs name and externalId and is idempotent by externalId (existing ones come back with token null). All or nothing against the 10-camera limit (429 camera_limit, nothing created).",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200,201];",
+                  "function save(name, value) {",
+                  "  if (value === undefined || value === null) return;",
+                  "  pm.collectionVariables.set(name, value);",
+                  "  if (pm.environment && pm.environment.name) pm.environment.set(name, value);",
+                  "}",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});",
+                  "if (body && pm.response.code < 400) {",
+                  "  if (body.cameras && body.cameras.length) {",
+                  "    if (body.cameras[0].camera) save(\"cameraId\", body.cameras[0].camera.id);",
+                  "    save(\"whipUrl\", body.cameras[0].whipUrl);",
+                  "    save(\"cameraToken\", body.cameras[0].token);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cameras\": [\n    {\n      \"name\": \"Hall camera\",\n      \"externalId\": \"postman-lan-cam-1\"\n    },\n    {\n      \"name\": \"Garage camera\",\n      \"externalId\": \"postman-lan-cam-2\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cameras/bulk",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cameras",
+                "bulk"
+              ]
+            },
+            "description": "operationId: createCameras\n\nRegister up to 10 push cameras at once (an NVR connector). Each needs name and externalId and is idempotent by externalId (existing ones come back with token null). All or nothing against the 10-camera limit (429 camera_limit, nothing created).\n\nScopes: cameras:write."
           },
           "response": []
         },
@@ -1871,6 +2001,57 @@
               ]
             },
             "description": "operationId: updateIntegration\n\nMake a destination a default (attached to every new watch automatically) or stop doing so. applyToExisting also adds it to the watches you already have.\n\nScopes: integrations:write."
+          },
+          "response": []
+        },
+        {
+          "name": "Send one labelled test alert (\"Percia test: ignore\") to one of your connected destinations, to check it works. No event or delivery is recorded and the connection is not changed. At most 5 an hour per connection (2 for SMS and WhatsApp).",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/integrations/{{integrationId}}/test",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "integrations",
+                "{{integrationId}}",
+                "test"
+              ]
+            },
+            "description": "operationId: testIntegration\n\nSend one labelled test alert (\"Percia test: ignore\") to one of your connected destinations, to check it works. No event or delivery is recorded and the connection is not changed. At most 5 an hour per connection (2 for SMS and WhatsApp).\n\nScopes: integrations:write."
           },
           "response": []
         },
@@ -3704,7 +3885,7 @@
           "response": []
         },
         {
-          "name": "Mark an event correct or a false alarm. With a keyframe it becomes (or updates) a test case with the image pinned.",
+          "name": "Mark an event correct or a false alarm. With a keyframe it becomes (or updates) a test case with the image pinned. Leave `note` out to keep the note already stored; send an empty string to clear it.",
           "event": [
             {
               "listen": "test",
@@ -3765,7 +3946,7 @@
                 "feedback"
               ]
             },
-            "description": "operationId: sendEventFeedback\n\nMark an event correct or a false alarm. With a keyframe it becomes (or updates) a test case with the image pinned.\n\nScopes: watches:write."
+            "description": "operationId: sendEventFeedback\n\nMark an event correct or a false alarm. With a keyframe it becomes (or updates) a test case with the image pinned. Leave `note` out to keep the note already stored; send an empty string to clear it.\n\nScopes: watches:write."
           },
           "response": []
         },
@@ -4091,7 +4272,183 @@
       "name": "Plan and usage",
       "item": [
         {
-          "name": "Your plan (free or pro), its limits and your current counts. Limits count active watches only and bind only when `enforced` is true; when it is false they are just reported, so never ask the user to pause or delete anything because of them. `selling` says whether paid plans are on sale (false during the free preview).",
+          "name": "Set your monthly spend cap in cents ($5 to $10,000; default $200). When this month's camera time reaches it, watches pause (only while billing is enforced). Change it only when the person asks.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"capCents\": 500\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/billing/cap",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "billing",
+                "cap"
+              ]
+            },
+            "description": "operationId: setBillingCap\n\nSet your monthly spend cap in cents ($5 to $10,000; default $200). When this month's camera time reaches it, watches pause (only while billing is enforced). Change it only when the person asks.\n\nScopes: watches:write."
+          },
+          "response": []
+        },
+        {
+          "name": "Your credit grants (minutes, remaining, source, expiry) and your last 20 redemptions. Never returns a code.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/billing/credits",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "billing",
+                "credits"
+              ]
+            },
+            "description": "operationId: getCredits\n\nYour credit grants (minutes, remaining, source, expiry) and your last 20 redemptions. Never returns a code.\n\nScopes: watches:read."
+          },
+          "response": []
+        },
+        {
+          "name": "Redeem a credit code for camera-minutes (credits are minutes of watching, used before the free minutes and before the card). A code is shown to its owner once: pass it in the body, never in a URL. Unknown, disabled, expired and used-up codes all answer 404 code_invalid; the same person redeeming twice is 409 code_already_redeemed; too many tries is 429 rate_limited with Retry-After.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"x\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/billing/redeem",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "billing",
+                "redeem"
+              ]
+            },
+            "description": "operationId: redeemCreditCode\n\nRedeem a credit code for camera-minutes (credits are minutes of watching, used before the free minutes and before the card). A code is shown to its owner once: pass it in the body, never in a URL. Unknown, disabled, expired and used-up codes all answer 404 code_invalid; the same person redeeming twice is 409 code_already_redeemed; too many tries is 429 rate_limited with Retry-After.\n\nScopes: watches:write."
+          },
+          "response": []
+        },
+        {
+          "name": "Your plan (free, or pro shown as Pay as you go), its limits and your current counts. Limits count active watches only and bind only when `enforced` is true; when it is false they are just reported, so never ask the user to pause or delete anything because of them. `selling` says whether paid plans are on sale (false during the free preview). Pricing: $0.50 per camera-hour per camera (`pricing`), up to 10 active watches per camera (always enforced); `freeMinutesLeft` of the free camera-minutes, `monthToDate` camera-minutes and cost in cents, the spend cap `capCents`; watches pause for billing only when `billingEnforced` is true.",
           "event": [
             {
               "listen": "test",
@@ -4135,12 +4492,12 @@
                 "plan"
               ]
             },
-            "description": "operationId: getPlan\n\nYour plan (free or pro), its limits and your current counts. Limits count active watches only and bind only when `enforced` is true; when it is false they are just reported, so never ask the user to pause or delete anything because of them. `selling` says whether paid plans are on sale (false during the free preview).\n\nScopes: watches:read."
+            "description": "operationId: getPlan\n\nYour plan (free, or pro shown as Pay as you go), its limits and your current counts. Limits count active watches only and bind only when `enforced` is true; when it is false they are just reported, so never ask the user to pause or delete anything because of them. `selling` says whether paid plans are on sale (false during the free preview). Pricing: $0.50 per camera-hour per camera (`pricing`), up to 10 active watches per camera (always enforced); `freeMinutesLeft` of the free camera-minutes, `monthToDate` camera-minutes and cost in cents, the spend cap `capCents`; watches pause for billing only when `billingEnforced` is true.\n\nScopes: watches:read."
           },
           "response": []
         },
         {
-          "name": "Daily usage (UTC days): active watch-hours, events, model calls (and how many used your own key) and action calls",
+          "name": "Daily usage (UTC days): active watch-hours, camera-minutes (what is priced), events, model calls and action calls",
           "event": [
             {
               "listen": "test",
@@ -4192,7 +4549,57 @@
                 }
               ]
             },
-            "description": "operationId: getUsage\n\nDaily usage (UTC days): active watch-hours, events, model calls (and how many used your own key) and action calls\n\nScopes: watches:read."
+            "description": "operationId: getUsage\n\nDaily usage (UTC days): active watch-hours, camera-minutes (what is priced), events, model calls and action calls\n\nScopes: watches:read."
+          },
+          "response": []
+        },
+        {
+          "name": "This UTC month's camera minutes per camera (a phone camera by its name, a video link by its host), priced at the list price. `costCents` is list price, not what was charged: free and credit minutes are used first (see /plan). `unattributedMinutes` are minutes metered before per-camera counting began.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/usage/cameras",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usage",
+                "cameras"
+              ]
+            },
+            "description": "operationId: getCameraUsage\n\nThis UTC month's camera minutes per camera (a phone camera by its name, a video link by its host), priced at the list price. `costCents` is list price, not what was charged: free and credit minutes are used first (see /plan). `unattributedMinutes` are minutes metered before per-camera counting began.\n\nScopes: watches:read."
           },
           "response": []
         }

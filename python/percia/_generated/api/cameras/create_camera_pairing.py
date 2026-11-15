@@ -36,6 +36,11 @@ def _parse_response(
 
         return response_401
 
+    if response.status_code == 402:
+        response_402 = Error.from_dict(response.json())
+
+        return response_402
+
     if response.status_code == 404:
         response_404 = Error.from_dict(response.json())
 
@@ -63,7 +68,7 @@ def sync_detailed(
     *,
     client: AuthenticatedClient,
 ) -> Response[Union[CreateCameraPairingResponse200, Error]]:
-    """Issue a new pairing link; any unused earlier link stops working
+    """Issue a new pairing link; any unused earlier link stops working (no request body; phone cameras)
 
     Args:
         id (str):
@@ -92,7 +97,7 @@ def sync(
     *,
     client: AuthenticatedClient,
 ) -> Optional[Union[CreateCameraPairingResponse200, Error]]:
-    """Issue a new pairing link; any unused earlier link stops working
+    """Issue a new pairing link; any unused earlier link stops working (no request body; phone cameras)
 
     Args:
         id (str):
@@ -116,7 +121,7 @@ async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
 ) -> Response[Union[CreateCameraPairingResponse200, Error]]:
-    """Issue a new pairing link; any unused earlier link stops working
+    """Issue a new pairing link; any unused earlier link stops working (no request body; phone cameras)
 
     Args:
         id (str):
@@ -143,7 +148,7 @@ async def asyncio(
     *,
     client: AuthenticatedClient,
 ) -> Optional[Union[CreateCameraPairingResponse200, Error]]:
-    """Issue a new pairing link; any unused earlier link stops working
+    """Issue a new pairing link; any unused earlier link stops working (no request body; phone cameras)
 
     Args:
         id (str):

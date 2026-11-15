@@ -1,8 +1,9 @@
 from enum import Enum
 
 
-class ListProviderKeysResponse200KeysItemProvider(str, Enum):
-    GEMINI = "gemini"
+class GetWatchResponse200Runtime(str, Enum):
+    CORE = "core"
+    POOL = "pool"
 
     def __str__(self) -> str:
         return str(self.value)
