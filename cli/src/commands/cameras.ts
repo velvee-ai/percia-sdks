@@ -2,11 +2,13 @@ import { Command } from "commander";
 import type { Context, GlobalOptions } from "../context.js";
 import { isoOrDash, json, qr, table } from "../output.js";
 import { openSession } from "../session.js";
+import { registerPushCommands } from "./push.js";
+import { dropSavedByCameraId, pushStorePath, updateSavedToken } from "../push-store.js";
 
 type Deps = { ctx: Context; globals: () => GlobalOptions };
 
 export function registerCameras(program: Command, { ctx, globals }: Deps) {
-	const c = program.command("cameras").description("Phone and laptop cameras.");
+	const c = program.command("cameras").description("Phone and laptop cameras, and push cameras on a private network.");
 	c.command("add <name>")
 		.description("Create a phone camera and print its pairing link (and a QR code) for the phone that will be the camera.")
 		.option("--no-qr", "do not draw the QR code")
@@ -24,7 +26,7 @@ export function registerCameras(program: Command, { ctx, globals }: Deps) {
 			const g = globals();
 			const list = await (await openSession(ctx, g)).client.cameras.list();
 			if (g.json) return json(ctx, list);
-			ctx.stdout(list.length ? table(list.map((x) => ({ ...x, lastSeenAt: isoOrDash(x.lastSeenAt) })) as Record<string, unknown>[], [{ key: "id" }, { key: "name" }, { key: "status" }, { key: "lastSeenAt", title: "last seen" }, { key: "watchCount", title: "watches" }]) : "No cameras.\n");
+			ctx.stdout(list.length ? table(list.map((x) => ({ ...x, lastSeenAt: isoOrDash(x.lastSeenAt) })) as Record<string, unknown>[], [{ key: "id" }, { key: "name" }, { key: "kind" }, { key: "externalId", title: "external id" }, { key: "status" }, { key: "lastSeenAt", title: "last seen" }, { key: "watchCount", title: "watches" }]) : "No cameras.\n");
 		});
 	c.command("pair <id>")
 		.description("Print a fresh pairing link for an existing camera.")
@@ -38,8 +40,44 @@ export function registerCameras(program: Command, { ctx, globals }: Deps) {
 		.description("Remove a camera (409 while active or paused watches use it).")
 		.action(async (id: string) => {
 			const g = globals();
-			const res = await (await openSession(ctx, g)).client.cameras.delete(id);
+			const sess = await openSession(ctx, g);
+			const res = await sess.client.cameras.delete(id);
+			await dropSavedByCameraId(ctx, sess.baseUrl, id);
 			if (g.json) return json(ctx, res);
 			ctx.stdout(`Removed camera ${id}.\n`);
+		});
+	registerPushCommands(c, { ctx, globals });
+	const token = c.command("token").description("Publish tokens of push cameras.");
+	token
+		.command("rotate <id>")
+		.description("Mint a new publish token for a push camera (the old one stops working at once). Shown once. Needs cameras:write and watches:delete.")
+		.option("--no-save", "do not update the token saved by `cameras push`")
+		.action(async (id: string, o: { save: boolean }) => {
+			const g = globals();
+			const s = await openSession(ctx, g);
+			const res = await s.client.cameras.rotateToken(id);
+			const updated = o.save && res.token ? await updateSavedToken(ctx, s.baseUrl, id, res.token, res.whipUrl) : false;
+			if (g.json) return json(ctx, { ...res, savedLocally: updated });
+			ctx.stdout(`New publish token for camera ${id}:\n  ${res.token}\n\n!! This token is shown once. It can publish video to this one camera and nothing else. The old token no longer works.\n${updated ? `   Updated the saved copy in ${pushStorePath(ctx)}.\n` : ""}`);
+		});
+	token
+		.command("revoke <id>")
+		.description("Revoke a push camera's token: publishing stops at once, the camera stays. Rotate to publish again.")
+		.action(async (id: string) => {
+			const g = globals();
+			const s = await openSession(ctx, g);
+			const res = await s.client.cameras.revokeToken(id);
+			const dropped = await dropSavedByCameraId(ctx, s.baseUrl, id);
+			if (g.json) return json(ctx, { revoked: true, id, savedCopiesRemoved: dropped, response: res ?? null });
+			ctx.stdout(`Revoked the publish token of camera ${id}. Publishing is refused until you run: percia cameras token rotate ${id}\n${dropped ? "Removed the saved copy.\n" : ""}`);
+		});
+	c.command("status [id]")
+		.description("Show whether push cameras are online (seen in the last 60 s). One camera by id, or all.")
+		.action(async (id?: string) => {
+			const g = globals();
+			const client = (await openSession(ctx, g)).client;
+			const list = id ? [await client.cameras.status(id)] : await client.cameras.list();
+			if (g.json) return json(ctx, id ? list[0] : list);
+			ctx.stdout(list.length ? table(list.map((x) => ({ ...x, lastSeenAt: isoOrDash(x.lastSeenAt) })) as Record<string, unknown>[], [{ key: "id" }, { key: "name" }, { key: "kind" }, { key: "status" }, { key: "lastSeenAt", title: "last seen" }, { key: "watchCount", title: "watches" }]) : "No cameras.\n");
 		});
 }

@@ -28,6 +28,10 @@ Credentials live in the OS config directory (macOS `~/Library/Application Suppor
 percia watches list | get <id> | create | pause <id> | resume <id> | delete <id> | test <id> | rotate-secret <id>
 percia events list [--watch id] [--type t] [--since time] [--limit n] [--all] [--follow]
 percia cameras add <name> | list | pair <id> | remove <id>        # add prints the pairing link and a QR
+percia cameras push register --name N --external-id ID [--rtsp URL]   # private-network camera: WHIP URL + token, once
+percia cameras push run --rtsp rtsp://user:pass@192.168.1.20/s    # register, then ffmpeg RTSP -> WHIP in the foreground
+percia cameras token rotate <id> | revoke <id>                    # new token (shown once) / stop publishing
+percia cameras status [id]                                        # online = seen in the last 60 s
 percia destinations list | services | connect <service> | attach <watchId> <connectionId> | remove <id>
 percia hooks list | create <https-url> | test <id> | delete <id>
 percia listen --forward http://localhost:3000/hook                # see ../docs/cli-listen.md
@@ -44,6 +48,14 @@ percia cameras add "Hall phone"                   # link + QR; then --source per
 percia destinations connect slack                 # prints the single-use link; a person approves it
 percia mcp setup claude-code                      # writes ./.mcp.json with no secret; then /mcp > Authenticate
 ```
+
+Camera on a private network (no port forwarding): run this on a machine on the camera's LAN. It needs ffmpeg 7.1+ with the `whip` muxer and says what is missing if not.
+
+```bash
+percia cameras push run --rtsp rtsp://user:pass@192.168.1.20:554/stream1   # Ctrl-C to stop; rerun reuses the camera
+```
+
+The publish token is printed once by `push register` (with a warning) and kept in the config directory as `push-cameras.json` (mode 0600). Full guide: [`../docs/camera-push.md`](../docs/camera-push.md).
 
 `watches create` prints the webhook signing secret once. `destinations connect` and `cameras add` cannot finish for you: a person opens the link.
 

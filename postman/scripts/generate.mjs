@@ -71,7 +71,7 @@ const varFor = (path, name) => {
 // ---------- selection ----------
 const PLATFORM_PUBLIC = new Set(["getHealth", "getConfig", "getStatus"]);
 const TAG_ORDER = ["watches", "events", "hooks", "cameras", "integrations", "agents", "sites", "evidence", "devices", "billing", "platform"];
-const TAG_TITLE = { watches: "Watches", events: "Events feed", hooks: "REST hooks", cameras: "Phone cameras", integrations: "Integrations", agents: "Agents", sites: "Sites", evidence: "Evidence and tests", devices: "Push devices", billing: "Plan and usage", platform: "Platform" };
+const TAG_TITLE = { watches: "Watches", events: "Events feed", hooks: "REST hooks", cameras: "Cameras (phone and push)", integrations: "Integrations", agents: "Agents", sites: "Sites", evidence: "Evidence and tests", devices: "Push devices", billing: "Plan and usage", platform: "Platform" };
 
 const BODY_OVERRIDES = {
 	updateWatch: { status: "paused" },
@@ -88,6 +88,16 @@ const BODY_OVERRIDES = {
 	askSite: { question: "Was anyone at the gate today?" },
 	registerDevice: { token: "{{deviceToken}}", platform: "ios", appVersion: "1.0.0" },
 };
+// Extra requests for an operation that has more than one useful shape. They sit right after the base request.
+const VARIANTS = [
+	{
+		of: "createCamera",
+		name: "Create a push camera for a private network (token shown once)",
+		note: "For a camera on a LAN: a connector there pulls it once and pushes WHIP to Percia. Idempotent by `externalId`: a second call returns 200 with `token: null` (the token is never shown twice; use Rotate token). The test saves `cameraId`, `whipUrl` and `cameraToken` (never logged). Publish with: ffmpeg -rtsp_transport tcp -i RTSP -an -c:v copy -f whip -authorization \"{{cameraToken}}\" {{whipUrl}}",
+		body: { name: "Hall camera", kind: "push", externalId: "postman-lan-cam-1" },
+		saves: ['if (body.camera) save("cameraId", body.camera.id);', 'save("whipUrl", body.whipUrl);', 'save("cameraToken", body.token);'],
+	},
+];
 const QUERY_DEFAULTS = { limit: "50", since: "2026-11-01T00:00:00Z" };
 
 // ---------- test scripts (plain JS, no pm.expect, so the offline runner needs only pm.test) ----------
@@ -133,6 +143,7 @@ const SAVES = {
 	getSampleEvent: ['if (body.events && body.events.length) save("eventId", body.events[0].id);'],
 	createHook: ['save("hookId", body.id);', 'save("hookSecret", body.secret);'],
 	createCamera: ['if (body.camera) save("cameraId", body.camera.id);', 'save("pairUrl", body.pairUrl);'],
+	rotateCameraToken: ['save("cameraToken", body.token);', 'save("whipUrl", body.whipUrl);'],
 	createConnectLink: ['save("connectUrl", body.connectUrl);'],
 	listIntegrations: ['if (Array.isArray(body) && body.length) save("connectionId", body[0].id);'],
 	createAgent: ['save("agentId", body.id);'],
@@ -155,7 +166,7 @@ export function buildModel(spec) {
 	const tagRank = (t) => (TAG_ORDER.includes(t) ? TAG_ORDER.indexOf(t) : TAG_ORDER.length);
 	ops.sort((a, b) => tagRank(a.op.tags[0]) - tagRank(b.op.tags[0]) || a.path.localeCompare(b.path) || a.method.localeCompare(b.method));
 
-	const requests = ops.map(({ method, path, op, open }) => {
+	const requests = ops.flatMap(({ method, path, op, open }) => {
 		const params = (op.parameters ?? []).map((p) => resolve(p));
 		const urlPath = path.replace(/\{(\w+)\}/g, (_, n) => `{{${varFor(path, n)}}}`);
 		const query = params.filter((p) => p.in === "query").map((p) => ({ key: p.name, value: QUERY_DEFAULTS[p.name] ?? "", disabled: p.name !== "limit", description: p.description ?? "" }));
@@ -175,15 +186,21 @@ export function buildModel(spec) {
 			open ? "Auth: none." : `Scopes: ${scopes.length ? scopes.join(", ") : "(none listed)"}.`,
 			...(op["x-percia-destructive"] ? ["", "Destructive: also needs watches:delete (unless noted in the API description)."] : []),
 		].join("\n");
-		return {
+		const base = {
 			operationId: op.operationId, tag: op.tags[0], method, path, urlPath, query, bodyText, open,
 			name: `${op.summary}`, description,
 			test: testScript(op, SAVES[op.operationId] ?? []),
 		};
+		const variants = VARIANTS.filter((v) => v.of === op.operationId).map((v) => ({
+			...base, name: v.name, bodyText: json(v.body), variant: true,
+			description: `${v.note}\n\n${description}`,
+			test: testScript(op, v.saves),
+		}));
+		return [base, ...variants];
 	});
 
 	// The five-step flow of docs/integrators/quickstart.md, in order.
-	const byId = Object.fromEntries(requests.map((r) => [r.operationId, r]));
+	const byId = Object.fromEntries(requests.filter((r) => !r.variant).map((r) => [r.operationId, r]));
 	const quick = [
 		["1. Create a webhook watch (save webhookSecret)", "createWatch", "The response is the only time you see `webhookSecret`. The test saves it as the `webhookSecret` variable (never logged). Set `webhookUrl` first: a public https address of your receiver."],
 		["2. Send a signed test event to your receiver", "testWatchDelivery", "No camera needed. Needs a receiver at `webhookUrl`; see examples/ for ready-made ones."],
@@ -199,11 +216,11 @@ export function buildModel(spec) {
 	for (const r of requests) for (const m of `${r.urlPath} ${r.bodyText ?? ""}`.matchAll(/\{\{(\w+)\}\}/g)) vars.add(m[1]);
 	for (const r of requests) for (const l of r.test) for (const m of l.matchAll(/save\("(\w+)"/g)) vars.add(m[1]);
 	const envVars = ["baseUrl", "apiKey", "webhookUrl", ...[...vars].filter((v) => !["baseUrl", "apiKey", "webhookUrl"].includes(v)).sort()];
-	return { folders, requests, skipped, total: Object.values(spec.paths).reduce((n, p) => n + Object.keys(p).length, 0), envVars, spec };
+	return { folders, requests, variants: VARIANTS.length, skipped, total: Object.values(spec.paths).reduce((n, p) => n + Object.keys(p).length, 0), envVars, spec };
 }
 
 const ENV_DEFAULTS = { baseUrl: "https://playground.percia.ai", webhookUrl: "https://example.com/hooks/percia" };
-const SECRETS = new Set(["apiKey", "webhookSecret", "hookSecret", "pairUrl", "connectUrl", "deviceToken"]);
+const SECRETS = new Set(["apiKey", "webhookSecret", "hookSecret", "pairUrl", "connectUrl", "deviceToken", "cameraToken"]);
 
 // ---------- Postman ----------
 const pmItem = (r) => ({

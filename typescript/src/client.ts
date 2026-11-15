@@ -1,13 +1,14 @@
 import { createClient as createGeneratedClient, createConfig } from "./generated/client/index.js";
 import type { Client } from "./generated/client/index.js";
 import * as sdk from "./generated/sdk.gen.js";
-import type { Event, EventPage, Watch } from "./generated/types.gen.js";
-import { PerciaError, errorFromResponse } from "./errors.js";
+import type { Camera, Event, EventPage, Watch } from "./generated/types.gen.js";
+import { NotFoundError, PerciaError, errorFromResponse } from "./errors.js";
+import type { BulkItem, BulkResult, PushRegistration } from "./push.js";
 import { createRetryingFetch, type RetryOptions } from "./retry.js";
 import { paginate } from "./pagination.js";
 
 export const DEFAULT_BASE_URL = "https://playground.percia.ai";
-export const SDK_VERSION = "0.1.0";
+export const SDK_VERSION = "0.2.0";
 
 export type TokenSource = string | (() => string | Promise<string>);
 
@@ -141,6 +142,18 @@ class Events {
 	sample() { return unwrap(this.c.api.getSampleEvent({})); }
 }
 
+export type RegisterPushOptions = {
+	name: string;
+	/** Your own stable id for this camera (1-100 chars of `A-Za-z0-9._:-`). Re-registering the same id returns the same camera. */
+	externalId: string;
+	/**
+	 * What to do when the camera already exists (HTTP 200, the server never returns its token again):
+	 * `"return"` (default) gives `{ existing: true, token: null }`; `"rotate"` mints a new token (the old one stops working);
+	 * `"throw"` raises a `PerciaError` so a script that needs a token cannot continue without one.
+	 */
+	onExisting?: "return" | "rotate" | "throw";
+};
+
 class Cameras {
 	constructor(private c: PerciaClient) {}
 	list() { return unwrap(this.c.api.listCameras({})); }
@@ -149,6 +162,57 @@ class Cameras {
 	/** A fresh pairing link; an unused earlier one stops working. */
 	pair(id: string) { return unwrap(this.c.api.createCameraPairing({ path: { id } })); }
 	delete(id: string) { return unwrap(this.c.api.deleteCamera({ path: { id } })); }
+
+	/**
+	 * Register a camera that a connector on a private network pushes to Percia (WHIP). Safe to call on every start:
+	 * it is idempotent by `externalId`. The first call returns `token` (shown once: store it); later calls return the
+	 * same camera with `token: null` and `existing: true` unless `onExisting` says otherwise.
+	 */
+	async registerPush(options: RegisterPushOptions): Promise<PushRegistration> {
+		const res = (await unwrap(this.c.api.createCamera({ body: { name: options.name, kind: "push", externalId: options.externalId } }))) as { camera?: Camera; whipUrl?: string; token?: string | null; existing?: boolean; publish?: Record<string, unknown> };
+		if (!res.camera?.id || !res.whipUrl) throw new PerciaError("Percia did not return a push camera (no id or whipUrl). Is the server new enough for kind: \"push\"?");
+		const existing = res.existing === true;
+		let reg: PushRegistration = { camera: res.camera, whipUrl: res.whipUrl, token: res.token ?? null, existing, rotated: false, publish: res.publish };
+		if (existing && !reg.token) {
+			const mode = options.onExisting ?? "return";
+			if (mode === "throw") throw new PerciaError(`Camera with externalId "${options.externalId}" already exists (${res.camera.id}) and its token is shown only once. Use cameras.rotateToken("${res.camera.id}") for a new one.`);
+			if (mode === "rotate") {
+				const rot = await this.rotateToken(res.camera.id);
+				reg = { ...reg, token: rot.token ?? null, whipUrl: rot.whipUrl ?? reg.whipUrl, rotated: true };
+			}
+		}
+		return reg;
+	}
+	/** New publish token for a push camera, shown once; the old one stops working at once. Phone cameras answer 409 `wrong_kind`. Needs `cameras:write` and `watches:delete`. */
+	rotateToken(id: string) { return unwrap(this.c.api.rotateCameraToken({ path: { id } })); }
+	/** Stop accepting publishes for a push camera; the camera stays. `rotateToken` publishes again. Needs `cameras:write` and `watches:delete`. */
+	revokeToken(id: string) { return unwrap(this.c.api.revokeCameraToken({ path: { id } })); }
+	/**
+	 * `id`, `name`, `kind`, `externalId`, `status` (`online` = seen in the last 60 s, `offline`, `never`), `lastSeenAt` and `watchCount`
+	 * of one camera. The API has no per-camera status route; this reads the list, so it costs one request.
+	 */
+	async status(id: string) {
+		const found = (await this.list()).find((c) => c.id === id);
+		if (!found) throw new NotFoundError({ status: 404, code: "not_found", message: `No camera ${id} on this account.` });
+		return found;
+	}
+	/**
+	 * Register many push cameras (idempotent each). The API has no bulk route, so this runs `registerPush` with a small
+	 * concurrency and reports each outcome: one failure (`camera_limit`, a bad id) does not stop the rest.
+	 */
+	async bulk(items: BulkItem[], options: { concurrency?: number; onExisting?: RegisterPushOptions["onExisting"] } = {}): Promise<BulkResult[]> {
+		const out: BulkResult[] = new Array(items.length);
+		let next = 0;
+		const worker = async () => {
+			for (let i = next++; i < items.length; i = next++) {
+				const item = items[i]!;
+				try { out[i] = { externalId: item.externalId, ok: true, registration: await this.registerPush({ ...item, onExisting: options.onExisting }) }; }
+				catch (error) { out[i] = { externalId: item.externalId, ok: false, error }; }
+			}
+		};
+		await Promise.all(Array.from({ length: Math.max(1, Math.min(options.concurrency ?? 3, items.length || 1)) }, worker));
+		return out;
+	}
 }
 
 class Integrations {

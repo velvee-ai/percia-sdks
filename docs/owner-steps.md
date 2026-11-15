@@ -30,7 +30,7 @@ Nothing here has been done. The assistant never publishes, never creates account
 2. Check `https://pypi.org/project/percia/` is still 404.
 3. Add a **pending trusted publisher** (this reserves the name on first successful publish, no token): pypi.org > Your account > Publishing > "Add a new pending publisher": project name `percia`, owner `percia-ai`, repository `percia-sdks`, workflow `release-python.yml`, environment `pypi`. Repeat on test.pypi.org with environment `testpypi` for a rehearsal.
 4. GitHub > Settings > Environments: create `pypi` (add yourself as a required reviewer so a tag does not publish unattended) and `testpypi`.
-5. Release: bump `version` in `python/pyproject.toml` and `python/percia/_version.py`, update `python/CHANGELOG.md`, commit, then `git tag python-v0.1.0 && git push origin python-v0.1.0`. Rehearse first: Actions > "Release (PyPI)" > Run workflow > `testpypi`.
+5. Release: bump `version` in `python/pyproject.toml` and `python/percia/_version.py`, update `python/CHANGELOG.md`, commit, then `git tag python-v0.2.0 && git push origin python-v0.1.0`. Rehearse first: Actions > "Release (PyPI)" > Run workflow > `testpypi`.
 
 ## 3. What only a real account can verify
 
@@ -53,6 +53,16 @@ pnpm generate         # TS, Python, Postman
 git diff              # review, then commit
 ```
 The daily "Spec drift" workflow fails (and opens a `spec-drift` issue) whenever the live document differs from the pin. It was green when this was written (live and pin identical).
+
+## 4b. Releasing camera push (0.2.0) when the server is live
+
+Nothing here has been published or tagged. The versions in the repo are already `0.2.0` (SDK, CLI, Python) and the pinned spec carries the push routes from a **not yet deployed** percia-cf branch (`divi-vijayakumar/camera-push-api`), so order matters:
+
+1. Merge and deploy percia-cf camera push (migration `kind`, `external_id`, routes, `PHONE_CAMERA_ENABLED` on).
+2. `pnpm spec:sync && pnpm generate`, then `git diff`: expect no change to the camera routes (or adjust the SDK and `spec/camera-push-contract.json`). Re-check the assumptions in [camera-push.md](camera-push.md#assumptions-to-re-check). `pnpm spec:check` must pass (the pin was assembled from the draft, so it drifts from the live host until step 1 and 2).
+3. With a **test account** (never create cameras in production by accident): `PERCIA_API_KEY=... percia cameras push register --name smoke --external-id smoke-1`, rotate, revoke, `cameras remove`, and with ffmpeg 7.1+ on a LAN machine `percia cameras push run --rtsp ...` against a real camera; check the camera goes online in the dashboard and a watch on `percia-cam://<id>` produces events.
+4. Update `CHANGELOG.md` and the per-package changelogs from "unreleased" to the release date.
+5. Publish as in sections 1 and 2 (npm `@percia/sdk` first, then `@percia/cli`; PyPI tag `python-v0.2.0`). Do not tag before steps 1-3.
 
 ## 5. Optional
 

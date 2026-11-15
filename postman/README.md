@@ -25,7 +25,7 @@ cd postman && npm test                # offline, 9 tests
 | `baseUrl` | Default `https://playground.percia.ai`. Requests go to `{{baseUrl}}/api/...`. |
 | `apiKey` | Secret. Sent as `Authorization: Bearer {{apiKey}}` (collection level). Never commit a value. |
 | `webhookUrl` | Where watches and hooks deliver. Must be public https. |
-| `watchId`, `cameraId`, `hookId`, `eventId`, `cursor`, `agentId`, `siteId`, `connectionId`, ... | Filled by the test scripts of the create requests (Postman) or by hand. |
+| `watchId`, `cameraId`, `whipUrl`, `cameraToken` (secret), `hookId`, `eventId`, `cursor`, `agentId`, `siteId`, `connectionId`, ... | Filled by the test scripts of the create requests (Postman) or by hand. |
 | `webhookSecret`, `hookSecret`, `pairUrl`, `connectUrl` | Saved from create responses (they are shown once). Scripts never `console.log` them. Treat `pairUrl` and `connectUrl` as private. |
 
 Scripts save into collection variables, and into the active environment too when one is selected, so an empty environment value never shadows what a script saved.

@@ -6,6 +6,7 @@ import httpx
 from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.create_camera_body import CreateCameraBody
+from ...models.create_camera_response_200 import CreateCameraResponse200
 from ...models.create_camera_response_201 import CreateCameraResponse201
 from ...models.error import Error
 from ...types import Response
@@ -32,7 +33,12 @@ def _get_kwargs(
 
 def _parse_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[CreateCameraResponse201, Error]]:
+) -> Optional[Union[CreateCameraResponse200, CreateCameraResponse201, Error]]:
+    if response.status_code == 200:
+        response_200 = CreateCameraResponse200.from_dict(response.json())
+
+        return response_200
+
     if response.status_code == 201:
         response_201 = CreateCameraResponse201.from_dict(response.json())
 
@@ -47,6 +53,11 @@ def _parse_response(
         response_401 = Error.from_dict(response.json())
 
         return response_401
+
+    if response.status_code == 402:
+        response_402 = Error.from_dict(response.json())
+
+        return response_402
 
     if response.status_code == 404:
         response_404 = Error.from_dict(response.json())
@@ -66,7 +77,7 @@ def _parse_response(
 
 def _build_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[CreateCameraResponse201, Error]]:
+) -> Response[Union[CreateCameraResponse200, CreateCameraResponse201, Error]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -79,9 +90,12 @@ def sync_detailed(
     *,
     client: AuthenticatedClient,
     body: CreateCameraBody,
-) -> Response[Union[CreateCameraResponse201, Error]]:
-    """Create a phone/laptop camera and its first pairing link (single use, 10 minutes). 404 while phone
-    cameras are off.
+) -> Response[Union[CreateCameraResponse200, CreateCameraResponse201, Error]]:
+    r"""Create a camera. Default (phone): returns a pairing link (single use, 10 minutes). With
+    kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish
+    `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering
+    connector gets the same camera back (200, token null, existing true). 404 while phone cameras are
+    off.
 
     Args:
         body (CreateCameraBody):
@@ -91,7 +105,7 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[CreateCameraResponse201, Error]]
+        Response[Union[CreateCameraResponse200, CreateCameraResponse201, Error]]
     """
 
     kwargs = _get_kwargs(
@@ -109,9 +123,12 @@ def sync(
     *,
     client: AuthenticatedClient,
     body: CreateCameraBody,
-) -> Optional[Union[CreateCameraResponse201, Error]]:
-    """Create a phone/laptop camera and its first pairing link (single use, 10 minutes). 404 while phone
-    cameras are off.
+) -> Optional[Union[CreateCameraResponse200, CreateCameraResponse201, Error]]:
+    r"""Create a camera. Default (phone): returns a pairing link (single use, 10 minutes). With
+    kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish
+    `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering
+    connector gets the same camera back (200, token null, existing true). 404 while phone cameras are
+    off.
 
     Args:
         body (CreateCameraBody):
@@ -121,7 +138,7 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[CreateCameraResponse201, Error]
+        Union[CreateCameraResponse200, CreateCameraResponse201, Error]
     """
 
     return sync_detailed(
@@ -134,9 +151,12 @@ async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
     body: CreateCameraBody,
-) -> Response[Union[CreateCameraResponse201, Error]]:
-    """Create a phone/laptop camera and its first pairing link (single use, 10 minutes). 404 while phone
-    cameras are off.
+) -> Response[Union[CreateCameraResponse200, CreateCameraResponse201, Error]]:
+    r"""Create a camera. Default (phone): returns a pairing link (single use, 10 minutes). With
+    kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish
+    `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering
+    connector gets the same camera back (200, token null, existing true). 404 while phone cameras are
+    off.
 
     Args:
         body (CreateCameraBody):
@@ -146,7 +166,7 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[CreateCameraResponse201, Error]]
+        Response[Union[CreateCameraResponse200, CreateCameraResponse201, Error]]
     """
 
     kwargs = _get_kwargs(
@@ -162,9 +182,12 @@ async def asyncio(
     *,
     client: AuthenticatedClient,
     body: CreateCameraBody,
-) -> Optional[Union[CreateCameraResponse201, Error]]:
-    """Create a phone/laptop camera and its first pairing link (single use, 10 minutes). 404 while phone
-    cameras are off.
+) -> Optional[Union[CreateCameraResponse200, CreateCameraResponse201, Error]]:
+    r"""Create a camera. Default (phone): returns a pairing link (single use, 10 minutes). With
+    kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish
+    `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering
+    connector gets the same camera back (200, token null, existing true). 404 while phone cameras are
+    off.
 
     Args:
         body (CreateCameraBody):
@@ -174,7 +197,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[CreateCameraResponse201, Error]
+        Union[CreateCameraResponse200, CreateCameraResponse201, Error]
     """
 
     return (

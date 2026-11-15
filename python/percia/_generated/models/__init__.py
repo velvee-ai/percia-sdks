@@ -34,6 +34,7 @@ from .ask_site_response_200 import AskSiteResponse200
 from .build_agent_body import BuildAgentBody
 from .build_agent_response_201 import BuildAgentResponse201
 from .camera import Camera
+from .camera_kind import CameraKind
 from .camera_status import CameraStatus
 from .chat_with_agent_body import ChatWithAgentBody
 from .chat_with_agent_response_200 import ChatWithAgentResponse200
@@ -71,8 +72,11 @@ from .create_agent_body_config_outputs_item_type import (
 from .create_api_key_response_201 import CreateApiKeyResponse201
 from .create_api_key_response_201_scopes_item import CreateApiKeyResponse201ScopesItem
 from .create_camera_body import CreateCameraBody
+from .create_camera_body_kind import CreateCameraBodyKind
 from .create_camera_pairing_response_200 import CreateCameraPairingResponse200
+from .create_camera_response_200 import CreateCameraResponse200
 from .create_camera_response_201 import CreateCameraResponse201
+from .create_camera_response_201_publish import CreateCameraResponse201Publish
 from .create_checkout_session_response_200 import CreateCheckoutSessionResponse200
 from .create_connect_link_body import CreateConnectLinkBody
 from .create_connect_link_body_service import CreateConnectLinkBodyService
@@ -224,6 +228,7 @@ from .metric_feedback import MetricFeedback
 from .publish_agent_body import PublishAgentBody
 from .register_device_body import RegisterDeviceBody
 from .register_device_response_200 import RegisterDeviceResponse200
+from .rotate_camera_token_response_200 import RotateCameraTokenResponse200
 from .rotate_watch_secret_response_200 import RotateWatchSecretResponse200
 from .run_agent_tests_body import RunAgentTestsBody
 from .send_event_feedback_body import SendEventFeedbackBody
@@ -329,6 +334,7 @@ __all__ = (
     "BuildAgentBody",
     "BuildAgentResponse201",
     "Camera",
+    "CameraKind",
     "CameraStatus",
     "ChatWithAgentBody",
     "ChatWithAgentResponse200",
@@ -358,8 +364,11 @@ __all__ = (
     "CreateApiKeyResponse201",
     "CreateApiKeyResponse201ScopesItem",
     "CreateCameraBody",
+    "CreateCameraBodyKind",
     "CreateCameraPairingResponse200",
+    "CreateCameraResponse200",
     "CreateCameraResponse201",
+    "CreateCameraResponse201Publish",
     "CreateCheckoutSessionResponse200",
     "CreateConnectLinkBody",
     "CreateConnectLinkBodyService",
@@ -473,6 +482,7 @@ __all__ = (
     "PublishAgentBody",
     "RegisterDeviceBody",
     "RegisterDeviceResponse200",
+    "RotateCameraTokenResponse200",
     "RotateWatchSecretResponse200",
     "RunAgentTestsBody",
     "SendEventFeedbackBody",

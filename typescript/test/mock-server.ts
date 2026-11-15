@@ -94,7 +94,7 @@ export class MockPercia {
 		if (forced) return Response.json(forced.body ?? {}, { status: forced.status, headers: { "x-percia-request-id": "req_scripted", ...forced.headers } });
 
 		const codes = Object.keys(o.op.responses).filter((c) => /^2\d\d$/.test(c));
-		const code = codes[0] ?? "200";
+		const code = codes.includes("201") ? "201" : (codes[0] ?? "200"); // POST /cameras documents 200 (existing push) and 201 (created): serve the created one
 		const content = resolve(o.op.responses[code])?.content?.["application/json"];
 		if (!content) return new Response(null, { status: Number(code) === 200 ? 204 : Number(code), headers: { "x-percia-request-id": "req_mock" } });
 		const payload = content.example !== undefined ? content.example : instance(content.schema);

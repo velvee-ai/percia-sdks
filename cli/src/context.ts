@@ -17,6 +17,10 @@ export type Context = {
 	openUrl: (url: string) => Promise<boolean>;
 	/** Read a secret without echo (TTY) or one line from stdin (pipe). */
 	readSecret: (prompt: string) => Promise<string>;
+	/** Run a program to completion and capture its output; `undefined` when it cannot be started (not installed). */
+	capture: (cmd: string, args: string[]) => Promise<{ code: number | null; stdout: string; stderr: string } | undefined>;
+	/** Run a long-lived program in the foreground (stdin closed), streaming its stderr. Resolves with the exit code (null when killed by `signal`). */
+	exec: (cmd: string, args: string[], opts: { signal?: AbortSignal; onStderr?: (chunk: string) => void }) => Promise<{ code: number | null; startError?: string }>;
 	/** Set by the run loop on SIGINT so follow/listen loops stop cleanly. */
 	signal: AbortSignal;
 };

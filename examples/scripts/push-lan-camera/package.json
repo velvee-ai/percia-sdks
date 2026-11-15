@@ -1,0 +1,14 @@
+{
+  "name": "percia-example-push-lan-camera",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Push an RTSP camera on your LAN to Percia (WHIP) with the Percia SDK.",
+  "license": "MIT",
+  "scripts": {
+    "start": "node push.mjs",
+    "test": "node --test test/push.test.mjs"
+  },
+  "dependencies": { "@percia/sdk": "^0.2.0" },
+  "engines": { "node": ">=20" }
+}

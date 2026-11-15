@@ -31,9 +31,11 @@ test("every api-key-capable operation appears exactly once outside Quickstart, a
 		for (const [method, op] of Object.entries(item))
 			if ((op.security ?? []).some((s) => "bearerAuth" in s) || ["getHealth", "getConfig", "getStatus"].includes(op.operationId)) expected.push(op.operationId);
 	const got = flat(collection.item.slice(1)).map(({ item }) => opLine(item));
-	assert.deepEqual([...got].sort(), [...expected].sort());
-	assert.equal(new Set(got).size, got.length);
-	assert.equal(model.requests.length + model.skipped, model.total);
+	assert.deepEqual([...new Set(got)].sort(), [...expected].sort());
+	// Variants (a second useful shape of one operation, e.g. a push camera) repeat an operationId on purpose.
+	assert.equal(new Set(got).size, got.length - model.variants);
+	assert.equal(model.requests.length - model.variants + model.skipped, model.total);
+	assert.ok(collection.item.some((f) => f.item.some((i) => /push camera/i.test(i.name))));
 });
 
 test("Quickstart is the five-step flow in order", () => {

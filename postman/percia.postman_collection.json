@@ -85,6 +85,11 @@
       "key": "watchId",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "whipUrl",
+      "value": "",
+      "type": "string"
     }
   ],
   "item": [
@@ -1232,7 +1237,7 @@
       ]
     },
     {
-      "name": "Phone cameras",
+      "name": "Cameras (phone and push)",
       "item": [
         {
           "name": "List your cameras, newest first",
@@ -1284,14 +1289,14 @@
           "response": []
         },
         {
-          "name": "Create a phone/laptop camera and its first pairing link (single use, 10 minutes). 404 while phone cameras are off.",
+          "name": "Create a camera. Default (phone): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "var okCodes = [201];",
+                  "var okCodes = [200,201];",
                   "function save(name, value) {",
                   "  if (value === undefined || value === null) return;",
                   "  pm.collectionVariables.set(name, value);",
@@ -1350,7 +1355,79 @@
                 "cameras"
               ]
             },
-            "description": "operationId: createCamera\n\nCreate a phone/laptop camera and its first pairing link (single use, 10 minutes). 404 while phone cameras are off.\n\nScopes: cameras:write."
+            "description": "operationId: createCamera\n\nCreate a camera. Default (phone): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.\n\nScopes: cameras:write."
+          },
+          "response": []
+        },
+        {
+          "name": "Create a push camera for a private network (token shown once)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200,201];",
+                  "function save(name, value) {",
+                  "  if (value === undefined || value === null) return;",
+                  "  pm.collectionVariables.set(name, value);",
+                  "  if (pm.environment && pm.environment.name) pm.environment.set(name, value);",
+                  "}",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});",
+                  "if (body && pm.response.code < 400) {",
+                  "  if (body.camera) save(\"cameraId\", body.camera.id);",
+                  "  save(\"whipUrl\", body.whipUrl);",
+                  "  save(\"cameraToken\", body.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Hall camera\",\n  \"kind\": \"push\",\n  \"externalId\": \"postman-lan-cam-1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cameras",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cameras"
+              ]
+            },
+            "description": "For a camera on a LAN: a connector there pulls it once and pushes WHIP to Percia. Idempotent by `externalId`: a second call returns 200 with `token: null` (the token is never shown twice; use Rotate token). The test saves `cameraId`, `whipUrl` and `cameraToken` (never logged). Publish with: ffmpeg -rtsp_transport tcp -i RTSP -an -c:v copy -f whip -authorization \"{{cameraToken}}\" {{whipUrl}}\n\noperationId: createCamera\n\nCreate a camera. Default (phone): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.\n\nScopes: cameras:write."
           },
           "response": []
         },
@@ -1448,6 +1525,113 @@
               ]
             },
             "description": "operationId: createCameraPairing\n\nIssue a new pairing link; any unused earlier link stops working\n\nScopes: cameras:write."
+          },
+          "response": []
+        },
+        {
+          "name": "Revoke the publish token of a push camera: publishing stops at once, the camera stays. Rotate to publish again.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cameras/{{cameraId}}/token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cameras",
+                "{{cameraId}}",
+                "token"
+              ]
+            },
+            "description": "operationId: revokeCameraToken\n\nRevoke the publish token of a push camera: publishing stops at once, the camera stays. Rotate to publish again.\n\nScopes: cameras:write, watches:delete.\n\nDestructive: also needs watches:delete (unless noted in the API description)."
+          },
+          "response": []
+        },
+        {
+          "name": "Rotate the publish token of a push camera (no request body); the old one stops working at once. Returns the new token once. Phone cameras: 409 wrong_kind (pair again).",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "function save(name, value) {",
+                  "  if (value === undefined || value === null) return;",
+                  "  pm.collectionVariables.set(name, value);",
+                  "  if (pm.environment && pm.environment.name) pm.environment.set(name, value);",
+                  "}",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});",
+                  "if (body && pm.response.code < 400) {",
+                  "  save(\"cameraToken\", body.token);",
+                  "  save(\"whipUrl\", body.whipUrl);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cameras/{{cameraId}}/token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cameras",
+                "{{cameraId}}",
+                "token"
+              ]
+            },
+            "description": "operationId: rotateCameraToken\n\nRotate the publish token of a push camera (no request body); the old one stops working at once. Returns the new token once. Phone cameras: 409 wrong_kind (pair again).\n\nScopes: cameras:write, watches:delete."
           },
           "response": []
         },

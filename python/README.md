@@ -47,6 +47,17 @@ async def main():
 asyncio.run(main())
 ```
 
+### Cameras on a private network
+
+```python
+reg = client.cameras.register_push("Front door", "front-door")  # on_existing="return" | "rotate" | "throw"
+reg.token          # the publish token, once; a repeat call gives existing=True, token=None
+client.cameras.rotate_token(reg.camera.id); client.cameras.revoke_token(reg.camera.id)
+client.cameras.status(reg.camera.id)                             # .status: online | offline | never
+build_publish_commands(reg.whip_url, rtsp)["ffmpeg"]             # uses $PERCIA_CAMERA_TOKEN, never the token
+```
+Async twins are on `AsyncPercia`. See [camera push](../docs/camera-push.md).
+
 ### Pagination
 
 `client.iter_events(watch_id=None, type=None, since=None, limit=50)` walks the account-wide feed (`GET /api/events`, scope `events:read`), newest first, following `nextCursor` until it is `null`. `client.iter_watch_events(watch_id)` does the same for one watch. Single pages: `client.events.list(cursor=...)` and `client.watches.events(id, cursor=...)`. The watch list is not paginated by the API.

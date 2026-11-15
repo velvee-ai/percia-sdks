@@ -22,6 +22,12 @@ export class Env {
 	ctl = new AbortController();
 	extraFetch?: (req: Request) => Promise<Response | undefined>;
 	now = Date.now();
+	/** What `ffmpeg -muxers` prints (undefined = not installed). */
+	ffmpegMuxers: string | undefined = " E whip            WHIP(WebRTC-HTTP ingestion protocol) muxer\n";
+	/** Every foreground program started: command, argv. */
+	execs: { cmd: string; args: string[] }[] = [];
+	/** Decide how a foreground program ends; default: exit 0. May write to `onStderr`. */
+	onExec: (cmd: string, args: string[], onStderr: (c: string) => void) => Promise<{ code: number | null; startError?: string }> = async () => ({ code: 0 });
 
 	ctx(out: string[], err: string[]): Context {
 		return {
@@ -45,6 +51,8 @@ export class Env {
 			},
 			openUrl: async (u) => (this.opened.push(u), await this.onOpen(u), true),
 			readSecret: async () => this.secretInput,
+			capture: async (cmd) => (cmd === "ffmpeg" && this.ffmpegMuxers !== undefined ? { code: 0, stdout: this.ffmpegMuxers, stderr: "" } : undefined),
+			exec: async (cmd, args, o) => (this.execs.push({ cmd, args }), this.onExec(cmd, args, (c) => o.onStderr?.(c))),
 			signal: this.ctl.signal,
 		};
 	}

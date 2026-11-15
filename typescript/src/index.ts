@@ -1,5 +1,7 @@
 export { createClient, PerciaClient, DEFAULT_BASE_URL, SDK_VERSION, normalizeBaseUrl, unwrap } from "./client.js";
-export type { PerciaClientOptions, TokenSource, ListEventsParams } from "./client.js";
+export type { PerciaClientOptions, TokenSource, ListEventsParams, RegisterPushOptions } from "./client.js";
+export { TOKEN_PLACEHOLDER, TOKEN_ENV, buildPublishCommands, publishArgv, redactRegistration, scrubToken } from "./push.js";
+export type { PushRegistration, PublishOptions, PublishCommands, BulkItem, BulkResult } from "./push.js";
 export * from "./errors.js";
 export { createRetryingFetch, backoffMs } from "./retry.js";
 export type { RetryOptions } from "./retry.js";

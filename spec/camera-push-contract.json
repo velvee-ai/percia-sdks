@@ -1,0 +1,43 @@
+{
+  "source": "percia-cf docs/specs/cameras/camera-push-api.md and ADR 0042 (branch divi-vijayakumar/camera-push-api, caa8b4c), recorded 2026-11-14. Shared by the TypeScript, Python and CLI tests. Tokens here are fakes.",
+  "register": {
+    "request": { "name": "Hall camera", "kind": "push", "externalId": "lan-cam-1" },
+    "created": {
+      "status": 201,
+      "body": {
+        "camera": { "id": "cam_push_1", "name": "Hall camera", "kind": "push", "externalId": "lan-cam-1", "status": "never", "lastSeenAt": null, "watchCount": 0 },
+        "whipUrl": "https://media.percia.test/cam/11111111-2222-3333-4444-555555555555/whip",
+        "token": "pc_FAKE_TOKEN_one_time_0001",
+        "expiresAt": null,
+        "publish": {
+          "ffmpegCopy": "ffmpeg -rtsp_transport tcp -i rtsp://USER:PASS@LAN-CAMERA/stream -an -c:v copy -f whip -authorization \"$PERCIA_CAMERA_TOKEN\" https://media.percia.test/cam/11111111-2222-3333-4444-555555555555/whip",
+          "heartbeat": "curl -fsS -X POST -H \"Authorization: Bearer $PERCIA_CAMERA_TOKEN\" https://percia.test/api/cam/heartbeat"
+        }
+      }
+    },
+    "existing": {
+      "status": 200,
+      "body": {
+        "camera": { "id": "cam_push_1", "name": "Hall camera", "kind": "push", "externalId": "lan-cam-1", "status": "online", "lastSeenAt": "2026-11-14T10:00:00.000Z", "watchCount": 1 },
+        "whipUrl": "https://media.percia.test/cam/11111111-2222-3333-4444-555555555555/whip",
+        "token": null,
+        "existing": true
+      }
+    }
+  },
+  "rotate": {
+    "status": 200,
+    "body": { "token": "pc_FAKE_TOKEN_rotated_0002", "whipUrl": "https://media.percia.test/cam/11111111-2222-3333-4444-555555555555/whip", "expiresAt": null }
+  },
+  "errors": {
+    "wrongKind": { "status": 409, "code": "wrong_kind" },
+    "cameraLimit": { "status": 429, "code": "camera_limit" },
+    "badExternalId": { "status": 400, "code": "invalid_request", "field": "externalId" }
+  },
+  "assumptions": [
+    "POST /api/cameras with kind:'push' answers 201 {camera, whipUrl, token, expiresAt:null, publish} and, for a known (user, externalId), 200 {camera, whipUrl, token:null, existing:true}.",
+    "POST /api/cameras/:id/token answers 200 {token, whipUrl, expiresAt:null}; DELETE answers 200; a phone camera answers 409 wrong_kind.",
+    "There is no GET /api/cameras/:id/status route and no bulk route (the spec lists bulk create as a non-goal): the SDKs derive status from GET /api/cameras and bulk from registerPush.",
+    "ffmpeg's whip muxer takes the publish token with -authorization (a Bearer token); heartbeat is POST /api/cam/heartbeat with Authorization: Bearer <camera token>, every 20 s."
+  ]
+}

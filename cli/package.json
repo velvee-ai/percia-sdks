@@ -1,6 +1,6 @@
 {
   "name": "@percia/cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Command line for Percia: watches, events, cameras, alert destinations, REST hooks, local webhook forwarding and MCP setup.",
   "license": "MIT",
   "type": "module",

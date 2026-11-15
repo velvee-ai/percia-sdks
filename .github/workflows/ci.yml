@@ -121,3 +121,8 @@ jobs:
       - run: cd examples/go && go test ./...
       - run: cd examples/ruby && ruby -Itest test/*_test.rb
       - run: cd examples/scripts/package-alert-to-slack && node --test
+      - name: push-lan-camera example (Node and Python, offline, fake ffmpeg)
+        run: |
+          corepack enable && pnpm install --frozen-lockfile && pnpm --filter @percia/sdk build
+          (cd examples/scripts/push-lan-camera && node --test)
+          pip install -e python pytest && (cd examples/scripts/push-lan-camera && pytest -q test)

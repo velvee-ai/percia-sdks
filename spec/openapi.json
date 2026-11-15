@@ -466,8 +466,22 @@
       },
       "Camera": {
         "properties": {
+          "externalId": {
+            "description": "The connector's own id for a push camera.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "id": {
             "type": "string"
+          },
+          "kind": {
+            "description": "phone = paired by link; push = a connector on a LAN pushes WHIP with a token.",
+            "enum": [
+              "phone",
+              "push"
+            ]
           },
           "lastSeenAt": {
             "format": "date-time",
@@ -480,7 +494,7 @@
             "type": "string"
           },
           "status": {
-            "description": "online = heartbeat under 60 s ago.",
+            "description": "online = heartbeat or an allowed publish under 60 s ago.",
             "enum": [
               "online",
               "offline",
@@ -3498,6 +3512,17 @@
             "application/json": {
               "schema": {
                 "properties": {
+                  "externalId": {
+                    "pattern": "^[A-Za-z0-9._:-]{1,100}$",
+                    "type": "string"
+                  },
+                  "kind": {
+                    "enum": [
+                      "phone",
+                      "push"
+                    ],
+                    "type": "string"
+                  },
                   "name": {
                     "maxLength": 60,
                     "minLength": 1,
@@ -3514,6 +3539,30 @@
           "required": true
         },
         "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "camera": {
+                      "$ref": "#/components/schemas/Camera"
+                    },
+                    "existing": {
+                      "type": "boolean"
+                    },
+                    "token": {
+                      "type": "null"
+                    },
+                    "whipUrl": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Push camera with this externalId already existed: nothing created, token null, existing true."
+          },
           "201": {
             "content": {
               "application/json": {
@@ -3522,6 +3571,9 @@
                     "camera": {
                       "$ref": "#/components/schemas/Camera"
                     },
+                    "expiresAt": {
+                      "type": "null"
+                    },
                     "pairExpiresAt": {
                       "format": "date-time",
                       "type": "string"
@@ -3529,13 +3581,23 @@
                     "pairUrl": {
                       "description": "Single-use link (10 minutes) for the person to open on the phone that will be the camera; you cannot open it for them. On an iPhone with the Percia Camera app it pairs in the app, otherwise the page can pair the browser. Tell them to keep the app or page open on screen while it watches: the camera stops when they switch apps or lock the phone, so they should keep talking to you from another device. With MCP, show it with the show_link tool.",
                       "type": "string"
+                    },
+                    "publish": {
+                      "type": "object"
+                    },
+                    "token": {
+                      "description": "Publish token for this one camera (pc_...), shown once. Publish only; never read.",
+                      "type": "string"
+                    },
+                    "whipUrl": {
+                      "type": "string"
                     }
                   },
                   "type": "object"
                 }
               }
             },
-            "description": "Created."
+            "description": "Created. Phone: pairUrl and pairExpiresAt. Push: whipUrl, token (once), expiresAt null, publish (ffmpeg/OBS/heartbeat examples with $PERCIA_CAMERA_TOKEN)."
           },
           "400": {
             "content": {
@@ -3545,7 +3607,7 @@
                 }
               }
             },
-            "description": "Invalid name."
+            "description": "Invalid name or externalId."
           },
           "401": {
             "content": {
@@ -3556,6 +3618,16 @@
               }
             },
             "description": "Not signed in."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry."
           },
           "404": {
             "content": {
@@ -3585,7 +3657,7 @@
             ]
           }
         ],
-        "summary": "Create a phone/laptop camera and its first pairing link (single use, 10 minutes). 404 while phone cameras are off.",
+        "summary": "Create a camera. Default (phone): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.",
         "tags": [
           "cameras"
         ],
@@ -3815,6 +3887,175 @@
         ],
         "x-percia-scopes": [
           "cameras:write"
+        ]
+      }
+    },
+    "/cameras/{id}/token": {
+      "delete": {
+        "operationId": "revokeCameraToken",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Revoked."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not signed in."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not your camera, or phone cameras are off."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "wrong_kind: not a push camera."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": [
+              "cameras:write",
+              "watches:delete"
+            ]
+          }
+        ],
+        "summary": "Revoke the publish token of a push camera: publishing stops at once, the camera stays. Rotate to publish again.",
+        "tags": [
+          "cameras"
+        ],
+        "x-percia-destructive": true,
+        "x-percia-scopes": [
+          "cameras:write",
+          "watches:delete"
+        ]
+      },
+      "post": {
+        "operationId": "rotateCameraToken",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "expiresAt": {
+                      "type": "null"
+                    },
+                    "token": {
+                      "type": "string"
+                    },
+                    "whipUrl": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "New token."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not signed in."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not your camera, or phone cameras are off."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "wrong_kind: not a push camera."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": [
+              "cameras:write",
+              "watches:delete"
+            ]
+          }
+        ],
+        "summary": "Rotate the publish token of a push camera (no request body); the old one stops working at once. Returns the new token once. Phone cameras: 409 wrong_kind (pair again).",
+        "tags": [
+          "cameras"
+        ],
+        "x-percia-scopes": [
+          "cameras:write",
+          "watches:delete"
         ]
       }
     },

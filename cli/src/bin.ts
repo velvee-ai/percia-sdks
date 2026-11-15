@@ -49,6 +49,34 @@ function readSecret(prompt: string): Promise<string> {
 	});
 }
 
+function capture(cmd: string, args: string[]) {
+	return new Promise<{ code: number | null; stdout: string; stderr: string } | undefined>((resolve) => {
+		try {
+			const child = spawn(cmd, args, { stdio: ["ignore", "pipe", "pipe"] });
+			let stdout = "", stderr = "";
+			child.stdout.on("data", (d) => (stdout += d));
+			child.stderr.on("data", (d) => (stderr += d));
+			child.on("error", () => resolve(undefined));
+			child.on("close", (code) => resolve({ code, stdout, stderr }));
+		} catch {
+			resolve(undefined);
+		}
+	});
+}
+
+function exec(cmd: string, args: string[], opts: { signal?: AbortSignal; onStderr?: (chunk: string) => void }) {
+	return new Promise<{ code: number | null; startError?: string }>((resolve) => {
+		try {
+			const child = spawn(cmd, args, { stdio: ["ignore", "ignore", "pipe"], signal: opts.signal });
+			child.stderr.on("data", (d) => opts.onStderr?.(String(d)));
+			child.on("error", (e) => resolve(opts.signal?.aborted ? { code: null } : { code: null, startError: (e as Error).message }));
+			child.on("close", (code) => resolve({ code }));
+		} catch (e) {
+			resolve({ code: null, startError: (e as Error).message });
+		}
+	});
+}
+
 const ctx: Context = {
 	argv0: "percia",
 	stdout: (t) => void process.stdout.write(t),
@@ -67,6 +95,8 @@ const ctx: Context = {
 	}),
 	openUrl,
 	readSecret,
+	capture,
+	exec,
 	signal: ctl.signal,
 };
 

@@ -247,7 +247,10 @@ class MockPercia:
 
     def _default(self, op: _Op) -> httpx.Response:
         responses = op.op["responses"]
-        status = min((int(s) for s in responses if s.isdigit() and s.startswith("2")), default=200)
+        twos = [int(s) for s in responses if s.isdigit() and s.startswith("2")]
+        status = (
+            201 if 201 in twos else min(twos, default=200)
+        )  # POST /cameras documents 200 (existing push) and 201 (created): serve the created one
         resp = responses.get(str(status), {})
         content = (resp.get("content") or {}).get("application/json")
         headers = {"x-percia-request-id": self._rid()}

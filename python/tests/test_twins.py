@@ -35,6 +35,7 @@ def test_async_file_is_up_to_date():
     src = src.replace("return self._c._call(", "return await self._c._call(").replace(
         "return self.update(", "return await self.update("
     )
+    src = re.sub(r"= self\.([\w.]+)\(", r"= await self.\1(", src)
     squash = lambda t: re.sub(r"[\s,()]+", "", t)  # noqa: E731 - ignore formatter differences
     assert squash(src) == squash((root / "_aresources.py").read_text()), (
         "run: python scripts/make_async_resources.py && ruff format percia"

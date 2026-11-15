@@ -34,6 +34,17 @@ Resources: `watches`, `events`, `cameras`, `integrations`, `hooks`, `account`. E
 
 Needed scopes follow the API: `watches:read|write|delete`, `events:read`, `cameras:read|write`, `integrations:read|write`, and `hooks:write` (opt-in) for REST hooks.
 
+## Cameras on a private network
+
+```ts
+const reg = await percia.cameras.registerPush({ name: "Front door", externalId: "front-door" });
+reg.token;      // the publish token, once; on a repeat call { existing: true, token: null } (or onExisting: "rotate" | "throw")
+await percia.cameras.rotateToken(reg.camera.id); await percia.cameras.revokeToken(reg.camera.id);
+await percia.cameras.status(reg.camera.id);      // online | offline | never
+buildPublishCommands(reg, { rtsp }).ffmpeg;      // uses $PERCIA_CAMERA_TOKEN, never the token
+```
+See [camera push](../docs/camera-push.md).
+
 ## Retries
 
 429 is always retried; 500/502/503/504 and network errors are retried for GET, PUT, DELETE (and any request with an `Idempotency-Key`). A POST or PATCH that failed with 5xx is **not** retried unless `retryNonIdempotent: true`, because the create may have happened. `Retry-After` (seconds or a date) is honored; a wait longer than `maxRetryAfterMs` (60 s) returns the 429 instead. Defaults: `maxRetries: 2`, exponential backoff with full jitter (500 ms base, 8 s cap), 30 s per-attempt timeout.

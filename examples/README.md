@@ -10,6 +10,7 @@ Runnable templates. Each directory is standalone (copy it out); every test runs 
 | `go/` | Webhook receiver, standard library | `go test ./...`: 23 |
 | `ruby/` | Verifier (OpenSSL) and a tiny WEBrick receiver | `ruby test/percia_verify_test.rb`: 22 |
 | `scripts/package-alert-to-slack/` | Create a "package at the door" watch, forward alerts to Slack (and the native Slack alternative) | `npm test`: 5 |
+| `scripts/push-lan-camera/` | Push an RTSP camera on your LAN to Percia (WHIP): Node and Python, 0600 token file, ffmpeg, heartbeat | `npm test`: 2, `pytest`: 2 |
 | `vapi-voice-alert/` | Documentation: webhook to a Vapi outbound phone call, with guardrails (placeholders, not run) | none |
 | `github-actions/` | Scheduled smoke check and an ephemeral-watch PR check | YAML parse only |
 

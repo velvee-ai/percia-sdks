@@ -176,11 +176,19 @@ export type AgentSummary = {
 };
 
 export type Camera = {
+    /**
+     * The connector's own id for a push camera.
+     */
+    externalId?: string | null;
     id?: string;
+    /**
+     * phone = paired by link; push = a connector on a LAN pushes WHIP with a token.
+     */
+    kind?: 'phone' | 'push';
     lastSeenAt?: string | null;
     name?: string;
     /**
-     * online = heartbeat under 60 s ago.
+     * online = heartbeat or an allowed publish under 60 s ago.
      */
     status?: 'online' | 'offline' | 'never';
     watchCount?: number;
@@ -1355,6 +1363,8 @@ export type ListCamerasResponse = ListCamerasResponses[keyof ListCamerasResponse
 
 export type CreateCameraData = {
     body: {
+        externalId?: string;
+        kind?: 'phone' | 'push';
         name: string;
     };
     path?: never;
@@ -1364,13 +1374,17 @@ export type CreateCameraData = {
 
 export type CreateCameraErrors = {
     /**
-     * Invalid name.
+     * Invalid name or externalId.
      */
     400: Error;
     /**
      * Not signed in.
      */
     401: Error;
+    /**
+     * payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry.
+     */
+    402: Error;
     /**
      * Phone cameras are off.
      */
@@ -1385,15 +1399,33 @@ export type CreateCameraError = CreateCameraErrors[keyof CreateCameraErrors];
 
 export type CreateCameraResponses = {
     /**
-     * Created.
+     * Push camera with this externalId already existed: nothing created, token null, existing true.
+     */
+    200: {
+        camera?: Camera;
+        existing?: boolean;
+        token?: null;
+        whipUrl?: string;
+    };
+    /**
+     * Created. Phone: pairUrl and pairExpiresAt. Push: whipUrl, token (once), expiresAt null, publish (ffmpeg/OBS/heartbeat examples with $PERCIA_CAMERA_TOKEN).
      */
     201: {
         camera?: Camera;
+        expiresAt?: null;
         pairExpiresAt?: string;
         /**
          * Single-use link (10 minutes) for the person to open on the phone that will be the camera; you cannot open it for them. On an iPhone with the Percia Camera app it pairs in the app, otherwise the page can pair the browser. Tell them to keep the app or page open on screen while it watches: the camera stops when they switch apps or lock the phone, so they should keep talking to you from another device. With MCP, show it with the show_link tool.
          */
         pairUrl?: string;
+        publish?: {
+            [key: string]: unknown;
+        };
+        /**
+         * Publish token for this one camera (pc_...), shown once. Publish only; never read.
+         */
+        token?: string;
+        whipUrl?: string;
     };
 };
 
@@ -1505,6 +1537,86 @@ export type CreateCameraPairingResponses = {
 };
 
 export type CreateCameraPairingResponse = CreateCameraPairingResponses[keyof CreateCameraPairingResponses];
+
+export type RevokeCameraTokenData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/cameras/{id}/token';
+};
+
+export type RevokeCameraTokenErrors = {
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry.
+     */
+    402: Error;
+    /**
+     * Not your camera, or phone cameras are off.
+     */
+    404: Error;
+    /**
+     * wrong_kind: not a push camera.
+     */
+    409: Error;
+};
+
+export type RevokeCameraTokenError = RevokeCameraTokenErrors[keyof RevokeCameraTokenErrors];
+
+export type RevokeCameraTokenResponses = {
+    /**
+     * Revoked.
+     */
+    200: unknown;
+};
+
+export type RotateCameraTokenData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/cameras/{id}/token';
+};
+
+export type RotateCameraTokenErrors = {
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry.
+     */
+    402: Error;
+    /**
+     * Not your camera, or phone cameras are off.
+     */
+    404: Error;
+    /**
+     * wrong_kind: not a push camera.
+     */
+    409: Error;
+};
+
+export type RotateCameraTokenError = RotateCameraTokenErrors[keyof RotateCameraTokenErrors];
+
+export type RotateCameraTokenResponses = {
+    /**
+     * New token.
+     */
+    200: {
+        expiresAt?: null;
+        token?: string;
+        whipUrl?: string;
+    };
+};
+
+export type RotateCameraTokenResponse = RotateCameraTokenResponses[keyof RotateCameraTokenResponses];
 
 export type GetWatchClaimData = {
     body?: never;

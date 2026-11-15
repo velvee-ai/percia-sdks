@@ -10,7 +10,7 @@ SDKs, CLI, Postman collection and templates for the [Percia](https://percia.ai) 
 | [`cli/`](cli) | `percia` command line (login, watches, events --follow, cameras, destinations, hooks, listen, mcp setup, doctor) | `@percia/cli` |
 | [`postman/`](postman) | Postman collection, environment and Insomnia export | |
 | [`examples/`](examples) | webhook receivers (Express, Workers, FastAPI, Go, Ruby), Slack script, Vapi voice alert, GitHub Actions | |
-| [`docs/`](docs) | [which tool to use](docs/which-sdk.md), [`listen` design](docs/cli-listen.md), [owner steps](docs/owner-steps.md) | |
+| [`docs/`](docs) | [which tool to use](docs/which-sdk.md), [cameras on a private network](docs/camera-push.md), [`listen` design](docs/cli-listen.md), [owner steps](docs/owner-steps.md) | |
 
 ## Quick starts
 
@@ -34,6 +34,17 @@ for event in percia.iter_events(type="goal.met"):
 ```bash
 percia login && percia watches create --source rtsp://cam.example.com/s --goal "A person is at the door" --webhook https://example.com/hook
 percia events list --follow
+```
+
+**Camera on a private network** (push; [guide](docs/camera-push.md))
+```bash
+percia cameras push run --rtsp rtsp://user:pass@192.168.1.20/stream1   # needs ffmpeg 7.1+ with the whip muxer
+```
+```ts
+const reg = await percia.cameras.registerPush({ name: "Front door", externalId: "front-door" }); // reg.token: once
+```
+```python
+reg = percia.cameras.register_push("Front door", "front-door")   # reg.token: once; later calls: token None
 ```
 
 **Verify a webhook** (any language): header `Percia-Signature: t=<unix>,v1=<hex>`, HMAC-SHA256 of `"<t>.<raw body>"` with the `whsec_...` secret, constant-time compare, reject `|now - t| > 300 s`. Shared test vectors: [`spec/webhook-vectors.json`](spec/webhook-vectors.json).

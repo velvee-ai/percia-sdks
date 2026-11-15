@@ -17,4 +17,5 @@ src = re.sub(r"^class (\w+):", r"class Async\1:", src, flags=re.M)
 src = re.sub(r"^    def (?!__init__)", "    async def ", src, flags=re.M)
 src = src.replace("return self._c._call(", "return await self._c._call(")
 src = src.replace("return self.update(", "return await self.update(")
+src = re.sub(r"= self\.([\w.]+)\(", r"= await self.\1(", src)  # assignments that call a sibling method
 (root / "_aresources.py").write_text(src)
