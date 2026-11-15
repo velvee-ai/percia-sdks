@@ -29,7 +29,8 @@ test("every api-key-capable operation appears exactly once outside Quickstart, a
 	const expected = [];
 	for (const [path, item] of Object.entries(spec.paths))
 		for (const [method, op] of Object.entries(item))
-			if ((op.security ?? []).some((s) => "bearerAuth" in s) || ["getHealth", "getConfig", "getStatus"].includes(op.operationId)) expected.push(op.operationId);
+			if (op["x-percia-stream"]) continue; // endless response: not a request (see postman/README.md)
+			else if ((op.security ?? []).some((s) => "bearerAuth" in s) || ["getHealth", "getConfig", "getStatus"].includes(op.operationId)) expected.push(op.operationId);
 	const got = flat(collection.item.slice(1)).map(({ item }) => opLine(item));
 	assert.deepEqual([...new Set(got)].sort(), [...expected].sort());
 	// Variants (a second useful shape of one operation, e.g. a push camera) repeat an operationId on purpose.

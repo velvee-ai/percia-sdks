@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0 (unreleased)
+
+- `events.stream({ watchId, concernId, type, backlog, since, signal, maxReconnects, idleTimeoutMs })`: async iterator over the developer event feed (`GET /api/events/stream`, SSE, fetch streaming). Yields `open`, `event` (with `cursor`, the parsed `event` and the exact `data` string), `resync`, `end`, `reconnect`, `ping`. Reconnects with `Last-Event-ID`, exponential backoff with jitter, `Retry-After` on 429, an idle timeout, dedupe on `eventId`; throws typed errors for 401/403/404/400; ends without an error when `signal` aborts. Also exported: `streamEvents`, `parseSse` and the types `EventStreamOptions`, `StreamItem`, `StreamedEvent`. `verifyWebhookSignature` and `signWebhook` are unchanged.
+- `SDK_VERSION` is 0.3.0.
+
 ## 0.2.0 (unreleased)
 
 - Camera push (cameras on a private network): `cameras.registerPush({ name, externalId })` (idempotent; returns `whipUrl` and the one-time `token`, or `existing: true, token: null`; `onExisting: "return" | "rotate" | "throw"`), `cameras.rotateToken`, `cameras.revokeToken`, `cameras.status`, `cameras.bulk`.

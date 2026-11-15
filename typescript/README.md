@@ -58,6 +58,20 @@ All errors extend `PerciaError`. HTTP failures are `PerciaApiError` (subclasses 
 
 `percia.events.iterate(filters)` and `percia.watches.iterateEvents(id)` are lazy async iterators over `nextCursor`; `break` stops fetching. `percia.events.list()` returns one page.
 
+## Follow the dev event feed (no public URL)
+
+`events.stream()` follows `GET /api/events/stream` (Server-Sent Events, scope `events:read`) for local development and tests. It is an async iterator that reconnects with the last cursor (`Last-Event-ID`), honours `Retry-After`, dedupes on `eventId` and ends when `signal` aborts. It is not a delivery path: webhooks stay the production path.
+
+```ts
+const ctl = new AbortController();
+for await (const item of client.events.stream({ watchId: "w_...", type: "goal.met", backlog: 5, signal: ctl.signal })) {
+  if (item.kind === "event") handle(item.event, item.data); // item.data: the exact JSON string; sign this, not a re-serialisation
+  // other kinds: open | resync | end | reconnect | ping
+}
+```
+
+It throws a typed error for 401/403/404/400 and retries everything else (`maxReconnects` bounds it). `percia listen --forward-to http://localhost:3000/hook` is this plus signing and forwarding; see `docs/local-development.md`.
+
 ## Verify webhooks
 
 ```ts

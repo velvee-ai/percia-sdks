@@ -2294,6 +2294,62 @@ export type GetSampleEventResponses = {
 
 export type GetSampleEventResponse = GetSampleEventResponses[keyof GetSampleEventResponses];
 
+export type StreamEventsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Only events of this watch (404 when it is not yours).
+         */
+        watchId?: string;
+        /**
+         * Only events of this agent concern.
+         */
+        concernId?: string;
+        /**
+         * Only this event type, such as goal.met.
+         */
+        type?: string;
+        /**
+         * Resume after this event cursor (the `id` of a message). The `Last-Event-ID` header does the same and wins.
+         */
+        since?: string;
+        /**
+         * First send your latest N events (0 to 20, default 0). Without a cursor the stream starts at now.
+         */
+        backlog?: number;
+    };
+    url: '/events/stream';
+};
+
+export type StreamEventsErrors = {
+    /**
+     * `field: since` or `field: backlog`: not valid.
+     */
+    400: Error;
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * `watchId` is not one of your watches.
+     */
+    404: Error;
+    /**
+     * `rate_limited`: more than 10 connects a minute, or 2 streams already open (`Retry-After`).
+     */
+    429: Error;
+};
+
+export type StreamEventsError = StreamEventsErrors[keyof StreamEventsErrors];
+
+export type StreamEventsResponses = {
+    /**
+     * `text/event-stream`, open for up to 10 minutes. Each message: `id` (cursor), `event` (the type), `data` (the webhook JSON body plus `eventId`). Also `: ping` comments every 15 s, `event: resync`, and `event: end` before the server closes; reconnect with `Last-Event-ID`. For local development and tests, not a delivery guarantee: webhooks stay the production path. A stream never ends, so an `execute` call cannot use it: run it with curl, fetch or `percia listen`.
+     */
+    200: unknown;
+};
+
 export type GetHealthData = {
     body?: never;
     path?: never;

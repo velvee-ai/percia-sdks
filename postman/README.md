@@ -18,6 +18,10 @@ cd postman && npm test                # offline, 9 tests
 - **Postman:** Import both the collection and the environment files, pick the `Percia` environment (top right), set `apiKey` to a key from the dashboard (**API keys**; give it the scopes the folder needs: each request lists them in its description), set `webhookUrl` to the public https address of your receiver (see `../examples`), then open **Quickstart** and send the requests in order.
 - **Insomnia:** Application menu, Import, choose `percia.insomnia.json`. Edit the Base Environment: set `apiKey` and `webhookUrl`. Insomnia v4 exports carry no test scripts, so the status-code checks run only in Postman.
 
+## Not in the collection: the dev event feed
+
+`GET /api/events/stream` (Server-Sent Events, for `percia listen`) is deliberately not a request here: Postman and Insomnia buffer or time out on a response that never ends (`x-percia-stream`); the generator skips it. Use `percia listen --print` or `curl --no-buffer -H "Authorization: Bearer $PERCIA_API_KEY" {{baseUrl}}/api/events/stream`; see [`../docs/local-development.md`](../docs/local-development.md).
+
 ## Variables
 
 | Variable | Meaning |

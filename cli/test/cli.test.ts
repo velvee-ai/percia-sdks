@@ -5,6 +5,7 @@ import type { AddressInfo } from "node:net";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { verifyWebhookSignature } from "@percia/sdk";
 import { Env, oauthServer } from "./harness.js";
+import { MockSse, end, evt, fail, hold, message, resync, send } from "../../typescript/test/sse-server.js";
 
 let e: Env;
 beforeEach(() => {
@@ -299,54 +300,205 @@ describe("hooks", () => {
 });
 
 describe("listen", () => {
-	async function receiver() {
+	let sse: MockSse;
+	let srv: { origin: string; close: () => Promise<void> };
+	beforeEach(async () => {
+		sse = new MockSse();
+		srv = await sse.listen();
+		// Route the CLI's stream request to the real SSE server, so streaming and aborts are real.
+		e.extraFetch = async (req) => {
+			const u = new URL(req.url);
+			if (u.pathname !== "/api/events/stream") return undefined;
+			return fetch(new Request(srv.origin + u.pathname + u.search, req));
+		};
+	});
+	beforeEach(() => (e.env.MY_SECRET = "whsec_mine"));
+	afterEach(() => srv.close());
+
+	async function receiver(status = 204) {
 		const got: { headers: Record<string, any>; body: string }[] = [];
 		const server = createServer(async (req, res) => {
 			const chunks: Buffer[] = [];
 			for await (const c of req) chunks.push(c as Buffer);
 			got.push({ headers: req.headers, body: Buffer.concat(chunks).toString("utf8") });
-			res.writeHead(204).end();
+			res.writeHead(status).end();
 		});
 		await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
 		return { got, url: `http://127.0.0.1:${(server.address() as AddressInfo).port}/hook`, close: () => new Promise<void>((r) => server.close(() => r())) };
 	}
-	const ev = (i: number) => ({ id: `evt_${i}`, watchId: "w_1", decisionId: `dec_${i}`, occurrenceId: `occ_${i}`, type: "goal.met", confidence: 0.93, at: "2026-11-01T09:30:00.000Z", deliveryStatus: "delivered", reason: "A person in a green jacket." });
-	it("forwards new events with the documented body, signed so the SDK verifier accepts it", async () => {
+	/** Run `percia listen`, wait until `done()`, then press Ctrl-C. */
+	async function listen(args: string[], done: () => boolean) {
+		const p = e.run("listen", ...args);
+		for (let i = 0; i < 400 && !done(); i++) await new Promise((r) => setTimeout(r, 5));
+		e.ctl.abort();
+		return p;
+	}
+	const feedEvent = (i: number) => ({ id: `evt-${i}`, watchId: "w_1", decisionId: `dec_${i}`, occurrenceId: `occ_${i}`, type: "goal.met", confidence: 0.93, at: "2026-11-01T09:30:00.000Z", deliveryStatus: "delivered", reason: "A person in a green jacket." });
+
+	it("forwards each event with the exact data string, signed like a real webhook, and prints a compact line", async () => {
 		const rcv = await receiver();
-		const feeds = [[ev(1)], [ev(1)], [ev(2), ev(1)]];
-		let i = 0;
-		e.mock.handlers.set("listAccountEvents", () => ({ status: 200, body: { events: feeds[Math.min(i++, 2)], nextCursor: null } }));
-		e.mock.handlers.set("getWatch", () => ({ status: 200, body: { id: "w_1", goal: "A person is standing at the front door" } }));
-		e.abortAfterSleeps = 3;
+		const m = evt(5);
+		sse.then(hold(message(m)));
 		e.now = 1_793_525_400_000;
-		const r = await e.run("listen", "--forward", rcv.url, "--secret", "whsec_mine", "--json");
+		const r = await listen(["--forward-to", rcv.url, "--secret-env", "MY_SECRET", "--watch", "w_abc", "--type", "goal.met", "--backlog", "2"], () => rcv.got.length >= 1);
 		await rcv.close();
 		expect(r.code, r.err).toBe(0);
-		expect(rcv.got).toHaveLength(1); // evt_1 was already there: not forwarded without --replay
-		const d = rcv.got[0];
-		expect(JSON.parse(d.body)).toEqual({ id: "dec_2", watchId: "w_1", occurrenceId: "occ_2", type: "goal.met", goal: "A person is standing at the front door", reason: "A person in a green jacket.", confidence: 0.93, at: "2026-11-01T09:30:00.000Z" });
+		const d = rcv.got[0]!;
+		expect(d.body).toBe(JSON.stringify(m.body)); // the exact bytes, not a re-serialisation
+		expect(d.headers["content-type"]).toBe("application/json");
+		expect(d.headers["x-percia-event-id"]).toBe("evt-5");
+		expect(d.headers["x-percia-delivery-id"]).toMatch(/^[0-9a-f-]{36}$/);
 		expect(await verifyWebhookSignature(d.body, d.headers, "whsec_mine", 300, 1_793_525_400)).toBe(true);
 		expect(await verifyWebhookSignature(d.body, d.headers, "whsec_other", 300, 1_793_525_400)).toBe(false);
-		expect(JSON.parse(r.out.trim()).status).toBe(204);
+		expect(r.out).toMatch(/goal\.met\s+watch w_abc\s+event evt-5\s+-> 204 \(\d+ ms\)/);
+		expect(Object.fromEntries(sse.connections[0]!.url.searchParams)).toEqual({ watchId: "w_abc", type: "goal.met", backlog: "2" });
+		expect(sse.connections[0]!.headers.authorization).toBe("Bearer pk_live_test");
+		for (const text of [r.out, r.err]) {
+			expect(text).not.toContain("pk_live_test");
+			expect(text).not.toContain("whsec_mine");
+		}
 	});
-	it("--replay forwards the latest existing events first; a generated secret is printed once", async () => {
+
+	it("--secret-file and PERCIA_WEBHOOK_SECRET sign too; --secret-env and --secret-file together are refused; a missing variable is a usage error", async () => {
 		const rcv = await receiver();
-		e.mock.handlers.set("listAccountEvents", () => ({ status: 200, body: { events: [ev(2), ev(1)], nextCursor: null } }));
-		e.abortAfterSleeps = 1;
-		const r = await e.run("listen", "--forward", rcv.url, "--replay", "2");
+		mkdirSync(join(e.home, "cwd"), { recursive: true });
+		writeFileSync(join(e.home, "cwd", "secret.txt"), "whsec_file\n");
+		sse.then(hold(message(evt(1))));
+		let r = await listen(["--forward-to", rcv.url, "--secret-file", "secret.txt"], () => rcv.got.length >= 1);
+		expect(r.code, r.err).toBe(0);
+		expect(await verifyWebhookSignature(rcv.got[0]!.body, rcv.got[0]!.headers, "whsec_file")).toBe(true);
+		e.ctl = new AbortController();
+		e.env.PERCIA_WEBHOOK_SECRET = "whsec_env";
+		sse.then(hold(message(evt(2))));
+		r = await listen(["--forward-to", rcv.url], () => rcv.got.length >= 2);
 		await rcv.close();
-		expect(rcv.got.map((g) => JSON.parse(g.body).id)).toEqual(["dec_1", "dec_2"]);
-		const secret = /whsec_local_[0-9a-f]{32}/.exec(r.err)![0];
-		expect(await verifyWebhookSignature(rcv.got[0].body, rcv.got[0].headers, secret)).toBe(true);
-		expect(r.err).toContain("not a live relay");
+		expect(await verifyWebhookSignature(rcv.got[1]!.body, rcv.got[1]!.headers, "whsec_env")).toBe(true);
+		expect((await e.run("listen", "--forward-to", "http://localhost:1/x", "--secret-env", "A", "--secret-file", "b")).code).toBe(2);
+		const missing = await e.run("listen", "--forward-to", "http://localhost:1/x", "--secret-env", "NOT_SET");
+		expect(missing.code).toBe(2);
+		expect(missing.err).toContain("NOT_SET");
 	});
-	it("refuses a non-local target unless --allow-remote, and reports a receiver that is down", async () => {
-		expect((await e.run("listen", "--forward", "https://example.com/hook")).code).toBe(2);
-		expect((await e.run("listen", "--forward", "ftp://localhost/x")).code).toBe(2);
-		e.mock.handlers.set("listAccountEvents", () => ({ status: 200, body: { events: [ev(1)], nextCursor: null } }));
-		e.abortAfterSleeps = 1;
-		const r = await e.run("listen", "--forward", "http://127.0.0.1:1/none", "--replay", "1", "--json");
-		expect(JSON.parse(r.out.trim()).status).toBeNull();
+
+	it("without any secret it generates a local one, prints it once, and the receiver can verify with it", async () => {
+		const rcv = await receiver();
+		sse.then(hold(message(evt(1))));
+		const r = await listen(["--forward-to", rcv.url], () => rcv.got.length >= 1);
+		await rcv.close();
+		const secret = /whsec_local_[0-9a-f]{32}/.exec(r.err)![0];
+		expect(r.err.split(secret).length - 1).toBe(1);
+		expect(await verifyWebhookSignature(rcv.got[0]!.body, rcv.got[0]!.headers, secret)).toBe(true);
+	});
+
+	it("--print writes only the JSON lines to stdout and needs no secret or receiver", async () => {
+		const m1 = evt(1);
+		const m2 = evt(2);
+		sse.then(hold(message(m1), message(m2)));
+		const p = e.run("listen", "--print");
+		for (let i = 0; i < 400 && sse.connections.length < 1; i++) await new Promise((r) => setTimeout(r, 5));
+		await new Promise((r) => setTimeout(r, 50));
+		e.ctl.abort();
+		const r = await p;
+		expect(r.code, r.err).toBe(0);
+		expect(r.out).toBe(JSON.stringify(m1.body) + "\n" + JSON.stringify(m2.body) + "\n");
+		expect(r.err).toContain("Connected.");
+	});
+
+	it("reconnects after `end` with Last-Event-ID and does not forward a replayed event twice", async () => {
+		const rcv = await receiver();
+		sse.then(send(message(evt(1)), message(evt(2)), end()), hold(message(evt(2)), message(evt(3))));
+		const r = await listen(["--forward-to", rcv.url, "--secret-env", "MY_SECRET"], () => rcv.got.length >= 3);
+		await rcv.close();
+		expect(r.code).toBe(0);
+		expect(rcv.got.map((g) => JSON.parse(g.body).eventId)).toEqual(["evt-1", "evt-2", "evt-3"]);
+		expect(sse.connections[1]!.headers["last-event-id"]).toBe("2");
+		expect(r.err).toContain("every 10 minutes");
+	});
+
+	it("reports a receiver that is down (connection refused), keeps going, and says what to do", async () => {
+		const dead = await receiver();
+		await dead.close();
+		sse.then(hold(message(evt(1)), message(evt(2))));
+		const p = e.run("listen", "--forward-to", dead.url, "--secret-env", "MY_SECRET");
+		for (let i = 0; i < 400 && sse.connections.length < 1; i++) await new Promise((r) => setTimeout(r, 5));
+		await new Promise((r) => setTimeout(r, 150));
+		e.ctl.abort();
+		const r = await p;
+		expect(r.code).toBe(0);
+		expect(r.out.match(/connection refused: nothing is listening on 127\.0\.0\.1:\d+/g)).toHaveLength(2);
+		expect(r.out).toContain("-> failed");
+	});
+
+	it("--json emits one NDJSON result per forwarded event", async () => {
+		const rcv = await receiver(500);
+		sse.then(hold(message(evt(1))));
+		const r = await listen(["--json", "--forward-to", rcv.url, "--secret-env", "MY_SECRET"], () => rcv.got.length >= 1);
+		await rcv.close();
+		expect(JSON.parse(r.out.trim().split("\n")[0]!)).toMatchObject({ eventId: "evt-1", status: 500, cursor: "1" });
+	});
+
+	it("401, 403 and a watch that is not yours stop with the auth / not-found exit codes and a hint", async () => {
+		sse.then(fail(401, "invalid_api_key", "Missing or invalid API key."), fail(403, "insufficient_scope", "This key needs the events:read scope."), fail(404, "not_found", "No such watch."));
+		const a = await e.run("listen", "--print");
+		expect(a.code).toBe(3);
+		expect(a.err).toContain("percia login");
+		const b = await e.run("listen", "--print");
+		expect(b.code).toBe(3);
+		expect(b.err).toContain("events:read");
+		const c = await e.run("listen", "--print", "--watch", "w_x");
+		expect(c.code).toBe(4);
+		for (const x of [a, b, c]) expect(x.err).not.toContain("pk_live_test");
+	});
+
+	it("429 (too many streams) waits Retry-After, says why, and connects when a slot frees", async () => {
+		sse.then(fail(429, "rate_limited", "You already have 2 event streams open.", { "retry-after": "5" }), hold(message(evt(1))));
+		const p = e.run("listen", "--print");
+		for (let i = 0; i < 400 && sse.connections.length < 2; i++) await new Promise((r) => setTimeout(r, 5));
+		await new Promise((r) => setTimeout(r, 50));
+		e.ctl.abort();
+		const r = await p;
+		expect(r.code, r.err).toBe(0);
+		expect(r.err).toMatch(/Too many streams.*2 event streams.*Retrying in 5s/);
+		expect(r.out).toContain('"eventId":"evt-1"');
+	});
+
+	it("after `resync` it backfills once from the event feed (goal looked up) and forwards the missed events", async () => {
+		const rcv = await receiver();
+		e.mock.handlers.set("listAccountEvents", () => ({ status: 200, body: { events: [feedEvent(9), feedEvent(8)], nextCursor: null } }));
+		e.mock.handlers.set("getWatch", () => ({ status: 200, body: { id: "w_1", goal: "A person is standing at the front door" } }));
+		sse.then(hold(resync(3), message(evt(100))));
+		const r = await listen(["--forward-to", rcv.url, "--secret-env", "MY_SECRET"], () => rcv.got.length >= 3);
+		await rcv.close();
+		expect(r.code, r.err).toBe(0);
+		const bodies = rcv.got.map((g) => JSON.parse(g.body));
+		expect(bodies.slice(0, 2).map((b) => b.eventId)).toEqual(["evt-8", "evt-9"]); // oldest first
+		expect(bodies[0]).toMatchObject({ id: "dec_8", watchId: "w_1", goal: "A person is standing at the front door", eventId: "evt-8" });
+		expect(bodies[2].eventId).toBe("evt-100");
+		expect(await verifyWebhookSignature(rcv.got[0]!.body, rcv.got[0]!.headers, "whsec_mine")).toBe(true);
+		expect(e.mock.requests.filter((q) => q.operationId === "listAccountEvents")).toHaveLength(1);
+	});
+
+	it("--replay <eventId> forwards that one past event and exits without opening a stream", async () => {
+		const rcv = await receiver();
+		e.mock.handlers.set("listAccountEvents", () => ({ status: 200, body: { events: [feedEvent(2), feedEvent(1)], nextCursor: null } }));
+		e.mock.handlers.set("getWatch", () => ({ status: 200, body: { id: "w_1", goal: "A person is standing at the front door" } }));
+		const r = await e.run("listen", "--forward-to", rcv.url, "--secret-env", "MY_SECRET", "--replay", "evt-1");
+		await rcv.close();
+		expect(r.code, r.err).toBe(0);
+		expect(rcv.got).toHaveLength(1);
+		expect(JSON.parse(rcv.got[0]!.body)).toMatchObject({ eventId: "evt-1", id: "dec_1", goal: "A person is standing at the front door" });
+		expect(await verifyWebhookSignature(rcv.got[0]!.body, rcv.got[0]!.headers, "whsec_mine")).toBe(true);
+		expect(sse.connections).toHaveLength(0);
+		const missing = await e.run("listen", "--print", "--replay", "evt-404");
+		expect(missing.code).toBe(4);
+	});
+
+	it("validates its flags and refuses a non-local target unless --allow-remote", async () => {
+		expect((await e.run("listen")).code).toBe(2);
+		expect((await e.run("listen", "--forward-to", "https://example.com/hook", "--secret-env", "MY_SECRET")).code).toBe(2);
+		expect((await e.run("listen", "--forward-to", "ftp://localhost/x")).code).toBe(2);
+		expect((await e.run("listen", "--print", "--backlog", "21")).code).toBe(2);
+		expect((await e.run("listen", "--forward-to", "nope")).code).toBe(2);
+		expect(sse.connections).toHaveLength(0);
 	});
 });
 

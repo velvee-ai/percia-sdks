@@ -95,4 +95,4 @@ for r in percia.cameras.bulk([{"name": "Door", "external_id": "nvr1-ch1"}, {"nam
 - Heartbeat: `POST /api/cam/heartbeat` with the camera token, every 20 s; a successful publish also marks the camera seen (so `state` turns `online` without a heartbeat, for a minute).
 - A watch whose camera sends no video for 60 minutes is paused (`pausedReason` `no_video`) and the owner is emailed, as for phone cameras (server doc, not an SDK concern). Reconnect WHIP with backoff 1 s doubling to 30 s and keep the same token (the CLI and the templates restart ffmpeg this way).
 - 402 `payment_required` and 404 (phone cameras switched off) pass through as typed errors. A 404 on `status` or `bulk` is read as "older server" and triggers the fallback, which then reports the 404 again if the real cause was the phone-camera switch.
-- `percia listen` (a live dev feed) is a separate future command, not part of this; see [cli-listen.md](cli-listen.md).
+- `percia listen` (a live dev feed for webhook receivers) is a separate command; see [local-development.md](local-development.md).

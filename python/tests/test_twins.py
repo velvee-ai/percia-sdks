@@ -14,6 +14,9 @@ def test_async_resources_mirror_sync_resources():
         a = {n for n, f in inspect.getmembers(async_cls, inspect.isfunction) if not n.startswith("_")}
         assert s == a, name
         for n in a:
+            if n == "stream":  # returns an async iterator; it is deliberately not a coroutine
+                assert not inspect.iscoroutinefunction(getattr(async_cls, n))
+                continue
             assert inspect.iscoroutinefunction(getattr(async_cls, n)), f"{name}.{n}"
 
 
@@ -36,6 +39,12 @@ def test_async_file_is_up_to_date():
         "return self.update(", "return await self.update("
     )
     src = re.sub(r"= self\.([\w.]+)\(", r"= await self.\1(", src)
+    src = src.replace("    async def stream(", "    def stream(")
+    src = src.replace("Iterator[StreamItem]", "AsyncIterator[StreamItem]").replace("stream_events", "astream_events")
+    src = src.replace(
+        "from typing import TYPE_CHECKING, Any, Callable, Dict, Iterator,",
+        "from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Dict,",
+    )
     squash = lambda t: re.sub(r"[\s,()]+", "", t)  # noqa: E731 - ignore formatter differences
     assert squash(src) == squash((root / "_aresources.py").read_text()), (
         "run: python scripts/make_async_resources.py && ruff format percia"

@@ -5,6 +5,8 @@ export type { PushRegistration, PublishOptions, PublishCommands, BulkItem, BulkR
 export * from "./errors.js";
 export { createRetryingFetch, backoffMs } from "./retry.js";
 export type { RetryOptions } from "./retry.js";
+export { streamEvents, parseSse } from "./stream.js";
+export type { EventStreamOptions, StreamItem, StreamedEvent, SseFrame, StreamDeps } from "./stream.js";
 export { paginate, toArray } from "./pagination.js";
 export { verifyWebhookSignature, assertWebhookSignature, constructWebhookEvent, signWebhook, parseSignatureHeader, DEFAULT_TOLERANCE_SEC } from "./webhooks.js";
 export type { WebhookEvent, HeadersLike, VerifyOptions } from "./webhooks.js";

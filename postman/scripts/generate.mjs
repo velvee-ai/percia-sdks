@@ -162,6 +162,7 @@ export function buildModel(spec) {
 			const apiKeyCapable = (op.security ?? []).some((s) => "bearerAuth" in s);
 			const open = PLATFORM_PUBLIC.has(op.operationId);
 			if (!apiKeyCapable && !open) { skipped++; continue; }
+			if (op["x-percia-stream"]) { skipped++; continue; } // a response that never ends: Postman and Insomnia buffer it. Use curl or `percia listen`.
 			ops.push({ method: method.toUpperCase(), path, op, open });
 		}
 	}

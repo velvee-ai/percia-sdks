@@ -1,10 +1,10 @@
 {
   "source": "https://playground.percia.ai/api/openapi.json",
   "checkUrl": "https://playground.percia.ai/api/openapi.json",
-  "sha256": "ed96ffa14960c00d70525250e91e586a9aa0816cb9b32317ddacefe5a063ad12",
+  "sha256": "78ca5521404309d9a84d74326456eadec383d117ee33a1d5c90d55ebacc37373",
   "openapi": "3.1.0",
   "title": "Percia API",
   "version": "1.0.0",
-  "operations": 105,
+  "operations": 106,
   "schemas": 20
 }

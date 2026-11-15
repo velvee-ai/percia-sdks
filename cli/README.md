@@ -34,7 +34,8 @@ percia cameras token rotate <id> | revoke <id>                    # new token (s
 percia cameras status [id]                                        # online = seen in the last 60 s
 percia destinations list | services | connect <service> | attach <watchId> <connectionId> | remove <id>
 percia hooks list | create <https-url> | test <id> | delete <id>
-percia listen --forward http://localhost:3000/hook                # see ../docs/cli-listen.md
+percia listen --forward-to http://localhost:3000/hook           # webhooks without a public URL: ../docs/local-development.md
+percia listen --print --type goal.met | jq .reason              # just print the events
 percia mcp setup claude-code | cursor | claude-desktop
 percia doctor | whoami | config | completion <bash|zsh|fish>
 ```

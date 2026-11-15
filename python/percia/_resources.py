@@ -7,7 +7,7 @@ NOTE: ``_aresources.py`` is the async twin of this file. Keep them in step (test
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List, Mapping, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Mapping, Optional, Union
 
 from ._config import coerce_body, time_param
 from ._errors import NotFoundError, PerciaError
@@ -55,6 +55,7 @@ from ._push import (
     registration_from_dict,
     status_from_model,
 )
+from ._stream import StreamItem, stream_events
 
 if TYPE_CHECKING:
     from ._client import Percia
@@ -126,6 +127,32 @@ class Events:
     def sample(self) -> Any:
         """One example event in the shape of the feed (for connector editors)."""
         return self._c._call(_get_sample_event)
+
+    def stream(
+        self,
+        *,
+        watch_id: Optional[str] = None,
+        concern_id: Optional[str] = None,
+        type: Optional[str] = None,  # noqa: A002
+        backlog: Optional[int] = None,
+        since: Union[None, int, str] = None,
+        max_reconnects: Optional[int] = None,
+        idle_timeout: Optional[float] = 45.0,
+        dedupe: bool = True,
+        jitter: Optional[Callable[[], float]] = None,
+    ) -> Iterator[StreamItem]:
+        """Follow the developer event feed (``GET /api/events/stream``, Server-Sent Events) for local development and tests.
+
+        Not a delivery path: webhooks stay the production path. Yields ``Open``, ``Event``, ``Resync``, ``End``,
+        ``Reconnect`` and ``Ping`` items and reconnects by itself with the last cursor (``Last-Event-ID``), honouring
+        ``Retry-After``. ``Event.data`` is the exact JSON string the server sent (sign and forward that string).
+        Raises ``AuthenticationError`` (401), ``InsufficientScopeError`` (403, needs ``events:read``), ``NotFoundError``
+        (a watch that is not yours) or ``ValidationError`` (a bad filter) without retrying. ``break`` to stop.
+        """
+        return stream_events(
+            self._c, watch_id=watch_id, concern_id=concern_id, type=type, backlog=backlog, since=since,
+            max_reconnects=max_reconnects, idle_timeout=idle_timeout, dedupe=dedupe, jitter=jitter,
+        )  # fmt: skip
 
 
 class Cameras:

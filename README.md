@@ -10,7 +10,7 @@ SDKs, CLI, Postman collection and templates for the [Percia](https://percia.ai) 
 | [`cli/`](cli) | `percia` command line (login, watches, events --follow, cameras, destinations, hooks, listen, mcp setup, doctor) | `@percia/cli` |
 | [`postman/`](postman) | Postman collection, environment and Insomnia export | |
 | [`examples/`](examples) | webhook receivers (Express, Workers, FastAPI, Go, Ruby), Slack script, Vapi voice alert, GitHub Actions | |
-| [`docs/`](docs) | [which tool to use](docs/which-sdk.md), [cameras on a private network](docs/camera-push.md), [`listen` design](docs/cli-listen.md), [owner steps](docs/owner-steps.md) | |
+| [`docs/`](docs) | [which tool to use](docs/which-sdk.md), [cameras on a private network](docs/camera-push.md), [receive webhooks without a public URL (`percia listen`)](docs/local-development.md), [owner steps](docs/owner-steps.md) | |
 
 ## Quick starts
 
@@ -34,6 +34,18 @@ for event in percia.iter_events(type="goal.met"):
 ```bash
 percia login && percia watches create --source rtsp://cam.example.com/s --goal "A person is at the door" --webhook https://example.com/hook
 percia events list --follow
+```
+
+**Webhooks on localhost, no public URL** (dev feed; [guide](docs/local-development.md))
+```bash
+percia listen --forward-to http://localhost:3000/hook   # PERCIA_WEBHOOK_SECRET signs it like a real delivery
+```
+```ts
+for await (const item of percia.events.stream({ type: "goal.met" })) if (item.kind === "event") console.log(item.event.eventId, item.data);
+```
+```python
+for item in percia.events.stream(type="goal.met"):     # AsyncPercia: async for
+    if item.kind == "event": print(item.event["eventId"], item.data)
 ```
 
 **Camera on a private network** (push; [guide](docs/camera-push.md))

@@ -6,9 +6,10 @@ import { NotFoundError, PerciaError, errorFromResponse } from "./errors.js";
 import type { BulkItem, BulkResult, CameraStatus, PushRegistration } from "./push.js";
 import { createRetryingFetch, type RetryOptions } from "./retry.js";
 import { paginate } from "./pagination.js";
+import { streamEvents, type EventStreamOptions, type StreamDeps } from "./stream.js";
 
 export const DEFAULT_BASE_URL = "https://playground.percia.ai";
-export const SDK_VERSION = "0.2.0";
+export const SDK_VERSION = "0.3.0";
 
 export type TokenSource = string | (() => string | Promise<string>);
 
@@ -55,6 +56,11 @@ export class PerciaClient {
 	/** Every operation, by operationId, with this client pre-bound. They return `{ data, error, response }` and do not throw. */
 	readonly api: BoundSdk;
 	readonly baseUrl: string;
+	/** What `events.stream` needs: the same credentials and headers, but the bare fetch (a stream must not be retried as a request). */
+	/** @internal */
+	readonly streamDeps: StreamDeps;
+	/** @internal */
+	readonly streamDefaults: Pick<EventStreamOptions, "sleep" | "random" | "baseDelayMs">;
 
 	readonly watches: Watches;
 	readonly events: Events;
@@ -79,6 +85,15 @@ export class PerciaClient {
 				return req;
 			},
 		});
+		this.streamDefaults = { sleep: options.sleep, random: options.random, baseDelayMs: options.baseDelayMs };
+		this.streamDeps = {
+			baseUrl: this.baseUrl,
+			fetch: baseFetch as typeof fetch,
+			headers: async () => {
+				const value = typeof token === "function" ? await token() : token;
+				return { ...(value ? { authorization: `Bearer ${value}` } : {}), "x-percia-client": `percia-sdk-js/${SDK_VERSION}${options.appInfo ? ` ${options.appInfo}` : ""}`, ...extra };
+			},
+		};
 		this.raw = createGeneratedClient(createConfig({ baseUrl: this.baseUrl, fetch: fetchWithRetry as typeof fetch }));
 		const bound: Record<string, unknown> = {};
 		for (const [name, fn] of Object.entries(sdk)) {
@@ -137,6 +152,14 @@ class Events {
 	/** Every event matching the filters, newest first, following `nextCursor`. Stop with `break`; the loop is lazy. */
 	iterate(params: ListEventsParams = {}) {
 		return paginate<Event>((cursor) => this.list({ ...params, cursor: cursor ?? params.cursor }));
+	}
+	/**
+	 * Follow the developer event feed (`GET /api/events/stream`, Server-Sent Events) for local development and tests, not as a delivery path.
+	 * An async iterator that reconnects with the last cursor, honours `Retry-After`, dedupes on `eventId` and ends when `signal` aborts.
+	 * Needs `events:read`. See `EventStreamOptions` and `StreamItem`.
+	 */
+	stream(options: EventStreamOptions = {}) {
+		return streamEvents(this.c.streamDeps, { ...this.c.streamDefaults, ...options });
 	}
 	/** One example event in the feed's shape (for editors that need sample data). Not a real event. */
 	sample() { return unwrap(this.c.api.getSampleEvent({})); }

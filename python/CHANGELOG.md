@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0 (unreleased)
+
+- `events.stream(watch_id=, concern_id=, type=, backlog=, since=, max_reconnects=, idle_timeout=)`: iterator (sync) and async iterator (`AsyncPercia`) over the developer event feed (`GET /api/events/stream`, SSE). Yields `Open`, `Event` (`cursor`, parsed `event`, the exact `data` string), `Resync`, `End`, `Reconnect`, `Ping`. Reconnects with `Last-Event-ID`, backoff with jitter, `Retry-After` on 429, a read-timeout idle detector, dedupe on `eventId`; raises typed errors for 401/403/404/400 (no retry). `verify_webhook_signature` is unchanged.
+
 ## 0.2.0 (unreleased)
 
 - Camera push (cameras on a private network): `cameras.register_push(name, external_id)` (idempotent; returns a `PushRegistration` with `whip_url` and the one-time `token`, or `existing=True, token=None`; `on_existing="return" | "rotate" | "throw"`), `cameras.rotate_token`, `cameras.revoke_token`, `cameras.status`, `cameras.bulk`; sync and async.

@@ -9,6 +9,6 @@
     "start": "node push.mjs",
     "test": "node --test test/push.test.mjs"
   },
-  "dependencies": { "@percia/sdk": "^0.2.0" },
+  "dependencies": { "@percia/sdk": "^0.3.0" },
   "engines": { "node": ">=20" }
 }

@@ -5597,6 +5597,118 @@
         ]
       }
     },
+    "/events/stream": {
+      "get": {
+        "operationId": "streamEvents",
+        "parameters": [
+          {
+            "description": "Only events of this watch (404 when it is not yours).",
+            "in": "query",
+            "name": "watchId",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only events of this agent concern.",
+            "in": "query",
+            "name": "concernId",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only this event type, such as goal.met.",
+            "in": "query",
+            "name": "type",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Resume after this event cursor (the `id` of a message). The `Last-Event-ID` header does the same and wins.",
+            "in": "query",
+            "name": "since",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "First send your latest N events (0 to 20, default 0). Without a cursor the stream starts at now.",
+            "in": "query",
+            "name": "backlog",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "`text/event-stream`, open for up to 10 minutes. Each message: `id` (cursor), `event` (the type), `data` (the webhook JSON body plus `eventId`). Also `: ping` comments every 15 s, `event: resync`, and `event: end` before the server closes; reconnect with `Last-Event-ID`. For local development and tests, not a delivery guarantee: webhooks stay the production path. A stream never ends, so an `execute` call cannot use it: run it with curl, fetch or `percia listen`."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "`field: since` or `field: backlog`: not valid."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not signed in."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "`watchId` is not one of your watches."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "`rate_limited`: more than 10 connects a minute, or 2 streams already open (`Retry-After`)."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": [
+              "events:read"
+            ]
+          }
+        ],
+        "summary": "Developer event feed: server-sent events of your account, for local development",
+        "tags": [
+          "events"
+        ],
+        "x-percia-scopes": [
+          "events:read"
+        ],
+        "x-percia-stream": true
+      }
+    },
     "/health": {
       "get": {
         "operationId": "getHealth",

@@ -31,6 +31,7 @@ from ._push import (
     scrub_token,
 )
 from ._retry import RetryPolicy
+from ._stream import End, Event, Open, Ping, Reconnect, Resync, StreamItem
 from ._version import __version__
 from ._webhooks import (
     WebhookSignatureError,
@@ -46,6 +47,13 @@ __all__ = [
     "ConflictError",
     "ConnectionError",
     "DEFAULT_BASE_URL",
+    "End",
+    "Event",
+    "Open",
+    "Ping",
+    "Reconnect",
+    "Resync",
+    "StreamItem",
     "TOKEN_ENV",
     "TOKEN_PLACEHOLDER",
     "InsufficientScopeError",

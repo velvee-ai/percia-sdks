@@ -54,7 +54,7 @@ git diff              # review, then commit
 ```
 The daily "Spec drift" workflow fails (and opens a `spec-drift` issue) whenever the live document differs from the pin. It was green when this was written (live and pin identical, 105 operations, sha256 `ed96ffa14960`, 2026-11-14).
 
-## 4b. Releasing camera push (0.2.0)
+## 4b. Releasing camera push (now part of 0.3.0)
 
 Nothing here has been published or tagged. The versions in the repo are `0.2.0` (SDK, CLI, Python). The camera push server is deployed (percia-cf master `bb95c92`, Worker versions `d7aff9a6` then `5a591ed8`), the spec pin is the live document, `pnpm spec:check` is green and the SDKs use the real `status` and `bulk` routes (with a 404 fallback for older servers). Remaining before publishing:
 
@@ -62,7 +62,17 @@ Nothing here has been published or tagged. The versions in the repo are `0.2.0` 
 2. With a **test account** (never create cameras in production by accident): `PERCIA_API_KEY=... percia cameras push register --name smoke --external-id smoke-1`, `percia cameras status <id>` (expect `state: waiting`, then `online` once publishing), rotate, revoke (status shows `revoked`), `cameras remove`; SDK smoke for `cameras.bulk` with two throwaway `externalId`s, then remove them; and with ffmpeg 7.1+ on a LAN machine `percia cameras push run --rtsp ...` against a real camera; check the camera goes online in the dashboard and a watch on `percia-cam://<id>` produces events. This is the only check that proves the live responses match the recorded contract.
 3. Update `CHANGELOG.md` and the per-package changelogs from "unreleased" to the release date.
 4. Publish as in sections 1 and 2 (npm `@percia/sdk` first, then `@percia/cli`; PyPI tag `python-v0.2.0`). Do not tag before steps 1-2. Run `pnpm install --frozen-lockfile && pnpm generate:check && pnpm test && pnpm build` first.
-5. `percia listen` is not part of this release: it waits for the events dev feed in percia-cf (design in [cli-listen.md](cli-listen.md)).
+5. `percia listen` and `events.stream` are in 0.3.0, see section 4c.
+
+## 4c. Releasing `percia listen` (0.3.0)
+
+Nothing here has been published or tagged. The versions in the repo are `0.3.0` (SDK, CLI, Python) and include camera push (4b). The CLI and SDK stream code is tested offline against a mock SSE server that follows percia-cf `docs/specs/platform/dev-feed.md`. Remaining before publishing:
+
+1. **Confirm the server is deployed**: `curl -sS -o /dev/null -w "%{http_code}\n" -H "Authorization: Bearer $KEY" https://playground.percia.ai/api/events/stream --max-time 3` should print 200 (it streams; the timeout ends it). A 404 means the dev feed is not live yet: do not publish.
+2. `pnpm spec:sync && pnpm generate && git diff`: the live document will list `/events/stream` once deployed (it is not in the current pin). Review, then check `typescript/src/stream.ts` still matches the operation (query `watchId`, `concernId`, `type`, `backlog`, `since`).
+3. **Live smoke with a test account** (never production data): create a webhook watch with a throwaway target, keep its `whsec_...`, run `PERCIA_API_KEY=... PERCIA_WEBHOOK_SECRET=whsec_... percia listen --forward-to http://localhost:3000/hook --backlog 3` against `examples/node-express` (or any receiver), trigger an event (`percia watches test <id>`), and check the receiver verifies the signature and prints the event. Also: a key without `events:read` gives a clear 403; a third concurrent `listen` shows the 429 message; leave one running past 10 minutes and see `Reconnected` with no duplicate; Ctrl-C exits 0.
+4. Update `CHANGELOG.md` and the per-package changelogs from "unreleased" to the release date.
+5. Publish as in sections 1 and 2 (npm `@percia/sdk` first, then `@percia/cli`; PyPI tag `python-v0.3.0`). Do not tag before steps 1 to 3. Run `pnpm install --frozen-lockfile && pnpm generate:check && pnpm test && pnpm build` and `cd python && pytest` first.
 
 ## 5. Optional
 

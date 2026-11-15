@@ -1,0 +1,14 @@
+{
+  "name": "percia-example-listen-local",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Receive Percia events on localhost without a public URL: follow the developer event feed with the Percia SDK and forward each event, signed like a webhook.",
+  "license": "MIT",
+  "scripts": {
+    "start": "node forward.mjs",
+    "test": "node --import ./test/resolve-sdk.mjs --test test/forward.test.mjs"
+  },
+  "dependencies": { "@percia/sdk": "^0.3.0" },
+  "engines": { "node": ">=20" }
+}
