@@ -3,6 +3,7 @@ import type { Client } from "./generated/client/index.js";
 import * as sdk from "./generated/sdk.gen.js";
 import type { Camera, Event, EventPage, Watch } from "./generated/types.gen.js";
 import { NotFoundError, PerciaError, errorFromResponse } from "./errors.js";
+import { billingOf, type Billing, type Plan } from "./billing.js";
 import type { BulkItem, BulkResult, CameraStatus, PushRegistration } from "./push.js";
 import { createRetryingFetch, type RetryOptions } from "./retry.js";
 import { paginate } from "./pagination.js";
@@ -124,8 +125,16 @@ class Watches {
 	/** Async iterator over your watches (one page today; stable if the API adds paging). */
 	async *iterate(): AsyncGenerator<Watch, void, void> { for (const w of await this.list()) yield w; }
 	get(id: string) { return unwrap(this.c.api.getWatch({ path: { id } })); }
-	/** Create a watch. The response is the only time `webhookSecret` is shown: store it. */
+	/**
+	 * Create a watch. The response is the only time `webhookSecret` is shown: store it.
+	 * Percia reads the goal into conditions (`interpretation` in the answer: read `gaps` and `untestable`). Pass `interpret: false`
+	 * to keep your words exactly (add `kind: "state" | "event"` if you know it), or `concerns: [{ text, kind, ignore? }]` to give the conditions yourself.
+	 */
 	create(body: Body<"createWatch">) { return unwrap(this.c.api.createWatch({ body })); }
+	/** What Percia understands of a goal, without creating anything (`deferred: true` means it takes longer and is read at creation). */
+	interpret(goal: string) { return unwrap(this.c.api.interpretGoal({ body: { goal } })); }
+	/** Understand the watch's current goal again (replaces conditions edited by hand). */
+	reinterpret(id: string) { return unwrap(this.c.api.reinterpretWatch({ path: { id } })); }
 	update(id: string, body: Body<"updateWatch">) { return unwrap(this.c.api.updateWatch({ path: { id }, body })); }
 	pause(id: string) { return this.update(id, { status: "paused" } as Body<"updateWatch">); }
 	resume(id: string) { return this.update(id, { status: "active" } as Body<"updateWatch">); }
@@ -203,7 +212,8 @@ class Cameras {
 	constructor(private c: PerciaClient) {}
 	list() { return unwrap(this.c.api.listCameras({})); }
 	/** Returns `pairUrl`: a single-use link (10 minutes) a person opens on the phone that will be the camera. */
-	create(name: string) { return unwrap(this.c.api.createCamera({ body: { name } })); }
+	/** Create a phone camera. `deviceKind` (phone, tablet or computer) only changes the wording shown to the person. */
+	create(name: string, options: { deviceKind?: "phone" | "tablet" | "computer" } = {}) { return unwrap(this.c.api.createCamera({ body: { name, ...(options.deviceKind ? { deviceKind: options.deviceKind } : {}) } })); }
 	/** A fresh pairing link; an unused earlier one stops working. */
 	pair(id: string) { return unwrap(this.c.api.createCameraPairing({ path: { id } })); }
 	delete(id: string) { return unwrap(this.c.api.deleteCamera({ path: { id } })); }
@@ -321,6 +331,9 @@ class Account {
 	constructor(private c: PerciaClient) {}
 	/** The signed-in account. Session or OAuth token; API keys are refused by this route. */
 	me() { return unwrap(this.c.api.getAccount({})); }
+	/** Plan, free and credit minutes, how the account is charged and the next step. Read `canStartWatches` before creating a watch. */
 	plan() { return unwrap(this.c.api.getPlan({})); }
+	/** The same facts as the `billing` block of MCP `whoami`, from `plan()` (see `billingOf`). */
+	async billing(): Promise<Billing> { return billingOf((await this.plan()) as Plan); }
 	usage() { return unwrap(this.c.api.getUsage({})); }
 }

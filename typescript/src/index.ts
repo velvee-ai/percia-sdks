@@ -2,6 +2,8 @@ export { createClient, PerciaClient, DEFAULT_BASE_URL, SDK_VERSION, normalizeBas
 export type { PerciaClientOptions, TokenSource, ListEventsParams, RegisterPushOptions } from "./client.js";
 export { TOKEN_PLACEHOLDER, TOKEN_ENV, buildPublishCommands, publishArgv, redactRegistration, scrubToken } from "./push.js";
 export type { PushRegistration, PublishOptions, PublishCommands, BulkItem, BulkResult, CameraStatus } from "./push.js";
+export { billingOf, describeBilling } from "./billing.js";
+export type { Plan, Billing, Concern, Interpretation } from "./billing.js";
 export * from "./errors.js";
 export { createRetryingFetch, backoffMs } from "./retry.js";
 export type { RetryOptions } from "./retry.js";

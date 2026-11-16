@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { billingOf, describeBilling, type Interpretation } from "../src/index.js";
 import { AuthenticationError, ConflictError, NotFoundError, PerciaApiError, PerciaConnectionError, PerciaError, PermissionError, RateLimitError, ServerError, ValidationError, createClient, normalizeBaseUrl, toArray } from "../src/index.js";
 import { MockPercia } from "./mock-server.js";
 
@@ -245,5 +246,57 @@ describe("over real HTTP", () => {
 		await expect(createClient({ apiKey: "bad", baseUrl: srv.origin }).watches.list()).rejects.toBeInstanceOf(AuthenticationError);
 		mock.script("listWatches", { status: 429, headers: { "retry-after": "0" } });
 		await c.watches.list();
+	});
+});
+
+const PLAN = {
+	plan: "free", label: "Free", billingEnforced: true, selling: true, enforced: false, paid: false, hasCard: false,
+	freeMinutes: 10, freeMinutesLeft: 4, creditMinutes: 20, minutesUsedThisMonth: 6, freeMinutesResetsAt: "2026-12-01T00:00:00.000Z",
+	canStartWatches: true, blockReason: null, howCharged: "Charged by the exact camera-minute ($0.50 per camera-hour).", limitsNote: "Minutes are the real limit.",
+	nextStep: "Add a card for 50 more free minutes.", bonusAvailable: true, bonusMinutes: 50, payment: { state: "active", billingUrl: "https://percia.test/billing" },
+};
+
+describe("billing, interpretation and device kind (additive)", () => {
+	it("account.billing() maps a plan to the whoami billing block and describeBilling prints it", async () => {
+		mock.handlers.set("getPlan", () => ({ status: 200, body: PLAN }));
+		const b = await make().account.billing();
+		expect(b).toMatchObject({ planLabel: "Free", freeMinutesRemaining: 4, creditMinutes: 20, minutesUsedThisMonth: 6, canStartWatches: true, paymentState: "active", paid: false, hasCard: false, bonusAvailable: true, bonusMinutes: 50, billingUrl: "https://percia.test/billing", blockReason: null });
+		const text = describeBilling(b).join("\n");
+		expect(text).toContain("4 left this month");
+		expect(text).toContain("Credit:        20 minutes");
+		expect(text).toContain("Next step:");
+	});
+	it("billingOf tolerates an older plan with none of the new fields, and flags a blocked account", () => {
+		const old = billingOf({ plan: "free", limits: {}, counts: {} } as never);
+		expect(old).toMatchObject({ planLabel: null, freeMinutesRemaining: null, canStartWatches: true, bonusAvailable: false, nextStep: null });
+		const blocked = billingOf({ ...PLAN, canStartWatches: false, blockReason: "needs_billing", payment: { state: "blocked" } } as never);
+		expect(blocked.canStartWatches).toBe(false);
+		expect(describeBilling(blocked).join("\n")).toContain("blocked (needs_billing)");
+	});
+	it("watches.create sends interpret:false and concerns untouched", async () => {
+		const c = make();
+		await c.watches.create({ sourceUrl: "rtsp://cam.example.com/s", goal: "A car pulls in", interpret: false, kind: "event", notify: { type: "email", target: "a@b.co" } });
+		expect(mock.requests.at(-1)!.body).toMatchObject({ interpret: false, kind: "event" });
+		await c.watches.create({ sourceUrl: "rtsp://cam.example.com/s", goal: "Front door", concerns: [{ text: "A person stands at the door", kind: "state", ignore: ["the cat"] }], notify: { type: "email", target: "a@b.co" } });
+		expect((mock.requests.at(-1)!.body as { concerns: unknown[] }).concerns).toHaveLength(1);
+	});
+	it("watches.interpret and reinterpret call their routes; a watch carries interpretation", async () => {
+		mock.handlers.set("interpretGoal", () => ({ status: 200, body: { cached: false, deferred: false, interpretation: { concerns: [{ text: "A car pulls in", kind: "event" }], gaps: [], needsLook: false } } }));
+		const c = make();
+		const r = (await c.watches.interpret("Tell me when a car pulls in")) as { interpretation: Interpretation };
+		expect(r.interpretation.concerns?.[0]?.kind).toBe("event");
+		expect(mock.requests.at(-1)!.body).toEqual({ goal: "Tell me when a car pulls in" });
+		await c.watches.reinterpret("w_1");
+		expect(mock.requests.at(-1)!.url.pathname).toBe("/api/watches/w_1/reinterpret");
+	});
+	it("cameras.create passes deviceKind only when given, and list keeps old cameras (deviceKind null) working", async () => {
+		const c = make();
+		await c.cameras.create("Hall");
+		expect(mock.requests.at(-1)!.body).toEqual({ name: "Hall" });
+		await c.cameras.create("Desk", { deviceKind: "computer" });
+		expect(mock.requests.at(-1)!.body).toEqual({ name: "Desk", deviceKind: "computer" });
+		mock.handlers.set("listCameras", () => ({ status: 200, body: [{ id: "c1", name: "Old", deviceKind: null }, { id: "c2", name: "Tab", deviceKind: "tablet" }] }));
+		const kinds = (await c.cameras.list()).map((x) => x.deviceKind ?? null);
+		expect(kinds).toEqual([null, "tablet"]);
 	});
 });
