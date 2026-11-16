@@ -34,6 +34,29 @@ client.watches.pause(watch.id); client.watches.resume(watch.id)
 client.watches.delete(watch.id)
 ```
 
+Plan, free minutes and how you are charged (camera-minutes are the real limit: check ``can_start_watches`` before creating a watch):
+
+```python
+billing = client.account.billing()       # same facts as the `billing` block of MCP whoami
+if not billing.can_start_watches:
+    raise SystemExit(billing.next_step or "Open the Billing page")
+print(billing.plan_label, billing.free_minutes_remaining, billing.credit_minutes, billing.how_charged)
+plan = client.account.plan()             # the raw GET /api/plan model
+```
+
+Billing fields are additive and optional (an older server leaves some out: ``None``, never a guess). ``describe_billing(billing)`` returns plain lines.
+
+Goal understanding and device kind:
+
+```python
+w = client.watches.create({"sourceUrl": url, "goal": "Tell me when a car pulls in", "notify": notify})
+w.interpretation                         # concerns, gaps, untestable, needsLook; None on older watches: ask the person the gaps
+client.watches.create({"sourceUrl": url, "goal": "A car pulls in", "interpret": False, "kind": "event", "notify": notify})  # keep your words
+client.watches.create({"sourceUrl": url, "goal": "Front door", "concerns": [{"text": "A person stands at the door", "kind": "state"}], "notify": notify})
+client.watches.interpret("Keep my shop safe")   # preview, creates nothing
+client.cameras.create("Desk laptop", device_kind="computer")   # cameras carry device_kind: phone | tablet | computer | None
+```
+
 Async:
 
 ```python

@@ -34,6 +34,33 @@ Resources: `watches`, `events`, `cameras`, `integrations`, `hooks`, `account`. E
 
 Needed scopes follow the API: `watches:read|write|delete`, `events:read`, `cameras:read|write`, `integrations:read|write`, and `hooks:write` (opt-in) for REST hooks.
 
+## Plan, free minutes and how you are charged
+
+Camera-minutes are the real limit (10 free every UTC month, then credit minutes, then the card); plan counts are informational. Check before creating a watch:
+
+```ts
+const billing = await percia.account.billing(); // the same facts as the `billing` block of MCP whoami
+if (!billing.canStartWatches) throw new Error(billing.nextStep ?? "Open the Billing page");
+console.log(billing.planLabel, billing.freeMinutesRemaining, billing.creditMinutes, billing.howCharged);
+const plan = await percia.account.plan();        // the raw GET /api/plan answer, every API field
+```
+
+Every billing field is additive and optional: an older server leaves some out (`billingOf(plan)` gives `null`, never a guess). `describeBilling(billing)` returns plain lines for a person.
+
+## Goal understanding and device kind
+
+Percia reads a new goal into conditions (`event` fires when it starts, `state` while it stays true) and says what a camera cannot see:
+
+```ts
+const w = await percia.watches.create({ sourceUrl, goal: "Tell me when a car pulls in", notify });
+w.interpretation;                                // { concerns, gaps, untestable, needsLook, degraded? } or null on older watches: ask the person the gaps
+await percia.watches.create({ sourceUrl, goal: "A car pulls in", interpret: false, kind: "event", notify }); // keep your words
+await percia.watches.create({ sourceUrl, goal: "Front door", concerns: [{ text: "A person stands at the door", kind: "state", ignore: ["the cat"] }], notify });
+await percia.watches.interpret("Keep my shop safe"); // preview, creates nothing (`deferred: true` = read at creation)
+await percia.watches.reinterpret(w.id!);
+await percia.cameras.create("Desk laptop", { deviceKind: "computer" }); // cameras carry deviceKind: phone | tablet | computer | null
+```
+
 ## Cameras on a private network
 
 ```ts

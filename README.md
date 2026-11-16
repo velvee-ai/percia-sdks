@@ -7,7 +7,7 @@ SDKs, CLI, Postman collection and templates for the [Percia](https://percia.ai) 
 | [`spec/`](spec) | pinned OpenAPI document, sync + drift check + lint | |
 | [`typescript/`](typescript) | typed client, retries, errors, pagination, webhook verification; fetch-only, ESM+CJS | `@percia/sdk` |
 | [`python/`](python) | sync + async client, same layer; Python 3.9+, typed | `percia` |
-| [`cli/`](cli) | `percia` command line (login, watches, events --follow, cameras, destinations, hooks, listen, mcp setup, doctor) | `@percia/cli` |
+| [`cli/`](cli) | `percia` command line (login, plan, watches, events --follow, cameras, destinations, hooks, listen, mcp setup, doctor) | `@percia/cli` |
 | [`postman/`](postman) | Postman collection, environment and Insomnia export | |
 | [`examples/`](examples) | webhook receivers (Express, Workers, FastAPI, Go, Ruby), Slack script, Vapi voice alert, GitHub Actions | |
 | [`docs/`](docs) | [which tool to use](docs/which-sdk.md), [cameras on a private network](docs/camera-push.md), [receive webhooks without a public URL (`percia listen`)](docs/local-development.md), [owner steps](docs/owner-steps.md) | |
