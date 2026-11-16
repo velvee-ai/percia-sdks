@@ -3,7 +3,7 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from percia import AuthenticationError, InsufficientScopeError, Percia, ValidationError
+from percia import AuthenticationError, InsufficientScopeError, Percia, ValidationError, billing_of, describe_billing
 
 from .conftest import KEY
 
@@ -130,3 +130,93 @@ def test_key_with_default_scopes_cannot_use_hooks(server, sleeps):  # type: igno
         with pytest.raises(InsufficientScopeError):
             c.hooks.create("https://example.com/h")
     assert KEY != "pk_live_default"
+
+
+PLAN = {
+    "plan": "free",
+    "label": "Free",
+    "billingEnforced": True,
+    "paid": False,
+    "hasCard": False,
+    "freeMinutes": 10,
+    "freeMinutesLeft": 4,
+    "creditMinutes": 20,
+    "minutesUsedThisMonth": 6,
+    "freeMinutesResetsAt": "2026-12-01T00:00:00.000Z",
+    "canStartWatches": True,
+    "blockReason": None,
+    "howCharged": "Charged by the exact camera-minute.",
+    "nextStep": "Add a card for 50 more free minutes.",
+    "bonusAvailable": True,
+    "bonusMinutes": 50,
+    "payment": {"state": "active", "billingUrl": "https://percia.test/billing"},
+}
+
+
+def test_billing_block_from_plan(client, server):  # type: ignore[no-untyped-def]
+    import httpx
+
+    server.on("GET", "/plan", lambda req: httpx.Response(200, json=PLAN))
+    b = client.account.billing()
+    assert (b.plan_label, b.free_minutes_remaining, b.credit_minutes, b.minutes_used_this_month) == ("Free", 4, 20, 6)
+    assert b.can_start_watches and b.bonus_available and b.bonus_minutes == 50
+    assert b.billing_url == "https://percia.test/billing" and b.payment_state == "active"
+    text = "\n".join(describe_billing(b))
+    assert "4 left this month" in text and "Credit:        20 minutes" in text and "Next step:" in text
+
+
+def test_billing_of_old_plan_and_blocked():
+    old = billing_of({"plan": "free"})
+    assert (
+        old.plan_label is None
+        and old.free_minutes_remaining is None
+        and old.can_start_watches
+        and not old.bonus_available
+    )
+    blocked = billing_of(
+        {**PLAN, "canStartWatches": False, "blockReason": "needs_billing", "payment": {"state": "blocked"}}
+    )
+    assert not blocked.can_start_watches
+    assert "blocked (needs_billing)" in "\n".join(describe_billing(blocked))
+
+
+def test_create_watch_interpretation_options(client, server):  # type: ignore[no-untyped-def]
+    import json
+
+    client.watches.create(
+        {
+            "sourceUrl": "rtsp://cam.example.com/s",
+            "goal": "A car pulls in",
+            "interpret": False,
+            "kind": "event",
+            "notify": {"type": "email", "target": "a@b.co"},
+        }
+    )
+    assert json.loads(server.requests[-1].read())["interpret"] is False
+    client.watches.create(
+        {
+            "sourceUrl": "rtsp://cam.example.com/s",
+            "goal": "Front door",
+            "concerns": [{"text": "A person stands at the door", "kind": "state", "ignore": ["the cat"]}],
+            "notify": {"type": "email", "target": "a@b.co"},
+        }
+    )
+    assert json.loads(server.requests[-1].read())["concerns"][0]["kind"] == "state"
+
+
+def test_interpret_and_reinterpret(client, server):  # type: ignore[no-untyped-def]
+    import json
+
+    assert client.watches.interpret("Tell me when a car pulls in") is not None
+    assert json.loads(server.requests[-1].read()) == {"goal": "Tell me when a car pulls in"}
+    client.watches.reinterpret("w_1")
+    assert server.requests[-1].url.path.endswith("/watches/w_1/reinterpret")
+
+
+def test_camera_device_kind(client, server):  # type: ignore[no-untyped-def]
+    import json
+
+    client.cameras.create("Hall")
+    assert json.loads(server.requests[-1].read()) == {"name": "Hall"}
+    client.cameras.create("Desk", device_kind="computer")
+    assert json.loads(server.requests[-1].read()) == {"name": "Desk", "deviceKind": "computer"}

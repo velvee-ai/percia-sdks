@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+from ._billing import Billing, billing_of, describe_billing
 from ._client import AsyncPercia, Percia
 from ._config import DEFAULT_BASE_URL
 from ._errors import (
@@ -43,6 +44,7 @@ from ._webhooks import (
 __all__ = [
     "APIError",
     "AsyncPercia",
+    "Billing",
     "AuthenticationError",
     "ConflictError",
     "ConnectionError",
@@ -69,8 +71,10 @@ __all__ = [
     "ValidationError",
     "WebhookSignatureError",
     "__version__",
+    "billing_of",
     "build_publish_commands",
     "check_webhook_signature",
+    "describe_billing",
     "publish_argv",
     "scrub_token",
     "verify_and_parse",
