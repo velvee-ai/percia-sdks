@@ -1,5 +1,6 @@
 import { Command } from "commander";
 import type { Context, GlobalOptions } from "../context.js";
+import { CliError, EXIT } from "../errors.js";
 import { isoOrDash, json, qr, table } from "../output.js";
 import { openSession } from "../session.js";
 import { registerPushCommands } from "./push.js";
@@ -12,9 +13,11 @@ export function registerCameras(program: Command, { ctx, globals }: Deps) {
 	c.command("add <name>")
 		.description("Create a phone camera and print its pairing link (and a QR code) for the phone that will be the camera.")
 		.option("--no-qr", "do not draw the QR code")
-		.action(async (name: string, o: { qr: boolean }) => {
+		.option("--device-kind <kind>", "phone, tablet or computer (only changes the wording shown on the pairing page)")
+		.action(async (name: string, o: { qr: boolean; deviceKind?: string }) => {
 			const g = globals();
-			const res = (await (await openSession(ctx, g)).client.cameras.create(name)) as { camera?: { id?: string; name?: string }; pairUrl?: string; pairExpiresAt?: string };
+			if (o.deviceKind && !["phone", "tablet", "computer"].includes(o.deviceKind)) throw new CliError("--device-kind is phone, tablet or computer.", EXIT.USAGE);
+			const res = (await (await openSession(ctx, g)).client.cameras.create(name, o.deviceKind ? { deviceKind: o.deviceKind as "phone" | "tablet" | "computer" } : {})) as { camera?: { id?: string; name?: string }; pairUrl?: string; pairExpiresAt?: string };
 			if (g.json) return json(ctx, res);
 			ctx.stdout(`Camera ${res.camera?.id} "${name}" created.\n\nOpen this link on the phone that will be the camera (single use, valid until ${isoOrDash(res.pairExpiresAt)}):\n  ${res.pairUrl}\n`);
 			if (o.qr && res.pairUrl) ctx.stdout("\n" + (await qr(res.pairUrl)));
@@ -26,7 +29,7 @@ export function registerCameras(program: Command, { ctx, globals }: Deps) {
 			const g = globals();
 			const list = await (await openSession(ctx, g)).client.cameras.list();
 			if (g.json) return json(ctx, list);
-			ctx.stdout(list.length ? table(list.map((x) => ({ ...x, lastSeenAt: isoOrDash(x.lastSeenAt) })) as Record<string, unknown>[], [{ key: "id" }, { key: "name" }, { key: "kind" }, { key: "externalId", title: "external id" }, { key: "status" }, { key: "lastSeenAt", title: "last seen" }, { key: "watchCount", title: "watches" }]) : "No cameras.\n");
+			ctx.stdout(list.length ? table(list.map((x) => ({ ...x, lastSeenAt: isoOrDash(x.lastSeenAt) })) as Record<string, unknown>[], [{ key: "id" }, { key: "name" }, { key: "kind" }, { key: "deviceKind", title: "device" }, { key: "externalId", title: "external id" }, { key: "status" }, { key: "lastSeenAt", title: "last seen" }, { key: "watchCount", title: "watches" }]) : "No cameras.\n");
 		});
 	c.command("pair <id>")
 		.description("Print a fresh pairing link for an existing camera.")

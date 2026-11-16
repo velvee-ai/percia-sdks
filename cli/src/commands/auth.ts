@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { createClient, PerciaApiError } from "@percia/sdk";
+import { createClient, describeBilling, PerciaApiError, type Billing } from "@percia/sdk";
 import { clearCredentials, configPath, loadConfig, mask, saveConfig } from "../config.js";
 import type { Context, GlobalOptions } from "../context.js";
 import { CliError, EXIT } from "../errors.js";
@@ -103,11 +103,19 @@ export function registerAuth(program: Command, { ctx, globals }: Deps) {
 			}
 			const probes = await probeScopes(s.client);
 			const granted = probes.filter((p) => p.granted).map((p) => p.scope);
+			// The plan needs watches:read; a credential without it, or an older host, just shows no billing block.
+			let billing: Billing | null = null;
+			try {
+				billing = await s.client.account.billing();
+			} catch (e) {
+				if (e instanceof PerciaApiError && e.status === 401 && s.auth === "oauth") throw e;
+			}
 			const result = {
 				baseUrl: s.baseUrl,
 				auth: s.auth,
 				credentialSource: s.source === "env" ? "PERCIA_API_KEY" : "config file",
 				account: account ?? null,
+				billing,
 				grantedScope: stored?.scope ?? null,
 				reachable: probes.map((p) => ({ scope: p.scope, granted: p.granted })),
 				expiresAt: stored?.expiresAt ? new Date(stored.expiresAt).toISOString() : null,
@@ -116,6 +124,7 @@ export function registerAuth(program: Command, { ctx, globals }: Deps) {
 			ctx.stdout(`Host:        ${s.baseUrl}\nAuth:        ${s.auth === "api_key" ? "API key" : "OAuth token"} (${result.credentialSource})\n`);
 			if (account) ctx.stdout(`Account:     ${account.email ?? account.name ?? account.id}\n`);
 			if (stored?.scope) ctx.stdout(`Granted:     ${stored.scope}\n`);
+			if (billing) ctx.stdout(`\nBilling (percia plan for more):\n${describeBilling(billing).map((l) => `  ${l}`).join("\n")}\n\n`);
 			ctx.stdout(`Verified by calling the API (read-only):\n` + table(probes.map((p) => ({ check: p.scope, result: p.granted === true ? "ok" : p.granted === false ? "no access" : "unavailable" })), [{ key: "check" }, { key: "result" }]));
 			if (granted.length === 0) throw new CliError("This credential can reach none of the read endpoints.", EXIT.AUTH, "Create a key with the scopes you need, or run `percia login`.");
 		});

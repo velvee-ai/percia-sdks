@@ -569,3 +569,64 @@ describe("completion and help", () => {
 		expect((await e.run("nonsense")).code).toBe(2);
 	});
 });
+
+const PLAN_BODY = {
+	plan: "free", label: "Free", billingEnforced: true, paid: false, hasCard: false, freeMinutes: 10, freeMinutesLeft: 4, creditMinutes: 20, minutesUsedThisMonth: 6,
+	freeMinutesResetsAt: "2026-12-01T00:00:00.000Z", canStartWatches: true, blockReason: null, howCharged: "Charged by the exact camera-minute ($0.50 per camera-hour).",
+	nextStep: "Add a card for 50 more free minutes.", bonusAvailable: true, bonusMinutes: 50, payment: { state: "active", billingUrl: "https://percia.test/billing" },
+};
+
+describe("billing, interpretation and device kind", () => {
+	it("plan shows free minutes, credit, how charged and the next step", async () => {
+		e.mock.handlers.set("getPlan", () => ({ status: 200, body: PLAN_BODY }));
+		const r = await e.run("plan");
+		expect(r.code, r.err).toBe(0);
+		expect(r.out).toContain("Free minutes:  4 left this month");
+		expect(r.out).toContain("Credit:        20 minutes");
+		expect(r.out).toContain("How charged:   Charged by the exact camera-minute");
+		expect(r.out).toContain("Next step:     Add a card");
+		const j = JSON.parse((await e.run("plan", "--json")).out);
+		expect(j.freeMinutesLeft).toBe(4); // the API's own fields stay
+		expect(j.billing.freeMinutesRemaining).toBe(4);
+	});
+	it("whoami adds a billing block and still works when the plan cannot be read", async () => {
+		e.mock.handlers.set("getPlan", () => ({ status: 200, body: PLAN_BODY }));
+		const j = JSON.parse((await e.run("whoami", "--json")).out);
+		expect(j.billing.canStartWatches).toBe(true);
+		expect((await e.run("whoami")).out).toContain("Billing (percia plan for more)");
+		e.mock.handlers.set("getPlan", () => ({ status: 500, body: { error: { code: "internal", message: "x" } } }));
+		const bad = await e.run("whoami", "--json");
+		expect(bad.code, bad.err).toBe(0);
+		expect(JSON.parse(bad.out).billing).toBeNull();
+	});
+	it("watches create --no-interpret --kind and --concern are sent; the interpretation is printed", async () => {
+		e.mock.handlers.set("createWatch", () => ({ status: 201, body: { id: "w_1", displayStatus: "active", interpretation: { concerns: [{ text: "A car pulls in", kind: "event", ignore: ["a passing car"] }], gaps: ["Which driveway?"] } } }));
+		const r = await e.run("watches", "create", "--source", "rtsp://x/s", "--goal", "A car pulls in", "--no-interpret", "--kind", "event");
+		expect(r.code, r.err).toBe(0);
+		expect(e.mock.requests.at(-1)!.body).toMatchObject({ interpret: false, kind: "event" });
+		expect(r.out).toContain("when it happens: A car pulls in (ignores: a passing car)");
+		expect(r.out).toContain("ask: Which driveway?");
+		await e.run("watches", "create", "--source", "rtsp://x/s", "--goal", "Watch the driveway", "--concern", "event:A car pulls in", "--concern", "state:The gate is open");
+		expect((e.mock.requests.at(-1)!.body as { concerns: unknown[] }).concerns).toEqual([{ kind: "event", text: "A car pulls in" }, { kind: "state", text: "The gate is open" }]);
+		expect((await e.run("watches", "create", "--source", "rtsp://x/s", "--goal", "A car pulls in", "--kind", "event")).code).toBe(2);
+		expect((await e.run("watches", "create", "--source", "rtsp://x/s", "--concern", "bad")).code).toBe(2);
+		// an old server that sends no interpretation prints nothing extra
+		e.mock.handlers.set("createWatch", () => ({ status: 201, body: { id: "w_2", displayStatus: "active" } }));
+		expect((await e.run("watches", "create", "--source", "rtsp://x/s", "--goal", "A person at the door")).out).not.toContain("understood");
+	});
+	it("watches interpret prints conditions; deferred says it takes longer", async () => {
+		e.mock.handlers.set("interpretGoal", () => ({ status: 200, body: { interpretation: { concerns: [{ text: "A car pulls in", kind: "event" }] } } }));
+		expect((await e.run("watches", "interpret", "Tell me when a car pulls in")).out).toContain("when it happens: A car pulls in");
+		e.mock.handlers.set("interpretGoal", () => ({ status: 200, body: { deferred: true } }));
+		expect((await e.run("watches", "interpret", "Keep my shop safe")).out).toContain("takes longer");
+	});
+	it("cameras add --device-kind is sent; cameras list shows the device and tolerates null", async () => {
+		await e.run("cameras", "add", "Desk", "--device-kind", "computer", "--no-qr");
+		expect(e.mock.requests.at(-1)!.body).toMatchObject({ name: "Desk", deviceKind: "computer" });
+		expect((await e.run("cameras", "add", "Desk", "--device-kind", "fridge")).code).toBe(2);
+		e.mock.handlers.set("listCameras", () => ({ status: 200, body: [{ id: "c1", name: "Old", deviceKind: null }, { id: "c2", name: "Tab", deviceKind: "tablet" }] }));
+		const r = await e.run("cameras", "list");
+		expect(r.out).toContain("DEVICE");
+		expect(r.out).toContain("tablet");
+	});
+});

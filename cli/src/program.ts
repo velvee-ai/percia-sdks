@@ -8,6 +8,7 @@ import { registerEvents } from "./commands/events.js";
 import { registerHooks } from "./commands/hooks.js";
 import { registerListen } from "./commands/listen.js";
 import { registerMcp } from "./commands/mcp.js";
+import { registerPlan } from "./commands/plan.js";
 import { registerWatches } from "./commands/watches.js";
 import type { Context, GlobalOptions } from "./context.js";
 import { describeError, exitCodeFor, EXIT } from "./errors.js";
@@ -27,6 +28,7 @@ export function buildProgram(ctx: Context): Command {
 	const globals = (): GlobalOptions => program.opts();
 	const deps = { ctx, globals };
 	registerAuth(program, deps);
+	registerPlan(program, deps);
 	registerWatches(program, deps);
 	registerEvents(program, deps);
 	registerCameras(program, deps);
