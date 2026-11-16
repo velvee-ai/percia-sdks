@@ -84,8 +84,10 @@ def sync_detailed(
     client: AuthenticatedClient,
     body: UpdateWatchBody,
 ) -> Response[Union[Error, Watch]]:
-    """Update a watch. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the
-    watch; agentVersion alone re-pins; goal detaches the agent.
+    """Update a watch. A new goal is understood again (interpret: false keeps the words as written);
+    interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as
+    reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch;
+    agentVersion alone re-pins; goal detaches the agent.
 
     Args:
         id (str):
@@ -117,8 +119,10 @@ def sync(
     client: AuthenticatedClient,
     body: UpdateWatchBody,
 ) -> Optional[Union[Error, Watch]]:
-    """Update a watch. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the
-    watch; agentVersion alone re-pins; goal detaches the agent.
+    """Update a watch. A new goal is understood again (interpret: false keeps the words as written);
+    interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as
+    reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch;
+    agentVersion alone re-pins; goal detaches the agent.
 
     Args:
         id (str):
@@ -145,8 +149,10 @@ async def asyncio_detailed(
     client: AuthenticatedClient,
     body: UpdateWatchBody,
 ) -> Response[Union[Error, Watch]]:
-    """Update a watch. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the
-    watch; agentVersion alone re-pins; goal detaches the agent.
+    """Update a watch. A new goal is understood again (interpret: false keeps the words as written);
+    interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as
+    reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch;
+    agentVersion alone re-pins; goal detaches the agent.
 
     Args:
         id (str):
@@ -176,8 +182,10 @@ async def asyncio(
     client: AuthenticatedClient,
     body: UpdateWatchBody,
 ) -> Optional[Union[Error, Watch]]:
-    """Update a watch. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the
-    watch; agentVersion alone re-pins; goal detaches the agent.
+    """Update a watch. A new goal is understood again (interpret: false keeps the words as written);
+    interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as
+    reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch;
+    agentVersion alone re-pins; goal detaches the agent.
 
     Args:
         id (str):

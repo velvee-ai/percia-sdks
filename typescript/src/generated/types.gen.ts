@@ -177,6 +177,10 @@ export type AgentSummary = {
 
 export type Camera = {
     /**
+     * What device a paired camera is, when the browser that made it said so; null for older cameras and for push cameras. Wording only.
+     */
+    deviceKind?: 'phone' | 'tablet' | 'computer';
+    /**
      * The connector's own id for a push camera.
      */
     externalId?: string | null;
@@ -250,7 +254,7 @@ export type Entity = {
  */
 export type Error = {
     error: {
-        code: 'unauthenticated' | 'invalid_api_key' | 'insufficient_scope' | 'not_found' | 'invalid_request' | 'rate_limited' | 'bot_check_failed' | 'conflict' | 'forbidden' | 'internal' | 'instant_disabled' | 'daily_cap' | 'ip_cap' | 'pairing_invalid' | 'camera_in_use' | 'wrong_kind' | 'camera_limit' | 'goal_not_allowed' | 'agent_limit' | 'nothing_to_publish' | 'agent_in_use' | 'agent_not_published' | 'builder_unavailable' | 'site_limit' | 'ask_unavailable' | 'judge_unavailable' | 'live_unavailable' | 'plan_limit' | 'key_invalid' | 'keys_unavailable' | 'selling_disabled' | 'payment_required' | 'integration_unavailable' | 'reauth_required' | 'deletion_incomplete' | 'code_invalid' | 'code_already_redeemed' | 'already_subscribed';
+        code: 'unauthenticated' | 'invalid_api_key' | 'insufficient_scope' | 'not_found' | 'invalid_request' | 'rate_limited' | 'bot_check_failed' | 'conflict' | 'forbidden' | 'internal' | 'instant_disabled' | 'daily_cap' | 'ip_cap' | 'pairing_invalid' | 'camera_in_use' | 'wrong_kind' | 'camera_limit' | 'goal_not_allowed' | 'agent_limit' | 'nothing_to_publish' | 'agent_in_use' | 'agent_not_published' | 'builder_unavailable' | 'interpret_unavailable' | 'site_limit' | 'ask_unavailable' | 'judge_unavailable' | 'live_unavailable' | 'plan_limit' | 'key_invalid' | 'keys_unavailable' | 'selling_disabled' | 'payment_required' | 'integration_unavailable' | 'reauth_required' | 'deletion_incomplete' | 'code_invalid' | 'code_already_redeemed' | 'already_subscribed';
         /**
          * Name of the offending request field, on validation errors.
          */
@@ -483,6 +487,12 @@ export type TestRun = {
     createdAt?: string;
     failed?: number;
     id?: string;
+    /**
+     * What Percia understands of the goal (additive; null on a watch created before goal understanding, with an agent, on Percia core, or with interpret false and no kind). version, shape (narrow, compound, open_ended), summary, kind (state = something stays true, event = something happens, mixed), concerns [{id, text, kind, evidence, ignore}] (the conditions the watch runs), assumptions, gaps [{description, reason, question}] (what a camera cannot see or the goal leaves open: ask the person the questions), untestable (words a camera cannot judge), confidence, clarity (0..1), cadence (a suggestion, not applied), source (model, rules, user, agent), degraded (null, or why Percia used the words as written: unavailable, invalid, quota, killed, review_skipped), needsLook, applied, createdAt, reviewedAt. Event kind is the one that fires on arrivals; kind is an intent hint the engine may override.
+     */
+    interpretation?: {
+        [key: string]: unknown;
+    } | null;
     passRate?: number | null;
     passed?: number;
     results?: Array<{
@@ -538,6 +548,37 @@ export type Watch = {
      */
     goal?: string;
     id?: string;
+    /**
+     * Whether the pool is judging this watch (read-only, additive). `state`: judging (a judge call in the last 10 minutes), waiting_for_change (video arrives and the picture is still, so nothing is judged; a state goal is still looked at about every 5 minutes), no_video, paused (see `reason`), over_budget (the hourly judge limit skipped calls), judge_unavailable, starting, not_running (no container reports) or unknown (core runtime). A confirmed no-alert is `judging` or `waiting_for_change` with a recent lastFrameAt: silence with state not_running or no_video means nothing was watched. `stalled` is true when video flows and a scheduled judge call is 15+ minutes overdue.
+     */
+    judging?: {
+        /**
+         * Frames the current container has received.
+         */
+        framesReceived?: number | null;
+        judgeCallsLastHour?: number | null;
+        /**
+         * UTC day.
+         */
+        judgeCallsToday?: number | null;
+        lastDecisionAt?: string | null;
+        lastFrameAt?: string | null;
+        /**
+         * Last successful judge call.
+         */
+        lastJudgedAt?: string | null;
+        limitPerHour?: number | null;
+        /**
+         * pausedReason when paused.
+         */
+        reason?: string | null;
+        /**
+         * When the container last reported (about every 30 s).
+         */
+        reportedAt?: string | null;
+        stalled?: boolean;
+        state?: 'judging' | 'waiting_for_change' | 'no_video' | 'paused' | 'over_budget' | 'judge_unavailable' | 'starting' | 'not_running' | 'unknown';
+    };
     /**
      * Status of the newest event that is not pending. displayStatus comes from this, so a pending event does not hide a failed one.
      */
@@ -726,7 +767,7 @@ export type BuildAgentErrors = {
      */
     429: Error;
     /**
-     * builder_unavailable: no model key configured, or the model failed or produced an invalid config twice.
+     * builder_unavailable: no model key configured, or the model failed or produced an invalid config twice. Nothing is created or counted; create a watch with a plain goal instead.
      */
     503: Error;
 };
@@ -739,6 +780,10 @@ export type BuildAgentResponses = {
      */
     201: {
         agent?: Agent;
+        /**
+         * Present when the agent was created without its full check; `reply` ends with a note.
+         */
+        degraded?: 'review_skipped' | 'plan_unchecked';
         reply?: string;
     };
 };
@@ -1311,6 +1356,69 @@ export type SetBillingCapResponses = {
 
 export type SetBillingCapResponse = SetBillingCapResponses[keyof SetBillingCapResponses];
 
+export type FinishCardReplaceData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/billing/card/finish';
+};
+
+export type FinishCardReplaceErrors = {
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * The payment provider did not answer.
+     */
+    503: Error;
+};
+
+export type FinishCardReplaceError = FinishCardReplaceErrors[keyof FinishCardReplaceErrors];
+
+export type FinishCardReplaceResponses = {
+    /**
+     * Cards left and cards detached.
+     */
+    200: {
+        cards?: number;
+        detached?: number;
+    };
+};
+
+export type FinishCardReplaceResponse = FinishCardReplaceResponses[keyof FinishCardReplaceResponses];
+
+export type ReplaceCardData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/billing/card/replace';
+};
+
+export type ReplaceCardErrors = {
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * No card yet: add payment details first.
+     */
+    404: unknown;
+};
+
+export type ReplaceCardError = ReplaceCardErrors[keyof ReplaceCardErrors];
+
+export type ReplaceCardResponses = {
+    /**
+     * Checkout URL.
+     */
+    200: {
+        url?: string;
+    };
+};
+
+export type ReplaceCardResponse = ReplaceCardResponses[keyof ReplaceCardResponses];
+
 export type CreateCheckoutSessionData = {
     body?: never;
     path?: never;
@@ -1592,6 +1700,7 @@ export type ListCamerasResponse = ListCamerasResponses[keyof ListCamerasResponse
 
 export type CreateCameraData = {
     body: {
+        deviceKind?: 'phone' | 'tablet' | 'computer';
         externalId?: string;
         kind?: 'phone' | 'push';
         name: string;
@@ -3544,6 +3653,20 @@ export type GetPlanResponses = {
      */
     200: {
         billingEnforced?: boolean;
+        /**
+         * Why a new watch is refused for billing right now; null when none (always null while billing is not enforced).
+         */
+        blockReason?: 'needs_billing' | 'spend_cap';
+        /**
+         * True while adding a card would still grant the one-time bonus.
+         */
+        bonusAvailable?: boolean;
+        bonusMinutes?: number;
+        bonusMinutesLeft?: number;
+        /**
+         * False when billing or a failed payment blocks a new watch now.
+         */
+        canStartWatches?: boolean;
         capCents?: number;
         counts?: {
             activeWatches?: number;
@@ -3557,7 +3680,19 @@ export type GetPlanResponses = {
         creditMinutes?: number;
         enforced?: boolean;
         freeMinutes?: number;
+        /**
+         * Free minutes left: this month's 10 plus any one-time card bonus not yet used.
+         */
         freeMinutesLeft?: number;
+        /**
+         * When the monthly free minutes come back (the 1st of the next UTC month).
+         */
+        freeMinutesResetsAt?: string;
+        hasCard?: boolean;
+        /**
+         * One plain sentence on how this account is charged.
+         */
+        howCharged?: string;
         /**
          * Shown name: Free or Pay as you go.
          */
@@ -3568,10 +3703,23 @@ export type GetPlanResponses = {
             evidenceDays?: number;
             phoneCameras?: number;
         };
+        /**
+         * What the plan-count limits mean now: minutes are the real limit; counts are informational unless enforced is true.
+         */
+        limitsNote?: string;
+        minutesUsedThisMonth?: number;
         monthToDate?: {
             cameraMinutes?: number;
             cents?: number;
         };
+        /**
+         * What to tell the person when canStartWatches is false or minutes are gone.
+         */
+        nextStep?: string | null;
+        /**
+         * A card subscription is on file.
+         */
+        paid?: boolean;
         /**
          * Failed-payment state. state: active, grace (a payment failed; everything works until graceEndsAt) or blocked (writes answer 402 payment_required; update the payment method on the Billing page).
          */
@@ -4318,6 +4466,58 @@ export type CreatePublicWatchResponses = {
 
 export type CreatePublicWatchResponse = CreatePublicWatchResponses[keyof CreatePublicWatchResponses];
 
+export type InterpretGoalData = {
+    body: {
+        goal: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/watches/interpret';
+};
+
+export type InterpretGoalErrors = {
+    /**
+     * Invalid goal.
+     */
+    400: Error;
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry.
+     */
+    402: Error;
+    /**
+     * rate_limited: too many interpretations this hour.
+     */
+    429: Error;
+    /**
+     * Goal understanding is off or unavailable: create the watch with your words as written.
+     */
+    503: Error;
+};
+
+export type InterpretGoalError = InterpretGoalErrors[keyof InterpretGoalErrors];
+
+export type InterpretGoalResponses = {
+    /**
+     * The interpretation (shape, summary, kind, concerns with evidence and ignore, assumptions, gaps, untestable, confidence, clarity, cadence, source, degraded, needsLook) and cached.
+     */
+    200: {
+        cached?: boolean;
+        /**
+         * Preview only, true when no model answered within the preview budget: the interpretation is the plain-words fallback, understand it on create instead.
+         */
+        deferred?: boolean;
+        interpretation?: {
+            [key: string]: unknown;
+        };
+    };
+};
+
+export type InterpretGoalResponse = InterpretGoalResponses[keyof InterpretGoalResponses];
+
 export type ListWatchesData = {
     body?: never;
     path?: never;
@@ -4347,8 +4547,16 @@ export type CreateWatchData = {
     body: {
         agentId?: string;
         agentVersion?: number;
+        concerns?: Array<{
+            id?: string;
+            ignore?: Array<string>;
+            kind: 'state' | 'event';
+            text: string;
+        }>;
         destinations?: Array<string>;
         goal?: string;
+        interpret?: boolean;
+        kind?: 'state' | 'event';
         media?: 'off' | 'keyframes';
         notify?: {
             target: string;
@@ -4436,6 +4644,37 @@ export type CreateWatchResponses = {
          */
         goal?: string;
         id?: string;
+        /**
+         * Whether the pool is judging this watch (read-only, additive). `state`: judging (a judge call in the last 10 minutes), waiting_for_change (video arrives and the picture is still, so nothing is judged; a state goal is still looked at about every 5 minutes), no_video, paused (see `reason`), over_budget (the hourly judge limit skipped calls), judge_unavailable, starting, not_running (no container reports) or unknown (core runtime). A confirmed no-alert is `judging` or `waiting_for_change` with a recent lastFrameAt: silence with state not_running or no_video means nothing was watched. `stalled` is true when video flows and a scheduled judge call is 15+ minutes overdue.
+         */
+        judging?: {
+            /**
+             * Frames the current container has received.
+             */
+            framesReceived?: number | null;
+            judgeCallsLastHour?: number | null;
+            /**
+             * UTC day.
+             */
+            judgeCallsToday?: number | null;
+            lastDecisionAt?: string | null;
+            lastFrameAt?: string | null;
+            /**
+             * Last successful judge call.
+             */
+            lastJudgedAt?: string | null;
+            limitPerHour?: number | null;
+            /**
+             * pausedReason when paused.
+             */
+            reason?: string | null;
+            /**
+             * When the container last reported (about every 30 s).
+             */
+            reportedAt?: string | null;
+            stalled?: boolean;
+            state?: 'judging' | 'waiting_for_change' | 'no_video' | 'paused' | 'over_budget' | 'judge_unavailable' | 'starting' | 'not_running' | 'unknown';
+        };
         /**
          * Status of the newest event that is not pending. displayStatus comes from this, so a pending event does not hide a failed one.
          */
@@ -4598,6 +4837,37 @@ export type GetWatchResponses = {
         goal?: string;
         id?: string;
         /**
+         * Whether the pool is judging this watch (read-only, additive). `state`: judging (a judge call in the last 10 minutes), waiting_for_change (video arrives and the picture is still, so nothing is judged; a state goal is still looked at about every 5 minutes), no_video, paused (see `reason`), over_budget (the hourly judge limit skipped calls), judge_unavailable, starting, not_running (no container reports) or unknown (core runtime). A confirmed no-alert is `judging` or `waiting_for_change` with a recent lastFrameAt: silence with state not_running or no_video means nothing was watched. `stalled` is true when video flows and a scheduled judge call is 15+ minutes overdue.
+         */
+        judging?: {
+            /**
+             * Frames the current container has received.
+             */
+            framesReceived?: number | null;
+            judgeCallsLastHour?: number | null;
+            /**
+             * UTC day.
+             */
+            judgeCallsToday?: number | null;
+            lastDecisionAt?: string | null;
+            lastFrameAt?: string | null;
+            /**
+             * Last successful judge call.
+             */
+            lastJudgedAt?: string | null;
+            limitPerHour?: number | null;
+            /**
+             * pausedReason when paused.
+             */
+            reason?: string | null;
+            /**
+             * When the container last reported (about every 30 s).
+             */
+            reportedAt?: string | null;
+            stalled?: boolean;
+            state?: 'judging' | 'waiting_for_change' | 'no_video' | 'paused' | 'over_budget' | 'judge_unavailable' | 'starting' | 'not_running' | 'unknown';
+        };
+        /**
          * Status of the newest event that is not pending. displayStatus comes from this, so a pending event does not hide a failed one.
          */
         lastDelivery?: 'delivered' | 'failed';
@@ -4656,9 +4926,19 @@ export type GetWatchResponse = GetWatchResponses[keyof GetWatchResponses];
 
 export type UpdateWatchData = {
     body: {
+        acknowledge?: true;
         agentId?: string;
         agentVersion?: number | null;
         goal?: string;
+        interpret?: boolean;
+        interpretation?: {
+            concerns: Array<{
+                id?: string;
+                ignore?: Array<string>;
+                kind: 'state' | 'event';
+                text: string;
+            }>;
+        };
         media?: 'off' | 'keyframes';
         notify?: {
             target: string;
@@ -4980,6 +5260,53 @@ export type StartLiveViewResponses = {
 };
 
 export type StartLiveViewResponse = StartLiveViewResponses[keyof StartLiveViewResponses];
+
+export type ReinterpretWatchData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/watches/{id}/reinterpret';
+};
+
+export type ReinterpretWatchErrors = {
+    /**
+     * The watch has an agent or runs on Percia core: no goal to interpret.
+     */
+    400: Error;
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry.
+     */
+    402: Error;
+    /**
+     * Not found.
+     */
+    404: Error;
+    /**
+     * rate_limited: too many interpretations this hour (Retry-After).
+     */
+    429: Error;
+    /**
+     * interpret_unavailable.
+     */
+    503: Error;
+};
+
+export type ReinterpretWatchError = ReinterpretWatchErrors[keyof ReinterpretWatchErrors];
+
+export type ReinterpretWatchResponses = {
+    /**
+     * The watch with its new interpretation.
+     */
+    200: Watch;
+};
+
+export type ReinterpretWatchResponse = ReinterpretWatchResponses[keyof ReinterpretWatchResponses];
 
 export type RotateWatchSecretData = {
     body?: never;

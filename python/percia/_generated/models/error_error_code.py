@@ -22,6 +22,7 @@ class ErrorErrorCode(str, Enum):
     INSUFFICIENT_SCOPE = "insufficient_scope"
     INTEGRATION_UNAVAILABLE = "integration_unavailable"
     INTERNAL = "internal"
+    INTERPRET_UNAVAILABLE = "interpret_unavailable"
     INVALID_API_KEY = "invalid_api_key"
     INVALID_REQUEST = "invalid_request"
     IP_CAP = "ip_cap"

@@ -86,11 +86,16 @@ def sync_detailed(
     body: CreateWatchBody,
 ) -> Response[Union[CreateWatchResponse201, Error]]:
     r"""Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-
-    cam://<cameraId> for one of your own phone cameras. Send `goal`, or `agentId` (+ optional
-    `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime:
-    \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has
-    turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out
-    unless the person asked.
+    cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an
+    NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge)
+    to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the
+    latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept
+    Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for
+    phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the
+    goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read
+    `interpretation.gaps` and `untestable` and ask the person those questions. Send `interpret: false`
+    to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text,
+    kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent.
 
     Args:
         body (CreateWatchBody):
@@ -120,11 +125,16 @@ def sync(
     body: CreateWatchBody,
 ) -> Optional[Union[CreateWatchResponse201, Error]]:
     r"""Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-
-    cam://<cameraId> for one of your own phone cameras. Send `goal`, or `agentId` (+ optional
-    `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime:
-    \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has
-    turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out
-    unless the person asked.
+    cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an
+    NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge)
+    to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the
+    latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept
+    Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for
+    phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the
+    goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read
+    `interpretation.gaps` and `untestable` and ask the person those questions. Send `interpret: false`
+    to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text,
+    kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent.
 
     Args:
         body (CreateWatchBody):
@@ -149,11 +159,16 @@ async def asyncio_detailed(
     body: CreateWatchBody,
 ) -> Response[Union[CreateWatchResponse201, Error]]:
     r"""Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-
-    cam://<cameraId> for one of your own phone cameras. Send `goal`, or `agentId` (+ optional
-    `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime:
-    \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has
-    turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out
-    unless the person asked.
+    cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an
+    NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge)
+    to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the
+    latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept
+    Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for
+    phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the
+    goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read
+    `interpretation.gaps` and `untestable` and ask the person those questions. Send `interpret: false`
+    to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text,
+    kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent.
 
     Args:
         body (CreateWatchBody):
@@ -181,11 +196,16 @@ async def asyncio(
     body: CreateWatchBody,
 ) -> Optional[Union[CreateWatchResponse201, Error]]:
     r"""Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-
-    cam://<cameraId> for one of your own phone cameras. Send `goal`, or `agentId` (+ optional
-    `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime:
-    \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has
-    turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out
-    unless the person asked.
+    cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an
+    NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge)
+    to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the
+    latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept
+    Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for
+    phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the
+    goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read
+    `interpretation.gaps` and `untestable` and ask the person those questions. Send `interpret: false`
+    to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text,
+    kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent.
 
     Args:
         body (CreateWatchBody):

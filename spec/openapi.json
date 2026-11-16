@@ -466,6 +466,15 @@
       },
       "Camera": {
         "properties": {
+          "deviceKind": {
+            "description": "What device a paired camera is, when the browser that made it said so; null for older cameras and for push cameras. Wording only.",
+            "enum": [
+              "phone",
+              "tablet",
+              "computer",
+              null
+            ]
+          },
           "externalId": {
             "description": "The connector's own id for a push camera.",
             "type": [
@@ -669,6 +678,7 @@
                   "agent_in_use",
                   "agent_not_published",
                   "builder_unavailable",
+                  "interpret_unavailable",
                   "site_limit",
                   "ask_unavailable",
                   "judge_unavailable",
@@ -1285,6 +1295,13 @@
           "id": {
             "type": "string"
           },
+          "interpretation": {
+            "description": "What Percia understands of the goal (additive; null on a watch created before goal understanding, with an agent, on Percia core, or with interpret false and no kind). version, shape (narrow, compound, open_ended), summary, kind (state = something stays true, event = something happens, mixed), concerns [{id, text, kind, evidence, ignore}] (the conditions the watch runs), assumptions, gaps [{description, reason, question}] (what a camera cannot see or the goal leaves open: ask the person the questions), untestable (words a camera cannot judge), confidence, clarity (0..1), cadence (a suggestion, not applied), source (model, rules, user, agent), degraded (null, or why Percia used the words as written: unavailable, invalid, quota, killed, review_skipped), needsLook, applied, createdAt, reviewedAt. Event kind is the one that fires on arrivals; kind is an intent hint the engine may override.",
+            "type": [
+              "object",
+              "null"
+            ]
+          },
           "passRate": {
             "type": [
               "number",
@@ -1429,6 +1446,91 @@
           "id": {
             "type": "string"
           },
+          "judging": {
+            "description": "Whether the pool is judging this watch (read-only, additive). `state`: judging (a judge call in the last 10 minutes), waiting_for_change (video arrives and the picture is still, so nothing is judged; a state goal is still looked at about every 5 minutes), no_video, paused (see `reason`), over_budget (the hourly judge limit skipped calls), judge_unavailable, starting, not_running (no container reports) or unknown (core runtime). A confirmed no-alert is `judging` or `waiting_for_change` with a recent lastFrameAt: silence with state not_running or no_video means nothing was watched. `stalled` is true when video flows and a scheduled judge call is 15+ minutes overdue.",
+            "properties": {
+              "framesReceived": {
+                "description": "Frames the current container has received.",
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "judgeCallsLastHour": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "judgeCallsToday": {
+                "description": "UTC day.",
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "lastDecisionAt": {
+                "format": "date-time",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "lastFrameAt": {
+                "format": "date-time",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "lastJudgedAt": {
+                "description": "Last successful judge call.",
+                "format": "date-time",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "limitPerHour": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "reason": {
+                "description": "pausedReason when paused.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "reportedAt": {
+                "description": "When the container last reported (about every 30 s).",
+                "format": "date-time",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "stalled": {
+                "type": "boolean"
+              },
+              "state": {
+                "enum": [
+                  "judging",
+                  "waiting_for_change",
+                  "no_video",
+                  "paused",
+                  "over_budget",
+                  "judge_unavailable",
+                  "starting",
+                  "not_running",
+                  "unknown"
+                ]
+              }
+            },
+            "type": "object"
+          },
           "lastDelivery": {
             "description": "Status of the newest event that is not pending. displayStatus comes from this, so a pending event does not hide a failed one.",
             "enum": [
@@ -1555,7 +1657,7 @@
     },
     "securitySchemes": {
       "bearerAuth": {
-        "description": "API key pk_live_<12 hex>_<secret>. Scopes: watches:read, watches:write, watches:delete, events:read, cameras:read, cameras:write, integrations:read, integrations:write, devices:write, hooks:write (opt-in, for REST hooks). Each operation lists the scopes it needs in `security` and `x-percia-scopes`; destructive operations (`x-percia-destructive`) also need watches:delete (except removing your own push device or REST hook, which need only devices:write or hooks:write). Session-only, a key is refused: API keys (/keys), claim and manage links (/claim, /manage), billing checkout and portal (/billing/checkout, /billing/portal; the spend cap PATCH /billing/cap takes watches:write), the account (/me, /auth/*) and finishing a connect link (/integrations/connect/{token}): a person adds every destination.",
+        "description": "API key pk_live_<12 hex>_<secret>. Scopes: watches:read, watches:write, watches:delete, events:read, cameras:read, cameras:write, integrations:read, integrations:write, devices:write, hooks:write (opt-in, for REST hooks). Each operation lists the scopes it needs in `security` and `x-percia-scopes`; destructive operations (`x-percia-destructive`) also need watches:delete (except removing your own push device or REST hook, which need only devices:write or hooks:write). Session-only, a key is refused: API keys (/keys), claim and manage links (/claim, /manage), billing checkout, portal and card replace (/billing/checkout, /billing/portal, /billing/card/replace, /billing/card/finish; the spend cap PATCH /billing/cap takes watches:write), the account (/me, /auth/*) and finishing a connect link (/integrations/connect/{token}): a person adds every destination.",
         "scheme": "bearer",
         "type": "http"
       },
@@ -2027,6 +2129,14 @@
                     "agent": {
                       "$ref": "#/components/schemas/Agent"
                     },
+                    "degraded": {
+                      "description": "Present when the agent was created without its full check; `reply` ends with a note.",
+                      "enum": [
+                        "review_skipped",
+                        "plan_unchecked"
+                      ],
+                      "type": "string"
+                    },
                     "reply": {
                       "type": "string"
                     }
@@ -2085,7 +2195,7 @@
                 }
               }
             },
-            "description": "builder_unavailable: no model key configured, or the model failed or produced an invalid config twice."
+            "description": "builder_unavailable: no model key configured, or the model failed or produced an invalid config twice. Nothing is created or counted; create a watch with a plain goal instead."
           }
         },
         "security": [
@@ -3526,6 +3636,104 @@
         ]
       }
     },
+    "/billing/card/finish": {
+      "post": {
+        "operationId": "finishCardReplace",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "cards": {
+                      "type": "integer"
+                    },
+                    "detached": {
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Cards left and cards detached."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not signed in."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The payment provider did not answer."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "summary": "After a replace: the newest card becomes the default and older cards are detached; the last card is never detached. Safe to repeat.",
+        "tags": [
+          "billing"
+        ]
+      }
+    },
+    "/billing/card/replace": {
+      "post": {
+        "operationId": "replaceCard",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Checkout URL."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not signed in."
+          },
+          "404": {
+            "description": "No card yet: add payment details first."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "summary": "Replace your card: a Stripe setup Checkout that adds a new card and charges nothing (a card must stay on file: it can be replaced, never removed). 404 when no card was added yet.",
+        "tags": [
+          "billing"
+        ]
+      }
+    },
     "/billing/checkout": {
       "post": {
         "operationId": "createCheckoutSession",
@@ -4071,6 +4279,14 @@
             "application/json": {
               "schema": {
                 "properties": {
+                  "deviceKind": {
+                    "enum": [
+                      "phone",
+                      "tablet",
+                      "computer"
+                    ],
+                    "type": "string"
+                  },
                   "externalId": {
                     "pattern": "^[A-Za-z0-9._:-]{1,100}$",
                     "type": "string"
@@ -4216,7 +4432,7 @@
             ]
           }
         ],
-        "summary": "Create a camera. Default (phone): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.",
+        "summary": "Create a camera. For a camera on a private network (ONVIF, RTSP, Frigate, Home Assistant, NVR) the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge), which registers the cameras itself. Default (phone): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.",
         "tags": [
           "cameras"
         ],
@@ -8293,6 +8509,28 @@
                     "billingEnforced": {
                       "type": "boolean"
                     },
+                    "blockReason": {
+                      "description": "Why a new watch is refused for billing right now; null when none (always null while billing is not enforced).",
+                      "enum": [
+                        "needs_billing",
+                        "spend_cap",
+                        null
+                      ]
+                    },
+                    "bonusAvailable": {
+                      "description": "True while adding a card would still grant the one-time bonus.",
+                      "type": "boolean"
+                    },
+                    "bonusMinutes": {
+                      "type": "integer"
+                    },
+                    "bonusMinutesLeft": {
+                      "type": "integer"
+                    },
+                    "canStartWatches": {
+                      "description": "False when billing or a failed payment blocks a new watch now.",
+                      "type": "boolean"
+                    },
                     "capCents": {
                       "type": "integer"
                     },
@@ -8327,7 +8565,19 @@
                       "type": "integer"
                     },
                     "freeMinutesLeft": {
+                      "description": "Free minutes left: this month's 10 plus any one-time card bonus not yet used.",
                       "type": "integer"
+                    },
+                    "freeMinutesResetsAt": {
+                      "description": "When the monthly free minutes come back (the 1st of the next UTC month).",
+                      "type": "string"
+                    },
+                    "hasCard": {
+                      "type": "boolean"
+                    },
+                    "howCharged": {
+                      "description": "One plain sentence on how this account is charged.",
+                      "type": "string"
                     },
                     "label": {
                       "description": "Shown name: Free or Pay as you go.",
@@ -8350,6 +8600,13 @@
                       },
                       "type": "object"
                     },
+                    "limitsNote": {
+                      "description": "What the plan-count limits mean now: minutes are the real limit; counts are informational unless enforced is true.",
+                      "type": "string"
+                    },
+                    "minutesUsedThisMonth": {
+                      "type": "integer"
+                    },
                     "monthToDate": {
                       "properties": {
                         "cameraMinutes": {
@@ -8360,6 +8617,17 @@
                         }
                       },
                       "type": "object"
+                    },
+                    "nextStep": {
+                      "description": "What to tell the person when canStartWatches is false or minutes are gone.",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "paid": {
+                      "description": "A card subscription is on file.",
+                      "type": "boolean"
                     },
                     "payment": {
                       "description": "Failed-payment state. state: active, grace (a payment failed; everything works until graceEndsAt) or blocked (writes answer 402 payment_required; update the payment method on the Billing page).",
@@ -10027,6 +10295,119 @@
         ]
       }
     },
+    "/watches/interpret": {
+      "post": {
+        "operationId": "interpretGoal",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "goal": {
+                    "maxLength": 500,
+                    "minLength": 5,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "goal"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "cached": {
+                      "type": "boolean"
+                    },
+                    "deferred": {
+                      "description": "Preview only, true when no model answered within the preview budget: the interpretation is the plain-words fallback, understand it on create instead.",
+                      "type": "boolean"
+                    },
+                    "interpretation": {
+                      "type": "object"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "The interpretation (shape, summary, kind, concerns with evidence and ignore, assumptions, gaps, untestable, confidence, clarity, cadence, source, degraded, needsLook) and cached."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid goal."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not signed in."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "rate_limited: too many interpretations this hour."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Goal understanding is off or unavailable: create the watch with your words as written."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": [
+              "watches:write"
+            ]
+          }
+        ],
+        "summary": "What Percia understands of a goal, without creating anything: the kind of each condition (something happens / something stays true), what it ignores, what a camera cannot see (with questions to ask the person), and how clear the goal is. Use it before POST /watches/owned to check a goal; creating a watch does the same understanding by itself. Cached for 7 days; limited per person per hour (429 rate_limited with Retry-After).",
+        "tags": [
+          "watches"
+        ],
+        "x-percia-scopes": [
+          "watches:write"
+        ]
+      }
+    },
     "/watches/mine": {
       "get": {
         "operationId": "listWatches",
@@ -10096,6 +10477,46 @@
                     "minimum": 1,
                     "type": "integer"
                   },
+                  "concerns": {
+                    "items": {
+                      "properties": {
+                        "id": {
+                          "maxLength": 60,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "ignore": {
+                          "items": {
+                            "maxLength": 300,
+                            "minLength": 1,
+                            "type": "string"
+                          },
+                          "maxItems": 10,
+                          "type": "array"
+                        },
+                        "kind": {
+                          "enum": [
+                            "state",
+                            "event"
+                          ],
+                          "type": "string"
+                        },
+                        "text": {
+                          "maxLength": 500,
+                          "minLength": 5,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "kind"
+                      ],
+                      "type": "object"
+                    },
+                    "maxItems": 10,
+                    "minItems": 1,
+                    "type": "array"
+                  },
                   "destinations": {
                     "items": {
                       "maxLength": 64,
@@ -10108,6 +10529,16 @@
                   "goal": {
                     "maxLength": 500,
                     "minLength": 5,
+                    "type": "string"
+                  },
+                  "interpret": {
+                    "type": "boolean"
+                  },
+                  "kind": {
+                    "enum": [
+                      "state",
+                      "event"
+                    ],
                     "type": "string"
                   },
                   "media": {
@@ -10284,6 +10715,91 @@
                     },
                     "id": {
                       "type": "string"
+                    },
+                    "judging": {
+                      "description": "Whether the pool is judging this watch (read-only, additive). `state`: judging (a judge call in the last 10 minutes), waiting_for_change (video arrives and the picture is still, so nothing is judged; a state goal is still looked at about every 5 minutes), no_video, paused (see `reason`), over_budget (the hourly judge limit skipped calls), judge_unavailable, starting, not_running (no container reports) or unknown (core runtime). A confirmed no-alert is `judging` or `waiting_for_change` with a recent lastFrameAt: silence with state not_running or no_video means nothing was watched. `stalled` is true when video flows and a scheduled judge call is 15+ minutes overdue.",
+                      "properties": {
+                        "framesReceived": {
+                          "description": "Frames the current container has received.",
+                          "type": [
+                            "integer",
+                            "null"
+                          ]
+                        },
+                        "judgeCallsLastHour": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ]
+                        },
+                        "judgeCallsToday": {
+                          "description": "UTC day.",
+                          "type": [
+                            "integer",
+                            "null"
+                          ]
+                        },
+                        "lastDecisionAt": {
+                          "format": "date-time",
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "lastFrameAt": {
+                          "format": "date-time",
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "lastJudgedAt": {
+                          "description": "Last successful judge call.",
+                          "format": "date-time",
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "limitPerHour": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ]
+                        },
+                        "reason": {
+                          "description": "pausedReason when paused.",
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "reportedAt": {
+                          "description": "When the container last reported (about every 30 s).",
+                          "format": "date-time",
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "stalled": {
+                          "type": "boolean"
+                        },
+                        "state": {
+                          "enum": [
+                            "judging",
+                            "waiting_for_change",
+                            "no_video",
+                            "paused",
+                            "over_budget",
+                            "judge_unavailable",
+                            "starting",
+                            "not_running",
+                            "unknown"
+                          ]
+                        }
+                      },
+                      "type": "object"
                     },
                     "lastDelivery": {
                       "description": "Status of the newest event that is not pending. displayStatus comes from this, so a pending event does not hide a failed one.",
@@ -10479,7 +10995,7 @@
             ]
           }
         ],
-        "summary": "Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone cameras. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked.",
+        "summary": "Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge) to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read `interpretation.gaps` and `untestable` and ask the person those questions. Send `interpret: false` to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent.",
         "tags": [
           "watches"
         ],
@@ -10674,6 +11190,91 @@
                     "id": {
                       "type": "string"
                     },
+                    "judging": {
+                      "description": "Whether the pool is judging this watch (read-only, additive). `state`: judging (a judge call in the last 10 minutes), waiting_for_change (video arrives and the picture is still, so nothing is judged; a state goal is still looked at about every 5 minutes), no_video, paused (see `reason`), over_budget (the hourly judge limit skipped calls), judge_unavailable, starting, not_running (no container reports) or unknown (core runtime). A confirmed no-alert is `judging` or `waiting_for_change` with a recent lastFrameAt: silence with state not_running or no_video means nothing was watched. `stalled` is true when video flows and a scheduled judge call is 15+ minutes overdue.",
+                      "properties": {
+                        "framesReceived": {
+                          "description": "Frames the current container has received.",
+                          "type": [
+                            "integer",
+                            "null"
+                          ]
+                        },
+                        "judgeCallsLastHour": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ]
+                        },
+                        "judgeCallsToday": {
+                          "description": "UTC day.",
+                          "type": [
+                            "integer",
+                            "null"
+                          ]
+                        },
+                        "lastDecisionAt": {
+                          "format": "date-time",
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "lastFrameAt": {
+                          "format": "date-time",
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "lastJudgedAt": {
+                          "description": "Last successful judge call.",
+                          "format": "date-time",
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "limitPerHour": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ]
+                        },
+                        "reason": {
+                          "description": "pausedReason when paused.",
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "reportedAt": {
+                          "description": "When the container last reported (about every 30 s).",
+                          "format": "date-time",
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "stalled": {
+                          "type": "boolean"
+                        },
+                        "state": {
+                          "enum": [
+                            "judging",
+                            "waiting_for_change",
+                            "no_video",
+                            "paused",
+                            "over_budget",
+                            "judge_unavailable",
+                            "starting",
+                            "not_running",
+                            "unknown"
+                          ]
+                        }
+                      },
+                      "type": "object"
+                    },
                     "lastDelivery": {
                       "description": "Status of the newest event that is not pending. displayStatus comes from this, so a pending event does not hide a failed one.",
                       "enum": [
@@ -10860,6 +11461,10 @@
             "application/json": {
               "schema": {
                 "properties": {
+                  "acknowledge": {
+                    "const": true,
+                    "type": "boolean"
+                  },
                   "agentId": {
                     "maxLength": 64,
                     "minLength": 1,
@@ -10881,6 +11486,57 @@
                     "maxLength": 500,
                     "minLength": 5,
                     "type": "string"
+                  },
+                  "interpret": {
+                    "type": "boolean"
+                  },
+                  "interpretation": {
+                    "properties": {
+                      "concerns": {
+                        "items": {
+                          "properties": {
+                            "id": {
+                              "maxLength": 60,
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            "ignore": {
+                              "items": {
+                                "maxLength": 300,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "maxItems": 10,
+                              "type": "array"
+                            },
+                            "kind": {
+                              "enum": [
+                                "state",
+                                "event"
+                              ],
+                              "type": "string"
+                            },
+                            "text": {
+                              "maxLength": 500,
+                              "minLength": 5,
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "text",
+                            "kind"
+                          ],
+                          "type": "object"
+                        },
+                        "maxItems": 10,
+                        "minItems": 1,
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "concerns"
+                    ],
+                    "type": "object"
                   },
                   "media": {
                     "enum": [
@@ -11025,7 +11681,7 @@
             ]
           }
         ],
-        "summary": "Update a watch. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal detaches the agent.",
+        "summary": "Update a watch. A new goal is understood again (interpret: false keeps the words as written); interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal detaches the agent.",
         "tags": [
           "watches"
         ],
@@ -11689,6 +12345,107 @@
         "summary": "Live view of a watch. Phone cameras get a WHEP address and a 10 minute viewer token; other sources get the latest keyframe.",
         "tags": [
           "evidence"
+        ],
+        "x-percia-scopes": [
+          "watches:write"
+        ]
+      }
+    },
+    "/watches/{id}/reinterpret": {
+      "post": {
+        "operationId": "reinterpretWatch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Watch"
+                }
+              }
+            },
+            "description": "The watch with its new interpretation."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The watch has an agent or runs on Percia core: no goal to interpret."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not signed in."
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "rate_limited: too many interpretations this hour (Retry-After)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "interpret_unavailable."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": [
+              "watches:write"
+            ]
+          }
+        ],
+        "summary": "Understand the watch's current goal again and store it as the next interpretation version (the job restarts with it). Replaces any conditions edited by hand. 503 interpret_unavailable keeps the previous interpretation.",
+        "tags": [
+          "watches"
         ],
         "x-percia-scopes": [
           "watches:write"

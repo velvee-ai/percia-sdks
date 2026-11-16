@@ -10,11 +10,13 @@ from typing import (
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
+from ..models.create_watch_body_kind import CreateWatchBodyKind
 from ..models.create_watch_body_media import CreateWatchBodyMedia
 from ..models.create_watch_body_runtime import CreateWatchBodyRuntime
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
+    from ..models.create_watch_body_concerns_item import CreateWatchBodyConcernsItem
     from ..models.create_watch_body_notify_type_0 import CreateWatchBodyNotifyType0
     from ..models.create_watch_body_notify_type_1 import CreateWatchBodyNotifyType1
 
@@ -29,8 +31,11 @@ class CreateWatchBody:
         source_url (str):
         agent_id (Union[Unset, str]):
         agent_version (Union[Unset, int]):
+        concerns (Union[Unset, list['CreateWatchBodyConcernsItem']]):
         destinations (Union[Unset, list[str]]):
         goal (Union[Unset, str]):
+        interpret (Union[Unset, bool]):
+        kind (Union[Unset, CreateWatchBodyKind]):
         media (Union[Unset, CreateWatchBodyMedia]):
         notify (Union['CreateWatchBodyNotifyType0', 'CreateWatchBodyNotifyType1', Unset]):
         runtime (Union[Unset, CreateWatchBodyRuntime]):
@@ -40,8 +45,11 @@ class CreateWatchBody:
     source_url: str
     agent_id: Union[Unset, str] = UNSET
     agent_version: Union[Unset, int] = UNSET
+    concerns: Union[Unset, list["CreateWatchBodyConcernsItem"]] = UNSET
     destinations: Union[Unset, list[str]] = UNSET
     goal: Union[Unset, str] = UNSET
+    interpret: Union[Unset, bool] = UNSET
+    kind: Union[Unset, CreateWatchBodyKind] = UNSET
     media: Union[Unset, CreateWatchBodyMedia] = UNSET
     notify: Union["CreateWatchBodyNotifyType0", "CreateWatchBodyNotifyType1", Unset] = UNSET
     runtime: Union[Unset, CreateWatchBodyRuntime] = UNSET
@@ -58,11 +66,24 @@ class CreateWatchBody:
 
         agent_version = self.agent_version
 
+        concerns: Union[Unset, list[dict[str, Any]]] = UNSET
+        if not isinstance(self.concerns, Unset):
+            concerns = []
+            for concerns_item_data in self.concerns:
+                concerns_item = concerns_item_data.to_dict()
+                concerns.append(concerns_item)
+
         destinations: Union[Unset, list[str]] = UNSET
         if not isinstance(self.destinations, Unset):
             destinations = self.destinations
 
         goal = self.goal
+
+        interpret = self.interpret
+
+        kind: Union[Unset, str] = UNSET
+        if not isinstance(self.kind, Unset):
+            kind = self.kind.value
 
         media: Union[Unset, str] = UNSET
         if not isinstance(self.media, Unset):
@@ -93,10 +114,16 @@ class CreateWatchBody:
             field_dict["agentId"] = agent_id
         if agent_version is not UNSET:
             field_dict["agentVersion"] = agent_version
+        if concerns is not UNSET:
+            field_dict["concerns"] = concerns
         if destinations is not UNSET:
             field_dict["destinations"] = destinations
         if goal is not UNSET:
             field_dict["goal"] = goal
+        if interpret is not UNSET:
+            field_dict["interpret"] = interpret
+        if kind is not UNSET:
+            field_dict["kind"] = kind
         if media is not UNSET:
             field_dict["media"] = media
         if notify is not UNSET:
@@ -110,6 +137,7 @@ class CreateWatchBody:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.create_watch_body_concerns_item import CreateWatchBodyConcernsItem
         from ..models.create_watch_body_notify_type_0 import CreateWatchBodyNotifyType0
         from ..models.create_watch_body_notify_type_1 import CreateWatchBodyNotifyType1
 
@@ -124,9 +152,25 @@ class CreateWatchBody:
 
         agent_version = d.pop("agentVersion", UNSET)
 
+        concerns = []
+        _concerns = d.pop("concerns", UNSET)
+        for concerns_item_data in _concerns or []:
+            concerns_item = CreateWatchBodyConcernsItem.from_dict(concerns_item_data)
+
+            concerns.append(concerns_item)
+
         destinations = cast(list[str], d.pop("destinations", UNSET))
 
         goal = d.pop("goal", UNSET)
+
+        interpret = d.pop("interpret", UNSET)
+
+        _kind = d.pop("kind", UNSET)
+        kind: Union[Unset, CreateWatchBodyKind]
+        if isinstance(_kind, Unset):
+            kind = UNSET
+        else:
+            kind = CreateWatchBodyKind(_kind)
 
         _media = d.pop("media", UNSET)
         media: Union[Unset, CreateWatchBodyMedia]
@@ -169,8 +213,11 @@ class CreateWatchBody:
             source_url=source_url,
             agent_id=agent_id,
             agent_version=agent_version,
+            concerns=concerns,
             destinations=destinations,
             goal=goal,
+            interpret=interpret,
+            kind=kind,
             media=media,
             notify=notify,
             runtime=runtime,

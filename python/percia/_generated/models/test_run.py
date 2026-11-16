@@ -16,6 +16,7 @@ from dateutil.parser import isoparse
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
+    from ..models.test_run_interpretation_type_0 import TestRunInterpretationType0
     from ..models.test_run_results_item import TestRunResultsItem
 
 
@@ -30,6 +31,15 @@ class TestRun:
         created_at (Union[Unset, datetime.datetime]):
         failed (Union[Unset, int]):
         id (Union[Unset, str]):
+        interpretation (Union['TestRunInterpretationType0', None, Unset]): What Percia understands of the goal
+            (additive; null on a watch created before goal understanding, with an agent, on Percia core, or with interpret
+            false and no kind). version, shape (narrow, compound, open_ended), summary, kind (state = something stays true,
+            event = something happens, mixed), concerns [{id, text, kind, evidence, ignore}] (the conditions the watch
+            runs), assumptions, gaps [{description, reason, question}] (what a camera cannot see or the goal leaves open:
+            ask the person the questions), untestable (words a camera cannot judge), confidence, clarity (0..1), cadence (a
+            suggestion, not applied), source (model, rules, user, agent), degraded (null, or why Percia used the words as
+            written: unavailable, invalid, quota, killed, review_skipped), needsLook, applied, createdAt, reviewedAt. Event
+            kind is the one that fires on arrivals; kind is an intent hint the engine may override.
         pass_rate (Union[None, Unset, float]):
         passed (Union[Unset, int]):
         results (Union[Unset, list['TestRunResultsItem']]):
@@ -41,6 +51,7 @@ class TestRun:
     created_at: Union[Unset, datetime.datetime] = UNSET
     failed: Union[Unset, int] = UNSET
     id: Union[Unset, str] = UNSET
+    interpretation: Union["TestRunInterpretationType0", None, Unset] = UNSET
     pass_rate: Union[None, Unset, float] = UNSET
     passed: Union[Unset, int] = UNSET
     results: Union[Unset, list["TestRunResultsItem"]] = UNSET
@@ -49,6 +60,8 @@ class TestRun:
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.test_run_interpretation_type_0 import TestRunInterpretationType0
+
         agent_id = self.agent_id
 
         created_at: Union[Unset, str] = UNSET
@@ -58,6 +71,14 @@ class TestRun:
         failed = self.failed
 
         id = self.id
+
+        interpretation: Union[None, Unset, dict[str, Any]]
+        if isinstance(self.interpretation, Unset):
+            interpretation = UNSET
+        elif isinstance(self.interpretation, TestRunInterpretationType0):
+            interpretation = self.interpretation.to_dict()
+        else:
+            interpretation = self.interpretation
 
         pass_rate: Union[None, Unset, float]
         if isinstance(self.pass_rate, Unset):
@@ -93,6 +114,8 @@ class TestRun:
             field_dict["failed"] = failed
         if id is not UNSET:
             field_dict["id"] = id
+        if interpretation is not UNSET:
+            field_dict["interpretation"] = interpretation
         if pass_rate is not UNSET:
             field_dict["passRate"] = pass_rate
         if passed is not UNSET:
@@ -108,6 +131,7 @@ class TestRun:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.test_run_interpretation_type_0 import TestRunInterpretationType0
         from ..models.test_run_results_item import TestRunResultsItem
 
         d = dict(src_dict)
@@ -123,6 +147,25 @@ class TestRun:
         failed = d.pop("failed", UNSET)
 
         id = d.pop("id", UNSET)
+
+        def _parse_interpretation(
+            data: object,
+        ) -> Union["TestRunInterpretationType0", None, Unset]:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                interpretation_type_0 = TestRunInterpretationType0.from_dict(data)
+
+                return interpretation_type_0
+            except:  # noqa: E722
+                pass
+            return cast(Union["TestRunInterpretationType0", None, Unset], data)
+
+        interpretation = _parse_interpretation(d.pop("interpretation", UNSET))
 
         def _parse_pass_rate(data: object) -> Union[None, Unset, float]:
             if data is None:
@@ -160,6 +203,7 @@ class TestRun:
             created_at=created_at,
             failed=failed,
             id=id,
+            interpretation=interpretation,
             pass_rate=pass_rate,
             passed=passed,
             results=results,

@@ -9,6 +9,7 @@ from typing import (
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
+from ..models.build_agent_response_201_degraded import BuildAgentResponse201Degraded
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
@@ -23,10 +24,13 @@ class BuildAgentResponse201:
     """
     Attributes:
         agent (Union[Unset, Agent]):
+        degraded (Union[Unset, BuildAgentResponse201Degraded]): Present when the agent was created without its full
+            check; `reply` ends with a note.
         reply (Union[Unset, str]):
     """
 
     agent: Union[Unset, "Agent"] = UNSET
+    degraded: Union[Unset, BuildAgentResponse201Degraded] = UNSET
     reply: Union[Unset, str] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -35,6 +39,10 @@ class BuildAgentResponse201:
         if not isinstance(self.agent, Unset):
             agent = self.agent.to_dict()
 
+        degraded: Union[Unset, str] = UNSET
+        if not isinstance(self.degraded, Unset):
+            degraded = self.degraded.value
+
         reply = self.reply
 
         field_dict: dict[str, Any] = {}
@@ -42,6 +50,8 @@ class BuildAgentResponse201:
         field_dict.update({})
         if agent is not UNSET:
             field_dict["agent"] = agent
+        if degraded is not UNSET:
+            field_dict["degraded"] = degraded
         if reply is not UNSET:
             field_dict["reply"] = reply
 
@@ -59,10 +69,18 @@ class BuildAgentResponse201:
         else:
             agent = Agent.from_dict(_agent)
 
+        _degraded = d.pop("degraded", UNSET)
+        degraded: Union[Unset, BuildAgentResponse201Degraded]
+        if isinstance(_degraded, Unset):
+            degraded = UNSET
+        else:
+            degraded = BuildAgentResponse201Degraded(_degraded)
+
         reply = d.pop("reply", UNSET)
 
         build_agent_response_201 = cls(
             agent=agent,
+            degraded=degraded,
             reply=reply,
         )
 

@@ -58,7 +58,7 @@
       "_type": "request",
       "parentId": "fld_8e9edd257c8130ff",
       "name": "1. Create a webhook watch (save webhookSecret)",
-      "description": "The response is the only time you see `webhookSecret`. The test saves it as the `webhookSecret` variable (never logged). Set `webhookUrl` first: a public https address of your receiver.\n\noperationId: createWatch\n\nCreate a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone cameras. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked.\n\nScopes: watches:write.",
+      "description": "The response is the only time you see `webhookSecret`. The test saves it as the `webhookSecret` variable (never logged). Set `webhookUrl` first: a public https address of your receiver.\n\noperationId: createWatch\n\nCreate a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge) to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read `interpretation.gaps` and `untestable` and ask the person those questions. Send `interpret: false` to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent.\n\nScopes: watches:write.",
       "method": "POST",
       "url": "{{ _.baseUrl }}/api/watches/owned",
       "parameters": [],
@@ -229,11 +229,11 @@
       "metaSortKey": -991
     },
     {
-      "_id": "req_57f35266fc7f138c",
+      "_id": "req_e3996e1e1c00ed0e",
       "_type": "request",
       "parentId": "fld_208c2598e1e0c670",
-      "name": "Update a watch. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal detaches the agent.",
-      "description": "operationId: updateWatch\n\nUpdate a watch. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal detaches the agent.\n\nScopes: watches:write.",
+      "name": "Update a watch. A new goal is understood again (interpret: false keeps the words as written); interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal detaches the agent.",
+      "description": "operationId: updateWatch\n\nUpdate a watch. A new goal is understood again (interpret: false keeps the words as written); interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal detaches the agent.\n\nScopes: watches:write.",
       "method": "PATCH",
       "url": "{{ _.baseUrl }}/api/watches/{{ _.watchId }}",
       "parameters": [],
@@ -290,6 +290,27 @@
       "metaSortKey": -989
     },
     {
+      "_id": "req_58b3933d527f0ca5",
+      "_type": "request",
+      "parentId": "fld_208c2598e1e0c670",
+      "name": "Understand the watch's current goal again and store it as the next interpretation version (the job restarts with it). Replaces any conditions edited by hand. 503 interpret_unavailable keeps the previous interpretation.",
+      "description": "operationId: reinterpretWatch\n\nUnderstand the watch's current goal again and store it as the next interpretation version (the job restarts with it). Replaces any conditions edited by hand. 503 interpret_unavailable keeps the previous interpretation.\n\nScopes: watches:write.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/watches/{{ _.watchId }}/reinterpret",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -988
+    },
+    {
       "_id": "req_a6fae2bf9106901b",
       "_type": "request",
       "parentId": "fld_208c2598e1e0c670",
@@ -308,7 +329,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -988
+      "metaSortKey": -987
     },
     {
       "_id": "req_1a11ab5a81a5eb28",
@@ -329,7 +350,36 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -987
+      "metaSortKey": -986
+    },
+    {
+      "_id": "req_b26d1d0cef4ba306",
+      "_type": "request",
+      "parentId": "fld_208c2598e1e0c670",
+      "name": "What Percia understands of a goal, without creating anything: the kind of each condition (something happens / something stays true), what it ignores, what a camera cannot see (with questions to ask the person), and how clear the goal is. Use it before POST /watches/owned to check a goal; creating a watch does the same understanding by itself. Cached for 7 days; limited per person per hour (429 rate_limited with Retry-After).",
+      "description": "operationId: interpretGoal\n\nWhat Percia understands of a goal, without creating anything: the kind of each condition (something happens / something stays true), what it ignores, what a camera cannot see (with questions to ask the person), and how clear the goal is. Use it before POST /watches/owned to check a goal; creating a watch does the same understanding by itself. Cached for 7 days; limited per person per hour (429 rate_limited with Retry-After).\n\nScopes: watches:write.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/watches/interpret",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"goal\": \"xxxxx\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -985
     },
     {
       "_id": "req_9cc15525587825ef",
@@ -350,14 +400,14 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -986
+      "metaSortKey": -984
     },
     {
-      "_id": "req_015286c37abb2cf9",
+      "_id": "req_605e3183faeda56f",
       "_type": "request",
       "parentId": "fld_208c2598e1e0c670",
-      "name": "Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone cameras. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked.",
-      "description": "operationId: createWatch\n\nCreate a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone cameras. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked.\n\nScopes: watches:write.",
+      "name": "Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge) to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read `interpretation.gaps` and `untestable` and ask the person those questions. Send `interpret: false` to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent.",
+      "description": "operationId: createWatch\n\nCreate a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge) to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read `interpretation.gaps` and `untestable` and ask the person those questions. Send `interpret: false` to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent.\n\nScopes: watches:write.",
       "method": "POST",
       "url": "{{ _.baseUrl }}/api/watches/owned",
       "parameters": [],
@@ -379,7 +429,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -985
+      "metaSortKey": -983
     },
     {
       "_id": "fld_2afa2451f96c8783",
@@ -388,7 +438,7 @@
       "name": "Events feed",
       "description": "",
       "environment": {},
-      "metaSortKey": -984
+      "metaSortKey": -982
     },
     {
       "_id": "req_07b605595071e443",
@@ -435,7 +485,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -983
+      "metaSortKey": -981
     },
     {
       "_id": "req_72c208b47f5d6bcf",
@@ -456,7 +506,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -982
+      "metaSortKey": -980
     },
     {
       "_id": "fld_2eeead8ee5ad99b0",
@@ -465,7 +515,7 @@
       "name": "REST hooks",
       "description": "",
       "environment": {},
-      "metaSortKey": -981
+      "metaSortKey": -979
     },
     {
       "_id": "req_a0e1aef7bf5e5e3b",
@@ -486,7 +536,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -980
+      "metaSortKey": -978
     },
     {
       "_id": "req_8616287757439c97",
@@ -515,7 +565,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -979
+      "metaSortKey": -977
     },
     {
       "_id": "req_543dc76a327dab6e",
@@ -536,7 +586,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -978
+      "metaSortKey": -976
     },
     {
       "_id": "req_31686a5635399a92",
@@ -557,7 +607,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -977
+      "metaSortKey": -975
     },
     {
       "_id": "fld_44e50d96137af533",
@@ -566,7 +616,7 @@
       "name": "Cameras (phone and push)",
       "description": "",
       "environment": {},
-      "metaSortKey": -976
+      "metaSortKey": -974
     },
     {
       "_id": "req_9d0683d3b5133f63",
@@ -587,14 +637,14 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -975
+      "metaSortKey": -973
     },
     {
-      "_id": "req_24dede3f10f23cf0",
+      "_id": "req_18cb1723315cf452",
       "_type": "request",
       "parentId": "fld_44e50d96137af533",
-      "name": "Create a camera. Default (phone): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.",
-      "description": "operationId: createCamera\n\nCreate a camera. Default (phone): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.\n\nScopes: cameras:write.",
+      "name": "Create a camera. For a camera on a private network (ONVIF, RTSP, Frigate, Home Assistant, NVR) the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge), which registers the cameras itself. Default (phone): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.",
+      "description": "operationId: createCamera\n\nCreate a camera. For a camera on a private network (ONVIF, RTSP, Frigate, Home Assistant, NVR) the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge), which registers the cameras itself. Default (phone): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.\n\nScopes: cameras:write.",
       "method": "POST",
       "url": "{{ _.baseUrl }}/api/cameras",
       "parameters": [],
@@ -616,14 +666,14 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -974
+      "metaSortKey": -972
     },
     {
       "_id": "req_568b549caf5282de",
       "_type": "request",
       "parentId": "fld_44e50d96137af533",
       "name": "Create a push camera for a private network (token shown once)",
-      "description": "For a camera on a LAN: a connector there pulls it once and pushes WHIP to Percia. Idempotent by `externalId` (or an `Idempotency-Key` header): a second call returns 200 with `token: null` and `existing: true` (the token is never shown twice; use Rotate token). The test saves `cameraId`, `whipUrl` and `cameraToken` (never logged). Publish with: ffmpeg -rtsp_transport tcp -i RTSP -an -c:v copy -f whip -authorization \"{{cameraToken}}\" {{whipUrl}}\n\noperationId: createCamera\n\nCreate a camera. Default (phone): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.\n\nScopes: cameras:write.",
+      "description": "For a camera on a LAN: a connector there pulls it once and pushes WHIP to Percia. Idempotent by `externalId` (or an `Idempotency-Key` header): a second call returns 200 with `token: null` and `existing: true` (the token is never shown twice; use Rotate token). The test saves `cameraId`, `whipUrl` and `cameraToken` (never logged). Publish with: ffmpeg -rtsp_transport tcp -i RTSP -an -c:v copy -f whip -authorization \"{{cameraToken}}\" {{whipUrl}}\n\noperationId: createCamera\n\nCreate a camera. For a camera on a private network (ONVIF, RTSP, Frigate, Home Assistant, NVR) the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge), which registers the cameras itself. Default (phone): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.\n\nScopes: cameras:write.",
       "method": "POST",
       "url": "{{ _.baseUrl }}/api/cameras",
       "parameters": [],
@@ -645,7 +695,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -973
+      "metaSortKey": -971
     },
     {
       "_id": "req_bc87209165ee1911",
@@ -666,7 +716,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -972
+      "metaSortKey": -970
     },
     {
       "_id": "req_11773a458d059850",
@@ -687,7 +737,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -971
+      "metaSortKey": -969
     },
     {
       "_id": "req_8a2a8bbf684dba96",
@@ -708,7 +758,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -970
+      "metaSortKey": -968
     },
     {
       "_id": "req_0275a7a55301deac",
@@ -729,7 +779,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -969
+      "metaSortKey": -967
     },
     {
       "_id": "req_aa962f7ba585b269",
@@ -750,7 +800,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -968
+      "metaSortKey": -966
     },
     {
       "_id": "req_13aacef9713565ae",
@@ -779,7 +829,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -967
+      "metaSortKey": -965
     },
     {
       "_id": "req_43d24db302f7241f",
@@ -808,7 +858,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -966
+      "metaSortKey": -964
     },
     {
       "_id": "fld_9cfbbebb237e448e",
@@ -817,7 +867,7 @@
       "name": "Integrations",
       "description": "",
       "environment": {},
-      "metaSortKey": -965
+      "metaSortKey": -963
     },
     {
       "_id": "req_c6f8a854e2db6041",
@@ -838,7 +888,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -964
+      "metaSortKey": -962
     },
     {
       "_id": "req_cf776901fa3aaf54",
@@ -859,7 +909,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -963
+      "metaSortKey": -961
     },
     {
       "_id": "req_a4d20aa335dcc6c4",
@@ -888,7 +938,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -962
+      "metaSortKey": -960
     },
     {
       "_id": "req_d92174269a2c5ace",
@@ -909,7 +959,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -961
+      "metaSortKey": -959
     },
     {
       "_id": "req_95b69a10cd4268ab",
@@ -938,7 +988,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -960
+      "metaSortKey": -958
     },
     {
       "_id": "req_c97fc1fb0340b08c",
@@ -959,7 +1009,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -959
+      "metaSortKey": -957
     },
     {
       "_id": "req_4df74c539dd28f1d",
@@ -980,7 +1030,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -958
+      "metaSortKey": -956
     },
     {
       "_id": "req_53821941e7397b82",
@@ -1009,7 +1059,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -957
+      "metaSortKey": -955
     },
     {
       "_id": "fld_536e117d348d7d73",
@@ -1018,7 +1068,7 @@
       "name": "Agents",
       "description": "",
       "environment": {},
-      "metaSortKey": -956
+      "metaSortKey": -954
     },
     {
       "_id": "req_a501a5d4ba619504",
@@ -1039,7 +1089,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -955
+      "metaSortKey": -953
     },
     {
       "_id": "req_9ba873b49076ee94",
@@ -1068,7 +1118,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -954
+      "metaSortKey": -952
     },
     {
       "_id": "req_5f81ac4e617fbac7",
@@ -1089,7 +1139,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -953
+      "metaSortKey": -951
     },
     {
       "_id": "req_5fe65cff31a2157c",
@@ -1110,7 +1160,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -952
+      "metaSortKey": -950
     },
     {
       "_id": "req_0fcbee11ffef4313",
@@ -1139,7 +1189,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -951
+      "metaSortKey": -949
     },
     {
       "_id": "req_eed3744082b12f58",
@@ -1160,7 +1210,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -950
+      "metaSortKey": -948
     },
     {
       "_id": "req_4920767f27542896",
@@ -1189,7 +1239,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -949
+      "metaSortKey": -947
     },
     {
       "_id": "req_3d0930f48c2dca05",
@@ -1210,7 +1260,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -948
+      "metaSortKey": -946
     },
     {
       "_id": "req_3839331871af8fd9",
@@ -1239,7 +1289,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -947
+      "metaSortKey": -945
     },
     {
       "_id": "req_47c9a40740ea0d17",
@@ -1260,7 +1310,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -946
+      "metaSortKey": -944
     },
     {
       "_id": "req_0d0c8f5787966fe6",
@@ -1289,7 +1339,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -945
+      "metaSortKey": -943
     },
     {
       "_id": "req_ad14402eeb9758e8",
@@ -1310,7 +1360,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -944
+      "metaSortKey": -942
     },
     {
       "_id": "fld_10172711fa40052c",
@@ -1319,7 +1369,7 @@
       "name": "Sites",
       "description": "",
       "environment": {},
-      "metaSortKey": -943
+      "metaSortKey": -941
     },
     {
       "_id": "req_fd07a49f2c884d7b",
@@ -1340,7 +1390,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -942
+      "metaSortKey": -940
     },
     {
       "_id": "req_70417d003057189d",
@@ -1369,7 +1419,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -941
+      "metaSortKey": -939
     },
     {
       "_id": "req_96a99e653e92eb05",
@@ -1390,7 +1440,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -940
+      "metaSortKey": -938
     },
     {
       "_id": "req_4982231ba4363951",
@@ -1411,7 +1461,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -939
+      "metaSortKey": -937
     },
     {
       "_id": "req_0f48317430e45c27",
@@ -1440,7 +1490,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -938
+      "metaSortKey": -936
     },
     {
       "_id": "req_74a73164fb3c4116",
@@ -1469,7 +1519,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -937
+      "metaSortKey": -935
     },
     {
       "_id": "req_b2011f1f6f76afa1",
@@ -1498,7 +1548,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -936
+      "metaSortKey": -934
     },
     {
       "_id": "req_510a9e9db8069a1f",
@@ -1519,7 +1569,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -935
+      "metaSortKey": -933
     },
     {
       "_id": "req_594407b307d573a4",
@@ -1551,7 +1601,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -934
+      "metaSortKey": -932
     },
     {
       "_id": "fld_98e1d6e85f7ab0b6",
@@ -1560,7 +1610,7 @@
       "name": "Evidence and tests",
       "description": "",
       "environment": {},
-      "metaSortKey": -933
+      "metaSortKey": -931
     },
     {
       "_id": "req_71d3fea06542f1bb",
@@ -1581,7 +1631,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -932
+      "metaSortKey": -930
     },
     {
       "_id": "req_e32e000d727663aa",
@@ -1610,7 +1660,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -931
+      "metaSortKey": -929
     },
     {
       "_id": "req_e1c988b80d5fea46",
@@ -1631,7 +1681,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -930
+      "metaSortKey": -928
     },
     {
       "_id": "req_bfa3acfffc2a76ed",
@@ -1658,7 +1708,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -929
+      "metaSortKey": -927
     },
     {
       "_id": "req_6cc6a10c64eaafa4",
@@ -1679,7 +1729,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -928
+      "metaSortKey": -926
     },
     {
       "_id": "req_76b7fcf2b30f0b32",
@@ -1700,7 +1750,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -927
+      "metaSortKey": -925
     },
     {
       "_id": "req_1bbe382c5509127b",
@@ -1721,7 +1771,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -926
+      "metaSortKey": -924
     },
     {
       "_id": "req_fe311dca6cf7bfde",
@@ -1750,7 +1800,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -925
+      "metaSortKey": -923
     },
     {
       "_id": "req_159142bbc89e58b4",
@@ -1771,7 +1821,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -924
+      "metaSortKey": -922
     },
     {
       "_id": "req_d4841f79a9676967",
@@ -1792,7 +1842,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -923
+      "metaSortKey": -921
     },
     {
       "_id": "req_91fe34cc69712a89",
@@ -1813,7 +1863,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -922
+      "metaSortKey": -920
     },
     {
       "_id": "fld_bd348a93e4c3798e",
@@ -1822,7 +1872,7 @@
       "name": "Push devices",
       "description": "",
       "environment": {},
-      "metaSortKey": -921
+      "metaSortKey": -919
     },
     {
       "_id": "req_403291138db402f0",
@@ -1843,7 +1893,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -920
+      "metaSortKey": -918
     },
     {
       "_id": "req_7a79b62a8beddd22",
@@ -1872,7 +1922,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -919
+      "metaSortKey": -917
     },
     {
       "_id": "req_7c519af28fc3cb8b",
@@ -1893,7 +1943,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -918
+      "metaSortKey": -916
     },
     {
       "_id": "fld_7e75f6826d2285e0",
@@ -1902,7 +1952,7 @@
       "name": "Plan and usage",
       "description": "",
       "environment": {},
-      "metaSortKey": -917
+      "metaSortKey": -915
     },
     {
       "_id": "req_e41f7321970bb760",
@@ -1931,7 +1981,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -916
+      "metaSortKey": -914
     },
     {
       "_id": "req_c6cb2c2d8366a99d",
@@ -1952,7 +2002,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -915
+      "metaSortKey": -913
     },
     {
       "_id": "req_d43b6f5590bb4076",
@@ -1981,7 +2031,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -914
+      "metaSortKey": -912
     },
     {
       "_id": "req_f83c9f5b31da744d",
@@ -2002,7 +2052,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -913
+      "metaSortKey": -911
     },
     {
       "_id": "req_b5c52c5c74d90370",
@@ -2029,7 +2079,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -912
+      "metaSortKey": -910
     },
     {
       "_id": "req_036ae98a1dd4e8d1",
@@ -2050,7 +2100,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -911
+      "metaSortKey": -909
     },
     {
       "_id": "fld_26e328e6e18d598b",
@@ -2059,7 +2109,7 @@
       "name": "Platform",
       "description": "",
       "environment": {},
-      "metaSortKey": -910
+      "metaSortKey": -908
     },
     {
       "_id": "req_87549b18f40be116",
@@ -2077,7 +2127,7 @@
         }
       ],
       "authentication": {},
-      "metaSortKey": -909
+      "metaSortKey": -907
     },
     {
       "_id": "req_592ce55f110373c1",
@@ -2095,7 +2145,7 @@
         }
       ],
       "authentication": {},
-      "metaSortKey": -908
+      "metaSortKey": -906
     },
     {
       "_id": "req_b104c43e04812120",
@@ -2113,7 +2163,7 @@
         }
       ],
       "authentication": {},
-      "metaSortKey": -907
+      "metaSortKey": -905
     }
   ]
 }

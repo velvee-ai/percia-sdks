@@ -34,6 +34,7 @@ if TYPE_CHECKING:
     from ..models.get_watch_response_200_engine_type_0 import (
         GetWatchResponse200EngineType0,
     )
+    from ..models.get_watch_response_200_judging import GetWatchResponse200Judging
     from ..models.get_watch_response_200_last_event_type_0 import (
         GetWatchResponse200LastEventType0,
     )
@@ -65,6 +66,13 @@ class GetWatchResponse200:
         event_count (Union[Unset, int]):
         goal (Union[Unset, str]): For a deployed watch, the agent's name.
         id (Union[Unset, str]):
+        judging (Union[Unset, GetWatchResponse200Judging]): Whether the pool is judging this watch (read-only,
+            additive). `state`: judging (a judge call in the last 10 minutes), waiting_for_change (video arrives and the
+            picture is still, so nothing is judged; a state goal is still looked at about every 5 minutes), no_video, paused
+            (see `reason`), over_budget (the hourly judge limit skipped calls), judge_unavailable, starting, not_running (no
+            container reports) or unknown (core runtime). A confirmed no-alert is `judging` or `waiting_for_change` with a
+            recent lastFrameAt: silence with state not_running or no_video means nothing was watched. `stalled` is true when
+            video flows and a scheduled judge call is 15+ minutes overdue.
         last_delivery (Union[GetWatchResponse200LastDeliveryType1, None, Unset]): Status of the newest event that is not
             pending. displayStatus comes from this, so a pending event does not hide a failed one.
         last_event (Union['GetWatchResponse200LastEventType0', None, Unset]):
@@ -99,6 +107,7 @@ class GetWatchResponse200:
     event_count: Union[Unset, int] = UNSET
     goal: Union[Unset, str] = UNSET
     id: Union[Unset, str] = UNSET
+    judging: Union[Unset, "GetWatchResponse200Judging"] = UNSET
     last_delivery: Union[GetWatchResponse200LastDeliveryType1, None, Unset] = UNSET
     last_event: Union["GetWatchResponse200LastEventType0", None, Unset] = UNSET
     no_video_since: Union[None, Unset, datetime.datetime] = UNSET
@@ -172,6 +181,10 @@ class GetWatchResponse200:
         goal = self.goal
 
         id = self.id
+
+        judging: Union[Unset, dict[str, Any]] = UNSET
+        if not isinstance(self.judging, Unset):
+            judging = self.judging.to_dict()
 
         last_delivery: Union[None, Unset, str]
         if isinstance(self.last_delivery, Unset):
@@ -270,6 +283,8 @@ class GetWatchResponse200:
             field_dict["goal"] = goal
         if id is not UNSET:
             field_dict["id"] = id
+        if judging is not UNSET:
+            field_dict["judging"] = judging
         if last_delivery is not UNSET:
             field_dict["lastDelivery"] = last_delivery
         if last_event is not UNSET:
@@ -310,6 +325,7 @@ class GetWatchResponse200:
         from ..models.get_watch_response_200_engine_type_0 import (
             GetWatchResponse200EngineType0,
         )
+        from ..models.get_watch_response_200_judging import GetWatchResponse200Judging
         from ..models.get_watch_response_200_last_event_type_0 import (
             GetWatchResponse200LastEventType0,
         )
@@ -403,6 +419,13 @@ class GetWatchResponse200:
         goal = d.pop("goal", UNSET)
 
         id = d.pop("id", UNSET)
+
+        _judging = d.pop("judging", UNSET)
+        judging: Union[Unset, GetWatchResponse200Judging]
+        if isinstance(_judging, Unset):
+            judging = UNSET
+        else:
+            judging = GetWatchResponse200Judging.from_dict(_judging)
 
         def _parse_last_delivery(
             data: object,
@@ -564,6 +587,7 @@ class GetWatchResponse200:
             event_count=event_count,
             goal=goal,
             id=id,
+            judging=judging,
             last_delivery=last_delivery,
             last_event=last_event,
             no_video_since=no_video_since,

@@ -33,7 +33,9 @@ from .ask_site_body import AskSiteBody
 from .ask_site_response_200 import AskSiteResponse200
 from .build_agent_body import BuildAgentBody
 from .build_agent_response_201 import BuildAgentResponse201
+from .build_agent_response_201_degraded import BuildAgentResponse201Degraded
 from .camera import Camera
+from .camera_device_kind_type_1 import CameraDeviceKindType1
 from .camera_kind import CameraKind
 from .camera_status import CameraStatus
 from .chat_with_agent_body import ChatWithAgentBody
@@ -76,6 +78,7 @@ from .create_agent_body_config_outputs_item_type import (
 from .create_api_key_response_201 import CreateApiKeyResponse201
 from .create_api_key_response_201_scopes_item import CreateApiKeyResponse201ScopesItem
 from .create_camera_body import CreateCameraBody
+from .create_camera_body_device_kind import CreateCameraBodyDeviceKind
 from .create_camera_body_kind import CreateCameraBodyKind
 from .create_camera_pairing_response_200 import CreateCameraPairingResponse200
 from .create_camera_response_200 import CreateCameraResponse200
@@ -104,6 +107,9 @@ from .create_public_watch_response_201_notify_type import (
 )
 from .create_site_body import CreateSiteBody
 from .create_watch_body import CreateWatchBody
+from .create_watch_body_concerns_item import CreateWatchBodyConcernsItem
+from .create_watch_body_concerns_item_kind import CreateWatchBodyConcernsItemKind
+from .create_watch_body_kind import CreateWatchBodyKind
 from .create_watch_body_media import CreateWatchBodyMedia
 from .create_watch_body_notify_type_0 import CreateWatchBodyNotifyType0
 from .create_watch_body_notify_type_1 import CreateWatchBodyNotifyType1
@@ -118,6 +124,8 @@ from .create_watch_response_201_core_state import CreateWatchResponse201CoreStat
 from .create_watch_response_201_display_status import (
     CreateWatchResponse201DisplayStatus,
 )
+from .create_watch_response_201_judging import CreateWatchResponse201Judging
+from .create_watch_response_201_judging_state import CreateWatchResponse201JudgingState
 from .create_watch_response_201_last_delivery_type_1 import (
     CreateWatchResponse201LastDeliveryType1,
 )
@@ -149,6 +157,7 @@ from .event import Event
 from .event_delivery_status import EventDeliveryStatus
 from .event_feedback_type_1 import EventFeedbackType1
 from .event_page import EventPage
+from .finish_card_replace_response_200 import FinishCardReplaceResponse200
 from .get_agent_version_response_200 import GetAgentVersionResponse200
 from .get_camera_status_response_200 import GetCameraStatusResponse200
 from .get_camera_status_response_200_kind import GetCameraStatusResponse200Kind
@@ -180,6 +189,9 @@ from .get_health_response_200 import GetHealthResponse200
 from .get_metrics_days import GetMetricsDays
 from .get_metrics_response_200 import GetMetricsResponse200
 from .get_plan_response_200 import GetPlanResponse200
+from .get_plan_response_200_block_reason_type_1 import (
+    GetPlanResponse200BlockReasonType1,
+)
 from .get_plan_response_200_counts import GetPlanResponse200Counts
 from .get_plan_response_200_limits import GetPlanResponse200Limits
 from .get_plan_response_200_month_to_date import GetPlanResponse200MonthToDate
@@ -215,6 +227,8 @@ from .get_watch_response_200_camera_type_0_status import (
 from .get_watch_response_200_core_state import GetWatchResponse200CoreState
 from .get_watch_response_200_display_status import GetWatchResponse200DisplayStatus
 from .get_watch_response_200_engine_type_0 import GetWatchResponse200EngineType0
+from .get_watch_response_200_judging import GetWatchResponse200Judging
+from .get_watch_response_200_judging_state import GetWatchResponse200JudgingState
 from .get_watch_response_200_last_delivery_type_1 import (
     GetWatchResponse200LastDeliveryType1,
 )
@@ -245,6 +259,11 @@ from .integration_rule_last_delivery_type_0_status import (
 )
 from .integration_rule_service import IntegrationRuleService
 from .integration_rule_status import IntegrationRuleStatus
+from .interpret_goal_body import InterpretGoalBody
+from .interpret_goal_response_200 import InterpretGoalResponse200
+from .interpret_goal_response_200_interpretation import (
+    InterpretGoalResponse200Interpretation,
+)
 from .list_agent_messages_response_200 import ListAgentMessagesResponse200
 from .list_agent_messages_response_200_messages_item import (
     ListAgentMessagesResponse200MessagesItem,
@@ -275,6 +294,7 @@ from .redeem_credit_code_body import RedeemCreditCodeBody
 from .redeem_credit_code_response_200 import RedeemCreditCodeResponse200
 from .register_device_body import RegisterDeviceBody
 from .register_device_response_200 import RegisterDeviceResponse200
+from .replace_card_response_200 import ReplaceCardResponse200
 from .revoke_connected_app_response_200 import RevokeConnectedAppResponse200
 from .rotate_camera_token_response_200 import RotateCameraTokenResponse200
 from .rotate_watch_secret_response_200 import RotateWatchSecretResponse200
@@ -302,6 +322,7 @@ from .test_case_type_0_expected import TestCaseType0Expected
 from .test_hook_response_200 import TestHookResponse200
 from .test_integration_response_200 import TestIntegrationResponse200
 from .test_run import TestRun
+from .test_run_interpretation_type_0 import TestRunInterpretationType0
 from .test_run_results_item import TestRunResultsItem
 from .test_run_results_item_expected import TestRunResultsItemExpected
 from .test_run_results_item_got import TestRunResultsItemGot
@@ -344,6 +365,13 @@ from .update_site_memory_body_entities_item_state import (
     UpdateSiteMemoryBodyEntitiesItemState,
 )
 from .update_watch_body import UpdateWatchBody
+from .update_watch_body_interpretation import UpdateWatchBodyInterpretation
+from .update_watch_body_interpretation_concerns_item import (
+    UpdateWatchBodyInterpretationConcernsItem,
+)
+from .update_watch_body_interpretation_concerns_item_kind import (
+    UpdateWatchBodyInterpretationConcernsItemKind,
+)
 from .update_watch_body_media import UpdateWatchBodyMedia
 from .update_watch_body_notify_type_0 import UpdateWatchBodyNotifyType0
 from .update_watch_body_notify_type_1 import UpdateWatchBodyNotifyType1
@@ -354,6 +382,8 @@ from .watch_camera_type_0 import WatchCameraType0
 from .watch_camera_type_0_status import WatchCameraType0Status
 from .watch_core_state import WatchCoreState
 from .watch_display_status import WatchDisplayStatus
+from .watch_judging import WatchJudging
+from .watch_judging_state import WatchJudgingState
 from .watch_last_delivery_type_1 import WatchLastDeliveryType1
 from .watch_last_event_type_0 import WatchLastEventType0
 from .watch_last_event_type_0_delivery_status import WatchLastEventType0DeliveryStatus
@@ -392,7 +422,9 @@ __all__ = (
     "AskSiteResponse200",
     "BuildAgentBody",
     "BuildAgentResponse201",
+    "BuildAgentResponse201Degraded",
     "Camera",
+    "CameraDeviceKindType1",
     "CameraKind",
     "CameraStatus",
     "ChatWithAgentBody",
@@ -427,6 +459,7 @@ __all__ = (
     "CreateApiKeyResponse201",
     "CreateApiKeyResponse201ScopesItem",
     "CreateCameraBody",
+    "CreateCameraBodyDeviceKind",
     "CreateCameraBodyKind",
     "CreateCameraPairingResponse200",
     "CreateCameraResponse200",
@@ -451,6 +484,9 @@ __all__ = (
     "CreatePublicWatchResponse201NotifyType",
     "CreateSiteBody",
     "CreateWatchBody",
+    "CreateWatchBodyConcernsItem",
+    "CreateWatchBodyConcernsItemKind",
+    "CreateWatchBodyKind",
     "CreateWatchBodyMedia",
     "CreateWatchBodyNotifyType0",
     "CreateWatchBodyNotifyType1",
@@ -461,6 +497,8 @@ __all__ = (
     "CreateWatchResponse201CameraType0Status",
     "CreateWatchResponse201CoreState",
     "CreateWatchResponse201DisplayStatus",
+    "CreateWatchResponse201Judging",
+    "CreateWatchResponse201JudgingState",
     "CreateWatchResponse201LastDeliveryType1",
     "CreateWatchResponse201LastEventType0",
     "CreateWatchResponse201LastEventType0DeliveryStatus",
@@ -486,6 +524,7 @@ __all__ = (
     "EventDeliveryStatus",
     "EventFeedbackType1",
     "EventPage",
+    "FinishCardReplaceResponse200",
     "GetAgentVersionResponse200",
     "GetCameraStatusResponse200",
     "GetCameraStatusResponse200Kind",
@@ -507,6 +546,7 @@ __all__ = (
     "GetMetricsDays",
     "GetMetricsResponse200",
     "GetPlanResponse200",
+    "GetPlanResponse200BlockReasonType1",
     "GetPlanResponse200Counts",
     "GetPlanResponse200Limits",
     "GetPlanResponse200MonthToDate",
@@ -532,6 +572,8 @@ __all__ = (
     "GetWatchResponse200CoreState",
     "GetWatchResponse200DisplayStatus",
     "GetWatchResponse200EngineType0",
+    "GetWatchResponse200Judging",
+    "GetWatchResponse200JudgingState",
     "GetWatchResponse200LastDeliveryType1",
     "GetWatchResponse200LastEventType0",
     "GetWatchResponse200LastEventType0DeliveryStatus",
@@ -556,6 +598,9 @@ __all__ = (
     "IntegrationRuleLastDeliveryType0Status",
     "IntegrationRuleService",
     "IntegrationRuleStatus",
+    "InterpretGoalBody",
+    "InterpretGoalResponse200",
+    "InterpretGoalResponse200Interpretation",
     "ListAgentMessagesResponse200",
     "ListAgentMessagesResponse200MessagesItem",
     "ListAgentMessagesResponse200MessagesItemRole",
@@ -576,6 +621,7 @@ __all__ = (
     "RedeemCreditCodeResponse200",
     "RegisterDeviceBody",
     "RegisterDeviceResponse200",
+    "ReplaceCardResponse200",
     "RevokeConnectedAppResponse200",
     "RotateCameraTokenResponse200",
     "RotateWatchSecretResponse200",
@@ -601,6 +647,7 @@ __all__ = (
     "TestHookResponse200",
     "TestIntegrationResponse200",
     "TestRun",
+    "TestRunInterpretationType0",
     "TestRunResultsItem",
     "TestRunResultsItemExpected",
     "TestRunResultsItemGot",
@@ -627,6 +674,9 @@ __all__ = (
     "UpdateSiteMemoryBodyEntitiesItem",
     "UpdateSiteMemoryBodyEntitiesItemState",
     "UpdateWatchBody",
+    "UpdateWatchBodyInterpretation",
+    "UpdateWatchBodyInterpretationConcernsItem",
+    "UpdateWatchBodyInterpretationConcernsItemKind",
     "UpdateWatchBodyMedia",
     "UpdateWatchBodyNotifyType0",
     "UpdateWatchBodyNotifyType1",
@@ -637,6 +687,8 @@ __all__ = (
     "WatchCameraType0Status",
     "WatchCoreState",
     "WatchDisplayStatus",
+    "WatchJudging",
+    "WatchJudgingState",
     "WatchLastDeliveryType1",
     "WatchLastEventType0",
     "WatchLastEventType0DeliveryStatus",

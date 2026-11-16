@@ -15,6 +15,7 @@ from ..models.update_watch_body_status import UpdateWatchBodyStatus
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
+    from ..models.update_watch_body_interpretation import UpdateWatchBodyInterpretation
     from ..models.update_watch_body_notify_type_0 import UpdateWatchBodyNotifyType0
     from ..models.update_watch_body_notify_type_1 import UpdateWatchBodyNotifyType1
 
@@ -26,9 +27,12 @@ T = TypeVar("T", bound="UpdateWatchBody")
 class UpdateWatchBody:
     """
     Attributes:
+        acknowledge (Union[Unset, bool]):
         agent_id (Union[Unset, str]):
         agent_version (Union[None, Unset, int]):
         goal (Union[Unset, str]):
+        interpret (Union[Unset, bool]):
+        interpretation (Union[Unset, UpdateWatchBodyInterpretation]):
         media (Union[Unset, UpdateWatchBodyMedia]):
         notify (Union['UpdateWatchBodyNotifyType0', 'UpdateWatchBodyNotifyType1', Unset]):
         site_id (Union[None, Unset, str]):
@@ -36,9 +40,12 @@ class UpdateWatchBody:
         status (Union[Unset, UpdateWatchBodyStatus]):
     """
 
+    acknowledge: Union[Unset, bool] = UNSET
     agent_id: Union[Unset, str] = UNSET
     agent_version: Union[None, Unset, int] = UNSET
     goal: Union[Unset, str] = UNSET
+    interpret: Union[Unset, bool] = UNSET
+    interpretation: Union[Unset, "UpdateWatchBodyInterpretation"] = UNSET
     media: Union[Unset, UpdateWatchBodyMedia] = UNSET
     notify: Union["UpdateWatchBodyNotifyType0", "UpdateWatchBodyNotifyType1", Unset] = UNSET
     site_id: Union[None, Unset, str] = UNSET
@@ -49,6 +56,8 @@ class UpdateWatchBody:
     def to_dict(self) -> dict[str, Any]:
         from ..models.update_watch_body_notify_type_0 import UpdateWatchBodyNotifyType0
 
+        acknowledge = self.acknowledge
+
         agent_id = self.agent_id
 
         agent_version: Union[None, Unset, int]
@@ -58,6 +67,12 @@ class UpdateWatchBody:
             agent_version = self.agent_version
 
         goal = self.goal
+
+        interpret = self.interpret
+
+        interpretation: Union[Unset, dict[str, Any]] = UNSET
+        if not isinstance(self.interpretation, Unset):
+            interpretation = self.interpretation.to_dict()
 
         media: Union[Unset, str] = UNSET
         if not isinstance(self.media, Unset):
@@ -90,12 +105,18 @@ class UpdateWatchBody:
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update({})
+        if acknowledge is not UNSET:
+            field_dict["acknowledge"] = acknowledge
         if agent_id is not UNSET:
             field_dict["agentId"] = agent_id
         if agent_version is not UNSET:
             field_dict["agentVersion"] = agent_version
         if goal is not UNSET:
             field_dict["goal"] = goal
+        if interpret is not UNSET:
+            field_dict["interpret"] = interpret
+        if interpretation is not UNSET:
+            field_dict["interpretation"] = interpretation
         if media is not UNSET:
             field_dict["media"] = media
         if notify is not UNSET:
@@ -111,10 +132,15 @@ class UpdateWatchBody:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.update_watch_body_interpretation import (
+            UpdateWatchBodyInterpretation,
+        )
         from ..models.update_watch_body_notify_type_0 import UpdateWatchBodyNotifyType0
         from ..models.update_watch_body_notify_type_1 import UpdateWatchBodyNotifyType1
 
         d = dict(src_dict)
+        acknowledge = d.pop("acknowledge", UNSET)
+
         agent_id = d.pop("agentId", UNSET)
 
         def _parse_agent_version(data: object) -> Union[None, Unset, int]:
@@ -127,6 +153,15 @@ class UpdateWatchBody:
         agent_version = _parse_agent_version(d.pop("agentVersion", UNSET))
 
         goal = d.pop("goal", UNSET)
+
+        interpret = d.pop("interpret", UNSET)
+
+        _interpretation = d.pop("interpretation", UNSET)
+        interpretation: Union[Unset, UpdateWatchBodyInterpretation]
+        if isinstance(_interpretation, Unset):
+            interpretation = UNSET
+        else:
+            interpretation = UpdateWatchBodyInterpretation.from_dict(_interpretation)
 
         _media = d.pop("media", UNSET)
         media: Union[Unset, UpdateWatchBodyMedia]
@@ -180,9 +215,12 @@ class UpdateWatchBody:
             status = UpdateWatchBodyStatus(_status)
 
         update_watch_body = cls(
+            acknowledge=acknowledge,
             agent_id=agent_id,
             agent_version=agent_version,
             goal=goal,
+            interpret=interpret,
+            interpretation=interpretation,
             media=media,
             notify=notify,
             site_id=site_id,

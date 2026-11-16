@@ -11,6 +11,7 @@ from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 from dateutil.parser import isoparse
 
+from ..models.camera_device_kind_type_1 import CameraDeviceKindType1
 from ..models.camera_kind import CameraKind
 from ..models.camera_status import CameraStatus
 from ..types import UNSET, Unset
@@ -22,6 +23,8 @@ T = TypeVar("T", bound="Camera")
 class Camera:
     """
     Attributes:
+        device_kind (Union[CameraDeviceKindType1, None, Unset]): What device a paired camera is, when the browser that
+            made it said so; null for older cameras and for push cameras. Wording only.
         external_id (Union[None, Unset, str]): The connector's own id for a push camera.
         id (Union[Unset, str]):
         kind (Union[Unset, CameraKind]): phone = paired by link; push = a connector on a LAN pushes WHIP with a token.
@@ -31,6 +34,7 @@ class Camera:
         watch_count (Union[Unset, int]):
     """
 
+    device_kind: Union[CameraDeviceKindType1, None, Unset] = UNSET
     external_id: Union[None, Unset, str] = UNSET
     id: Union[Unset, str] = UNSET
     kind: Union[Unset, CameraKind] = UNSET
@@ -41,6 +45,14 @@ class Camera:
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        device_kind: Union[None, Unset, str]
+        if isinstance(self.device_kind, Unset):
+            device_kind = UNSET
+        elif isinstance(self.device_kind, CameraDeviceKindType1):
+            device_kind = self.device_kind.value
+        else:
+            device_kind = self.device_kind
+
         external_id: Union[None, Unset, str]
         if isinstance(self.external_id, Unset):
             external_id = UNSET
@@ -72,6 +84,8 @@ class Camera:
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update({})
+        if device_kind is not UNSET:
+            field_dict["deviceKind"] = device_kind
         if external_id is not UNSET:
             field_dict["externalId"] = external_id
         if id is not UNSET:
@@ -92,6 +106,25 @@ class Camera:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
+
+        def _parse_device_kind(
+            data: object,
+        ) -> Union[CameraDeviceKindType1, None, Unset]:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                device_kind_type_1 = CameraDeviceKindType1(data)
+
+                return device_kind_type_1
+            except:  # noqa: E722
+                pass
+            return cast(Union[CameraDeviceKindType1, None, Unset], data)
+
+        device_kind = _parse_device_kind(d.pop("deviceKind", UNSET))
 
         def _parse_external_id(data: object) -> Union[None, Unset, str]:
             if data is None:
@@ -140,6 +173,7 @@ class Camera:
         watch_count = d.pop("watchCount", UNSET)
 
         camera = cls(
+            device_kind=device_kind,
             external_id=external_id,
             id=id,
             kind=kind,
