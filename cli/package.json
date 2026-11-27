@@ -7,8 +7,8 @@
   "bin": { "percia": "./dist/bin.js" },
   "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
   "engines": { "node": ">=20" },
-  "repository": { "type": "git", "url": "git+https://github.com/percia-ai/percia-sdks.git", "directory": "cli" },
-  "homepage": "https://github.com/percia-ai/percia-sdks/tree/main/cli#readme",
+  "repository": { "type": "git", "url": "git+https://github.com/velvee-ai/percia-sdks.git", "directory": "cli" },
+  "homepage": "https://github.com/velvee-ai/percia-sdks/tree/main/cli#readme",
   "keywords": ["percia", "cli", "webhooks", "camera", "mcp"],
   "publishConfig": { "access": "public", "provenance": true },
   "scripts": {

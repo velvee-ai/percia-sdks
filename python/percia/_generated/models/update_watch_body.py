@@ -15,7 +15,7 @@ from ..models.update_watch_body_status import UpdateWatchBodyStatus
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
-    from ..models.update_watch_body_interpretation import UpdateWatchBodyInterpretation
+    from ..models.update_watch_body_advanced import UpdateWatchBodyAdvanced
     from ..models.update_watch_body_notify_type_0 import UpdateWatchBodyNotifyType0
     from ..models.update_watch_body_notify_type_1 import UpdateWatchBodyNotifyType1
 
@@ -27,36 +27,43 @@ T = TypeVar("T", bound="UpdateWatchBody")
 class UpdateWatchBody:
     """
     Attributes:
-        acknowledge (Union[Unset, bool]):
+        advanced (Union[Unset, UpdateWatchBodyAdvanced]): Beta, only where recording is on (422 advanced_unavailable
+            elsewhere): your own conditions. `conditions[]` are Condition objects {condition_id, kind
+            (event|state|measurement), observable, role?: helper, while?/and_not?: {condition_id} or {signal: {signal, op,
+            value}}, window_by?, window?, window_signal?, thresholds?: {..., trend, trend_window_s, trend_min_samples,
+            trend_noise_floor, trend_slope}}. Example, alert if the belt stops while the motor is on:
+            [{condition_id:"belt_stopped", kind:"state", observable:"the belt is not moving",
+            while:{signal:{signal:"motor_running", op:"==", value:true}}}] (declare motor_running in the site's context
+            first, and join the watch to that site with siteId). The source must be a Percia camera. See /docs/advanced.md.
         agent_id (Union[Unset, str]):
         agent_version (Union[None, Unset, int]):
         goal (Union[Unset, str]):
-        interpret (Union[Unset, bool]):
-        interpretation (Union[Unset, UpdateWatchBodyInterpretation]):
         media (Union[Unset, UpdateWatchBodyMedia]):
         notify (Union['UpdateWatchBodyNotifyType0', 'UpdateWatchBodyNotifyType1', Unset]):
         site_id (Union[None, Unset, str]):
         source_url (Union[Unset, str]):
         status (Union[Unset, UpdateWatchBodyStatus]):
+        test_run (Union[Unset, bool]):
     """
 
-    acknowledge: Union[Unset, bool] = UNSET
+    advanced: Union[Unset, "UpdateWatchBodyAdvanced"] = UNSET
     agent_id: Union[Unset, str] = UNSET
     agent_version: Union[None, Unset, int] = UNSET
     goal: Union[Unset, str] = UNSET
-    interpret: Union[Unset, bool] = UNSET
-    interpretation: Union[Unset, "UpdateWatchBodyInterpretation"] = UNSET
     media: Union[Unset, UpdateWatchBodyMedia] = UNSET
     notify: Union["UpdateWatchBodyNotifyType0", "UpdateWatchBodyNotifyType1", Unset] = UNSET
     site_id: Union[None, Unset, str] = UNSET
     source_url: Union[Unset, str] = UNSET
     status: Union[Unset, UpdateWatchBodyStatus] = UNSET
+    test_run: Union[Unset, bool] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.update_watch_body_notify_type_0 import UpdateWatchBodyNotifyType0
 
-        acknowledge = self.acknowledge
+        advanced: Union[Unset, dict[str, Any]] = UNSET
+        if not isinstance(self.advanced, Unset):
+            advanced = self.advanced.to_dict()
 
         agent_id = self.agent_id
 
@@ -67,12 +74,6 @@ class UpdateWatchBody:
             agent_version = self.agent_version
 
         goal = self.goal
-
-        interpret = self.interpret
-
-        interpretation: Union[Unset, dict[str, Any]] = UNSET
-        if not isinstance(self.interpretation, Unset):
-            interpretation = self.interpretation.to_dict()
 
         media: Union[Unset, str] = UNSET
         if not isinstance(self.media, Unset):
@@ -92,31 +93,25 @@ class UpdateWatchBody:
         else:
             site_id = self.site_id
 
-        source_url: Union[Unset, str]
-        if isinstance(self.source_url, Unset):
-            source_url = UNSET
-        else:
-            source_url = self.source_url
+        source_url = self.source_url
 
         status: Union[Unset, str] = UNSET
         if not isinstance(self.status, Unset):
             status = self.status.value
 
+        test_run = self.test_run
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update({})
-        if acknowledge is not UNSET:
-            field_dict["acknowledge"] = acknowledge
+        if advanced is not UNSET:
+            field_dict["advanced"] = advanced
         if agent_id is not UNSET:
             field_dict["agentId"] = agent_id
         if agent_version is not UNSET:
             field_dict["agentVersion"] = agent_version
         if goal is not UNSET:
             field_dict["goal"] = goal
-        if interpret is not UNSET:
-            field_dict["interpret"] = interpret
-        if interpretation is not UNSET:
-            field_dict["interpretation"] = interpretation
         if media is not UNSET:
             field_dict["media"] = media
         if notify is not UNSET:
@@ -127,19 +122,24 @@ class UpdateWatchBody:
             field_dict["sourceUrl"] = source_url
         if status is not UNSET:
             field_dict["status"] = status
+        if test_run is not UNSET:
+            field_dict["testRun"] = test_run
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.update_watch_body_interpretation import (
-            UpdateWatchBodyInterpretation,
-        )
+        from ..models.update_watch_body_advanced import UpdateWatchBodyAdvanced
         from ..models.update_watch_body_notify_type_0 import UpdateWatchBodyNotifyType0
         from ..models.update_watch_body_notify_type_1 import UpdateWatchBodyNotifyType1
 
         d = dict(src_dict)
-        acknowledge = d.pop("acknowledge", UNSET)
+        _advanced = d.pop("advanced", UNSET)
+        advanced: Union[Unset, UpdateWatchBodyAdvanced]
+        if isinstance(_advanced, Unset):
+            advanced = UNSET
+        else:
+            advanced = UpdateWatchBodyAdvanced.from_dict(_advanced)
 
         agent_id = d.pop("agentId", UNSET)
 
@@ -153,15 +153,6 @@ class UpdateWatchBody:
         agent_version = _parse_agent_version(d.pop("agentVersion", UNSET))
 
         goal = d.pop("goal", UNSET)
-
-        interpret = d.pop("interpret", UNSET)
-
-        _interpretation = d.pop("interpretation", UNSET)
-        interpretation: Union[Unset, UpdateWatchBodyInterpretation]
-        if isinstance(_interpretation, Unset):
-            interpretation = UNSET
-        else:
-            interpretation = UpdateWatchBodyInterpretation.from_dict(_interpretation)
 
         _media = d.pop("media", UNSET)
         media: Union[Unset, UpdateWatchBodyMedia]
@@ -200,12 +191,7 @@ class UpdateWatchBody:
 
         site_id = _parse_site_id(d.pop("siteId", UNSET))
 
-        def _parse_source_url(data: object) -> Union[Unset, str]:
-            if isinstance(data, Unset):
-                return data
-            return cast(Union[Unset, str], data)
-
-        source_url = _parse_source_url(d.pop("sourceUrl", UNSET))
+        source_url = d.pop("sourceUrl", UNSET)
 
         _status = d.pop("status", UNSET)
         status: Union[Unset, UpdateWatchBodyStatus]
@@ -214,18 +200,19 @@ class UpdateWatchBody:
         else:
             status = UpdateWatchBodyStatus(_status)
 
+        test_run = d.pop("testRun", UNSET)
+
         update_watch_body = cls(
-            acknowledge=acknowledge,
+            advanced=advanced,
             agent_id=agent_id,
             agent_version=agent_version,
             goal=goal,
-            interpret=interpret,
-            interpretation=interpretation,
             media=media,
             notify=notify,
             site_id=site_id,
             source_url=source_url,
             status=status,
+            test_run=test_run,
         )
 
         update_watch_body.additional_properties = d

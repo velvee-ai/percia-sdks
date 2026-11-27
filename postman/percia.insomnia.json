@@ -27,17 +27,22 @@
         "cameraId": "",
         "cameraToken": "",
         "caseId": "",
+        "clipId": "",
         "connectUrl": "",
         "connectionId": "",
         "cursor": "",
         "deviceToken": "",
+        "draftId": "",
         "eventId": "",
         "hookId": "",
         "hookSecret": "",
         "index": "",
         "integrationId": "",
+        "n": "",
         "pairUrl": "",
         "siteId": "",
+        "testId": "",
+        "uploadId": "",
         "version": "",
         "watchId": "",
         "webhookSecret": "",
@@ -58,7 +63,7 @@
       "_type": "request",
       "parentId": "fld_8e9edd257c8130ff",
       "name": "1. Create a webhook watch (save webhookSecret)",
-      "description": "The response is the only time you see `webhookSecret`. The test saves it as the `webhookSecret` variable (never logged). Set `webhookUrl` first: a public https address of your receiver.\n\noperationId: createWatch\n\nCreate a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge) to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read `interpretation.gaps` and `untestable` and ask the person those questions. Send `interpret: false` to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent.\n\nScopes: watches:write.",
+      "description": "The response is the only time you see `webhookSecret`. The test saves it as the `webhookSecret` variable (never logged). Set `webhookUrl` first: a public https address of your receiver.\n\noperationId: createWatch\n\nCreate a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge) to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read `interpretation.gaps` and `untestable` and ask the person those questions. Send `draftId` (a ready draft from POST /watches/draft, with `acknowledgeUnsupported: true` when it left parts out) instead of `goal`; the draft has the conditions. Send `interpret: false` to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent. With clarifying (when Percia has it on; see GET /config): a create with a `goal` is read by Percia's layer first. A clear goal creates the watch as before. An unclear one creates nothing and answers 422 `clarification_needed` with `draftId`, `question` and `options` (and `guidance`): ask the person, answer with POST /watches/draft/{draftId}/answer {text}, then create with {sourceUrl, draftId}; or send a clearer goal. Parts that cannot be watched answer 409 `unsupported_not_acknowledged` (tell the person, then repeat with `acknowledgeUnsupported: true`). The old per-watch knobs are refused with 422 naming the field in `error.field`, from the first call: cooldownS, kind, rearmS, recheckS, minConfidence, notWhen, zones, concerns, judgeKey, interpret, and runtime: core.\n\nScopes: watches:write.",
       "method": "POST",
       "url": "{{ _.baseUrl }}/api/watches/owned",
       "parameters": [],
@@ -229,11 +234,11 @@
       "metaSortKey": -991
     },
     {
-      "_id": "req_e3996e1e1c00ed0e",
+      "_id": "req_5acb637727512f25",
       "_type": "request",
       "parentId": "fld_208c2598e1e0c670",
-      "name": "Update a watch. A new goal is understood again (interpret: false keeps the words as written); interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal detaches the agent.",
-      "description": "operationId: updateWatch\n\nUpdate a watch. A new goal is understood again (interpret: false keeps the words as written); interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal detaches the agent.\n\nScopes: watches:write.",
+      "name": "Update a watch. `status: \"active\"` with `testRun: true` starts a 30-minute live test run (events are marked test events); `status: \"active\"` alone goes live, also from a running test, with no restart. A new goal is understood again (interpret: false keeps the words as written); interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal detaches the agent.",
+      "description": "operationId: updateWatch\n\nUpdate a watch. `status: \"active\"` with `testRun: true` starts a 30-minute live test run (events are marked test events); `status: \"active\"` alone goes live, also from a running test, with no restart. A new goal is understood again (interpret: false keeps the words as written); interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal detaches the agent.\n\nScopes: watches:write.",
       "method": "PATCH",
       "url": "{{ _.baseUrl }}/api/watches/{{ _.watchId }}",
       "parameters": [],
@@ -290,27 +295,6 @@
       "metaSortKey": -989
     },
     {
-      "_id": "req_58b3933d527f0ca5",
-      "_type": "request",
-      "parentId": "fld_208c2598e1e0c670",
-      "name": "Understand the watch's current goal again and store it as the next interpretation version (the job restarts with it). Replaces any conditions edited by hand. 503 interpret_unavailable keeps the previous interpretation.",
-      "description": "operationId: reinterpretWatch\n\nUnderstand the watch's current goal again and store it as the next interpretation version (the job restarts with it). Replaces any conditions edited by hand. 503 interpret_unavailable keeps the previous interpretation.\n\nScopes: watches:write.",
-      "method": "POST",
-      "url": "{{ _.baseUrl }}/api/watches/{{ _.watchId }}/reinterpret",
-      "parameters": [],
-      "headers": [
-        {
-          "name": "Accept",
-          "value": "application/json"
-        }
-      ],
-      "authentication": {
-        "type": "bearer",
-        "token": "{{ _.apiKey }}"
-      },
-      "metaSortKey": -988
-    },
-    {
       "_id": "req_a6fae2bf9106901b",
       "_type": "request",
       "parentId": "fld_208c2598e1e0c670",
@@ -329,7 +313,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -987
+      "metaSortKey": -988
     },
     {
       "_id": "req_1a11ab5a81a5eb28",
@@ -350,16 +334,16 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -986
+      "metaSortKey": -987
     },
     {
-      "_id": "req_b26d1d0cef4ba306",
+      "_id": "req_c23ed6d790f96800",
       "_type": "request",
       "parentId": "fld_208c2598e1e0c670",
-      "name": "What Percia understands of a goal, without creating anything: the kind of each condition (something happens / something stays true), what it ignores, what a camera cannot see (with questions to ask the person), and how clear the goal is. Use it before POST /watches/owned to check a goal; creating a watch does the same understanding by itself. Cached for 7 days; limited per person per hour (429 rate_limited with Retry-After).",
-      "description": "operationId: interpretGoal\n\nWhat Percia understands of a goal, without creating anything: the kind of each condition (something happens / something stays true), what it ignores, what a camera cannot see (with questions to ask the person), and how clear the goal is. Use it before POST /watches/owned to check a goal; creating a watch does the same understanding by itself. Cached for 7 days; limited per person per hour (429 rate_limited with Retry-After).\n\nScopes: watches:write.",
+      "name": "Start a watch the clarifying way (Percia; 404 unless Percia has it on). Send the plain ask and the camera (`cameraId` of one of your cameras, or a public `sourceUrl`). Percia's intelligence layer reads it and answers with a draft: `status` clarifying (ask the person `question`; `options` are numbered meanings they may pick by number or replace with their own words), ready (conditions understood: create the watch with POST /watches/owned {draftId, sourceUrl}), or refused (nothing visible is left to watch). `unsupported` lists parts that cannot be watched (audio, several cameras, who someone is: `refused` true); when `needsAcknowledgement` is true tell the person, then create with `acknowledgeUnsupported: true`. Nothing is created yet.",
+      "description": "operationId: createWatchDraft\n\nStart a watch the clarifying way (Percia; 404 unless Percia has it on). Send the plain ask and the camera (`cameraId` of one of your cameras, or a public `sourceUrl`). Percia's intelligence layer reads it and answers with a draft: `status` clarifying (ask the person `question`; `options` are numbered meanings they may pick by number or replace with their own words), ready (conditions understood: create the watch with POST /watches/owned {draftId, sourceUrl}), or refused (nothing visible is left to watch). `unsupported` lists parts that cannot be watched (audio, several cameras, who someone is: `refused` true); when `needsAcknowledgement` is true tell the person, then create with `acknowledgeUnsupported: true`. Nothing is created yet.\n\nScopes: watches:write.",
       "method": "POST",
-      "url": "{{ _.baseUrl }}/api/watches/interpret",
+      "url": "{{ _.baseUrl }}/api/watches/draft",
       "parameters": [],
       "headers": [
         {
@@ -379,7 +363,57 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
+      "metaSortKey": -986
+    },
+    {
+      "_id": "req_fdb36b7b3cae62f9",
+      "_type": "request",
+      "parentId": "fld_208c2598e1e0c670",
+      "name": "Read a clarify draft (your own): its status, question, options, conditions and the conversation so far.",
+      "description": "operationId: getWatchDraft\n\nRead a clarify draft (your own): its status, question, options, conditions and the conversation so far.\n\nScopes: watches:read.",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/watches/draft/{{ _.draftId }}",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
       "metaSortKey": -985
+    },
+    {
+      "_id": "req_dbdc26a22beea411",
+      "_type": "request",
+      "parentId": "fld_208c2598e1e0c670",
+      "name": "Answer the draft's question: `text` is the number of one of the options (\"2\") or the person's own words. Only a draft that is still clarifying takes an answer; a draft that became a watch is closed (a running watch is never questioned). Returns the updated draft (a new question, or ready). When the layer cannot use the words, they are joined to the first ask and read again as one new ask (`restated: true`).",
+      "description": "operationId: answerWatchDraft\n\nAnswer the draft's question: `text` is the number of one of the options (\"2\") or the person's own words. Only a draft that is still clarifying takes an answer; a draft that became a watch is closed (a running watch is never questioned). Returns the updated draft (a new question, or ready). When the layer cannot use the words, they are joined to the first ask and read again as one new ask (`restated: true`).\n\nScopes: watches:write.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/watches/draft/{{ _.draftId }}/answer",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"text\": \"x\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -984
     },
     {
       "_id": "req_9cc15525587825ef",
@@ -400,14 +434,14 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -984
+      "metaSortKey": -983
     },
     {
-      "_id": "req_605e3183faeda56f",
+      "_id": "req_04e0851724472c42",
       "_type": "request",
       "parentId": "fld_208c2598e1e0c670",
-      "name": "Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge) to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read `interpretation.gaps` and `untestable` and ask the person those questions. Send `interpret: false` to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent.",
-      "description": "operationId: createWatch\n\nCreate a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge) to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read `interpretation.gaps` and `untestable` and ask the person those questions. Send `interpret: false` to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent.\n\nScopes: watches:write.",
+      "name": "Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge) to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read `interpretation.gaps` and `untestable` and ask the person those questions. Send `draftId` (a ready draft from POST /watches/draft, with `acknowledgeUnsupported: true` when it left parts out) instead of `goal`; the draft has the conditions. Send `interpret: false` to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent. With clarifying (when Percia has it on; see GET /config): a create with a `goal` is read by Percia's layer first. A clear goal creates the watch as before. An unclear one creates nothing and answers 422 `clarification_needed` with `draftId`, `question` and `options` (and `guidance`): ask the person, answer with POST /watches/draft/{draftId}/answer {text}, then create with {sourceUrl, draftId}; or send a clearer goal. Parts that cannot be watched answer 409 `unsupported_not_acknowledged` (tell the person, then repeat with `acknowledgeUnsupported: true`). The old per-watch knobs are refused with 422 naming the field in `error.field`, from the first call: cooldownS, kind, rearmS, recheckS, minConfidence, notWhen, zones, concerns, judgeKey, interpret, and runtime: core.",
+      "description": "operationId: createWatch\n\nCreate a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge) to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read `interpretation.gaps` and `untestable` and ask the person those questions. Send `draftId` (a ready draft from POST /watches/draft, with `acknowledgeUnsupported: true` when it left parts out) instead of `goal`; the draft has the conditions. Send `interpret: false` to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent. With clarifying (when Percia has it on; see GET /config): a create with a `goal` is read by Percia's layer first. A clear goal creates the watch as before. An unclear one creates nothing and answers 422 `clarification_needed` with `draftId`, `question` and `options` (and `guidance`): ask the person, answer with POST /watches/draft/{draftId}/answer {text}, then create with {sourceUrl, draftId}; or send a clearer goal. Parts that cannot be watched answer 409 `unsupported_not_acknowledged` (tell the person, then repeat with `acknowledgeUnsupported: true`). The old per-watch knobs are refused with 422 naming the field in `error.field`, from the first call: cooldownS, kind, rearmS, recheckS, minConfidence, notWhen, zones, concerns, judgeKey, interpret, and runtime: core.\n\nScopes: watches:write.",
       "method": "POST",
       "url": "{{ _.baseUrl }}/api/watches/owned",
       "parameters": [],
@@ -429,7 +463,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -983
+      "metaSortKey": -982
     },
     {
       "_id": "fld_2afa2451f96c8783",
@@ -438,7 +472,7 @@
       "name": "Events feed",
       "description": "",
       "environment": {},
-      "metaSortKey": -982
+      "metaSortKey": -981
     },
     {
       "_id": "req_07b605595071e443",
@@ -473,6 +507,11 @@
           "name": "since",
           "value": "2026-11-01T00:00:00Z",
           "disabled": true
+        },
+        {
+          "name": "review",
+          "value": "",
+          "disabled": true
         }
       ],
       "headers": [
@@ -485,7 +524,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -981
+      "metaSortKey": -980
     },
     {
       "_id": "req_72c208b47f5d6bcf",
@@ -506,7 +545,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -980
+      "metaSortKey": -979
     },
     {
       "_id": "fld_2eeead8ee5ad99b0",
@@ -515,7 +554,7 @@
       "name": "REST hooks",
       "description": "",
       "environment": {},
-      "metaSortKey": -979
+      "metaSortKey": -978
     },
     {
       "_id": "req_a0e1aef7bf5e5e3b",
@@ -536,7 +575,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -978
+      "metaSortKey": -977
     },
     {
       "_id": "req_8616287757439c97",
@@ -565,7 +604,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -977
+      "metaSortKey": -976
     },
     {
       "_id": "req_543dc76a327dab6e",
@@ -586,7 +625,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -976
+      "metaSortKey": -975
     },
     {
       "_id": "req_31686a5635399a92",
@@ -607,7 +646,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -975
+      "metaSortKey": -974
     },
     {
       "_id": "fld_44e50d96137af533",
@@ -616,7 +655,7 @@
       "name": "Cameras (phone and push)",
       "description": "",
       "environment": {},
-      "metaSortKey": -974
+      "metaSortKey": -973
     },
     {
       "_id": "req_9d0683d3b5133f63",
@@ -637,14 +676,14 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -973
+      "metaSortKey": -972
     },
     {
-      "_id": "req_18cb1723315cf452",
+      "_id": "req_7a3072db4c1f943e",
       "_type": "request",
       "parentId": "fld_44e50d96137af533",
-      "name": "Create a camera. For a camera on a private network (ONVIF, RTSP, Frigate, Home Assistant, NVR) the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge), which registers the cameras itself. Default (phone): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.",
-      "description": "operationId: createCamera\n\nCreate a camera. For a camera on a private network (ONVIF, RTSP, Frigate, Home Assistant, NVR) the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge), which registers the cameras itself. Default (phone): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.\n\nScopes: cameras:write.",
+      "name": "Create a camera. For a camera on a private network (ONVIF, RTSP, Frigate, Home Assistant, NVR) the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge), which registers the cameras itself. Default (a paired phone, tablet or computer; its deviceKind is set when it opens the link): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.",
+      "description": "operationId: createCamera\n\nCreate a camera. For a camera on a private network (ONVIF, RTSP, Frigate, Home Assistant, NVR) the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge), which registers the cameras itself. Default (a paired phone, tablet or computer; its deviceKind is set when it opens the link): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.\n\nScopes: cameras:write.",
       "method": "POST",
       "url": "{{ _.baseUrl }}/api/cameras",
       "parameters": [],
@@ -666,14 +705,14 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -972
+      "metaSortKey": -971
     },
     {
       "_id": "req_568b549caf5282de",
       "_type": "request",
       "parentId": "fld_44e50d96137af533",
       "name": "Create a push camera for a private network (token shown once)",
-      "description": "For a camera on a LAN: a connector there pulls it once and pushes WHIP to Percia. Idempotent by `externalId` (or an `Idempotency-Key` header): a second call returns 200 with `token: null` and `existing: true` (the token is never shown twice; use Rotate token). The test saves `cameraId`, `whipUrl` and `cameraToken` (never logged). Publish with: ffmpeg -rtsp_transport tcp -i RTSP -an -c:v copy -f whip -authorization \"{{cameraToken}}\" {{whipUrl}}\n\noperationId: createCamera\n\nCreate a camera. For a camera on a private network (ONVIF, RTSP, Frigate, Home Assistant, NVR) the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge), which registers the cameras itself. Default (phone): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.\n\nScopes: cameras:write.",
+      "description": "For a camera on a LAN: a connector there pulls it once and pushes WHIP to Percia. Idempotent by `externalId` (or an `Idempotency-Key` header): a second call returns 200 with `token: null` and `existing: true` (the token is never shown twice; use Rotate token). The test saves `cameraId`, `whipUrl` and `cameraToken` (never logged). Publish with: ffmpeg -rtsp_transport tcp -i RTSP -an -c:v copy -f whip -authorization \"{{cameraToken}}\" {{whipUrl}}\n\noperationId: createCamera\n\nCreate a camera. For a camera on a private network (ONVIF, RTSP, Frigate, Home Assistant, NVR) the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge), which registers the cameras itself. Default (a paired phone, tablet or computer; its deviceKind is set when it opens the link): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.\n\nScopes: cameras:write.",
       "method": "POST",
       "url": "{{ _.baseUrl }}/api/cameras",
       "parameters": [],
@@ -695,7 +734,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -971
+      "metaSortKey": -970
     },
     {
       "_id": "req_bc87209165ee1911",
@@ -716,7 +755,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -970
+      "metaSortKey": -969
     },
     {
       "_id": "req_11773a458d059850",
@@ -737,7 +776,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -969
+      "metaSortKey": -968
     },
     {
       "_id": "req_8a2a8bbf684dba96",
@@ -758,7 +797,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -968
+      "metaSortKey": -967
     },
     {
       "_id": "req_0275a7a55301deac",
@@ -779,7 +818,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -967
+      "metaSortKey": -966
     },
     {
       "_id": "req_aa962f7ba585b269",
@@ -800,7 +839,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -966
+      "metaSortKey": -965
     },
     {
       "_id": "req_13aacef9713565ae",
@@ -829,7 +868,36 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -965
+      "metaSortKey": -964
+    },
+    {
+      "_id": "req_ddade29412d226b4",
+      "_type": "request",
+      "parentId": "fld_44e50d96137af533",
+      "name": "Make a camera from a public video link (rtsp, rtsps, http or https). Percia pulls it on its media host while a watch on it is active, so the camera then works like any other: use percia-cam://<id> as a watch's sourceUrl. The same link returns the same camera (200, existing true). A watch created with the link itself as sourceUrl does this for you. A private address (192.168.x.x, 10.x.x.x, localhost, an ONVIF/RTSP/Frigate/Home Assistant camera on a home network) is refused with 400 and a pointer to the Percia bridge. 404 unless link cameras are on.",
+      "description": "operationId: createLinkCamera\n\nMake a camera from a public video link (rtsp, rtsps, http or https). Percia pulls it on its media host while a watch on it is active, so the camera then works like any other: use percia-cam://<id> as a watch's sourceUrl. The same link returns the same camera (200, existing true). A watch created with the link itself as sourceUrl does this for you. A private address (192.168.x.x, 10.x.x.x, localhost, an ONVIF/RTSP/Frigate/Home Assistant camera on a home network) is refused with 400 and a pointer to the Percia bridge. 404 unless link cameras are on.\n\nScopes: cameras:write.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/cameras/link",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"sourceUrl\": \"x\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -963
     },
     {
       "_id": "req_43d24db302f7241f",
@@ -858,7 +926,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -964
+      "metaSortKey": -962
     },
     {
       "_id": "fld_9cfbbebb237e448e",
@@ -867,7 +935,7 @@
       "name": "Integrations",
       "description": "",
       "environment": {},
-      "metaSortKey": -963
+      "metaSortKey": -961
     },
     {
       "_id": "req_c6f8a854e2db6041",
@@ -888,7 +956,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -962
+      "metaSortKey": -960
     },
     {
       "_id": "req_cf776901fa3aaf54",
@@ -909,7 +977,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -961
+      "metaSortKey": -959
     },
     {
       "_id": "req_a4d20aa335dcc6c4",
@@ -938,7 +1006,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -960
+      "metaSortKey": -958
     },
     {
       "_id": "req_d92174269a2c5ace",
@@ -959,7 +1027,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -959
+      "metaSortKey": -957
     },
     {
       "_id": "req_95b69a10cd4268ab",
@@ -988,7 +1056,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -958
+      "metaSortKey": -956
     },
     {
       "_id": "req_c97fc1fb0340b08c",
@@ -1009,7 +1077,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -957
+      "metaSortKey": -955
     },
     {
       "_id": "req_4df74c539dd28f1d",
@@ -1030,7 +1098,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -956
+      "metaSortKey": -954
     },
     {
       "_id": "req_53821941e7397b82",
@@ -1059,7 +1127,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -955
+      "metaSortKey": -953
     },
     {
       "_id": "fld_536e117d348d7d73",
@@ -1068,7 +1136,7 @@
       "name": "Agents",
       "description": "",
       "environment": {},
-      "metaSortKey": -954
+      "metaSortKey": -952
     },
     {
       "_id": "req_a501a5d4ba619504",
@@ -1089,7 +1157,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -953
+      "metaSortKey": -951
     },
     {
       "_id": "req_9ba873b49076ee94",
@@ -1118,7 +1186,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -952
+      "metaSortKey": -950
     },
     {
       "_id": "req_5f81ac4e617fbac7",
@@ -1139,7 +1207,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -951
+      "metaSortKey": -949
     },
     {
       "_id": "req_5fe65cff31a2157c",
@@ -1160,7 +1228,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -950
+      "metaSortKey": -948
     },
     {
       "_id": "req_0fcbee11ffef4313",
@@ -1189,7 +1257,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -949
+      "metaSortKey": -947
     },
     {
       "_id": "req_eed3744082b12f58",
@@ -1210,7 +1278,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -948
+      "metaSortKey": -946
     },
     {
       "_id": "req_4920767f27542896",
@@ -1239,7 +1307,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -947
+      "metaSortKey": -945
     },
     {
       "_id": "req_3d0930f48c2dca05",
@@ -1260,7 +1328,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -946
+      "metaSortKey": -944
     },
     {
       "_id": "req_3839331871af8fd9",
@@ -1289,7 +1357,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -945
+      "metaSortKey": -943
     },
     {
       "_id": "req_47c9a40740ea0d17",
@@ -1310,7 +1378,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -944
+      "metaSortKey": -942
     },
     {
       "_id": "req_0d0c8f5787966fe6",
@@ -1339,7 +1407,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -943
+      "metaSortKey": -941
     },
     {
       "_id": "req_ad14402eeb9758e8",
@@ -1360,7 +1428,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -942
+      "metaSortKey": -940
     },
     {
       "_id": "fld_10172711fa40052c",
@@ -1369,7 +1437,7 @@
       "name": "Sites",
       "description": "",
       "environment": {},
-      "metaSortKey": -941
+      "metaSortKey": -939
     },
     {
       "_id": "req_fd07a49f2c884d7b",
@@ -1390,7 +1458,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -940
+      "metaSortKey": -938
     },
     {
       "_id": "req_70417d003057189d",
@@ -1419,7 +1487,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -939
+      "metaSortKey": -937
     },
     {
       "_id": "req_96a99e653e92eb05",
@@ -1440,7 +1508,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -938
+      "metaSortKey": -936
     },
     {
       "_id": "req_4982231ba4363951",
@@ -1461,7 +1529,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -937
+      "metaSortKey": -935
     },
     {
       "_id": "req_0f48317430e45c27",
@@ -1490,7 +1558,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -936
+      "metaSortKey": -934
     },
     {
       "_id": "req_74a73164fb3c4116",
@@ -1519,7 +1587,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -935
+      "metaSortKey": -933
     },
     {
       "_id": "req_b2011f1f6f76afa1",
@@ -1548,7 +1616,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -934
+      "metaSortKey": -932
     },
     {
       "_id": "req_510a9e9db8069a1f",
@@ -1569,7 +1637,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -933
+      "metaSortKey": -931
     },
     {
       "_id": "req_594407b307d573a4",
@@ -1601,7 +1669,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -932
+      "metaSortKey": -930
     },
     {
       "_id": "fld_98e1d6e85f7ab0b6",
@@ -1610,7 +1678,7 @@
       "name": "Evidence and tests",
       "description": "",
       "environment": {},
-      "metaSortKey": -931
+      "metaSortKey": -929
     },
     {
       "_id": "req_71d3fea06542f1bb",
@@ -1631,7 +1699,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -930
+      "metaSortKey": -928
     },
     {
       "_id": "req_e32e000d727663aa",
@@ -1660,7 +1728,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -929
+      "metaSortKey": -927
     },
     {
       "_id": "req_e1c988b80d5fea46",
@@ -1681,7 +1749,28 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -928
+      "metaSortKey": -926
+    },
+    {
+      "_id": "req_d5f3169fa12d23a2",
+      "_type": "request",
+      "parentId": "fld_98e1d6e85f7ab0b6",
+      "name": "The latest snapshot (JPEG) of one of your cameras, cut from its recording: the picture on watch cards and camera tiles. 404 when the camera never sent video. Needs cameras:read and events:read with an API key.",
+      "description": "operationId: getCameraThumbnail\n\nThe latest snapshot (JPEG) of one of your cameras, cut from its recording: the picture on watch cards and camera tiles. 404 when the camera never sent video. Needs cameras:read and events:read with an API key.\n\nScopes: cameras:read, events:read.",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/cameras/{{ _.cameraId }}/thumbnail",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -925
     },
     {
       "_id": "req_bfa3acfffc2a76ed",
@@ -1708,7 +1797,28 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -927
+      "metaSortKey": -924
+    },
+    {
+      "_id": "req_b32273ac5baa4ccb",
+      "_type": "request",
+      "parentId": "fld_98e1d6e85f7ab0b6",
+      "name": "How right all your watches are: totals from your marks, events still to review (unmarked alerts of the last 14 days), one row per watch, and a coaching tip when your marks give a real basis",
+      "description": "operationId: getQuality\n\nHow right all your watches are: totals from your marks, events still to review (unmarked alerts of the last 14 days), one row per watch, and a coaching tip when your marks give a real basis\n\nScopes: watches:read.",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/quality",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -923
     },
     {
       "_id": "req_6cc6a10c64eaafa4",
@@ -1729,7 +1839,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -926
+      "metaSortKey": -922
     },
     {
       "_id": "req_76b7fcf2b30f0b32",
@@ -1750,7 +1860,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -925
+      "metaSortKey": -921
     },
     {
       "_id": "req_1bbe382c5509127b",
@@ -1771,14 +1881,56 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -924
+      "metaSortKey": -920
     },
     {
-      "_id": "req_fe311dca6cf7bfde",
+      "_id": "req_c4b02b4107cb8743",
       "_type": "request",
       "parentId": "fld_98e1d6e85f7ab0b6",
-      "name": "Mark an event correct or a false alarm. With a keyframe it becomes (or updates) a test case with the image pinned. Leave `note` out to keep the note already stored; send an empty string to clear it.",
-      "description": "operationId: sendEventFeedback\n\nMark an event correct or a false alarm. With a keyframe it becomes (or updates) a test case with the image pinned. Leave `note` out to keep the note already stored; send an empty string to clear it.\n\nScopes: watches:write.",
+      "name": "The event's clip (video/mp4, H.264, no audio): from about 10 seconds before the event to 6 seconds after it, cut from the camera's recording. Supports `Range` requests. Needs events:read with an API key.",
+      "description": "operationId: getEventClip\n\nThe event's clip (video/mp4, H.264, no audio): from about 10 seconds before the event to 6 seconds after it, cut from the camera's recording. Supports `Range` requests. Needs events:read with an API key.\n\nScopes: events:read.",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/watches/{{ _.watchId }}/events/{{ _.eventId }}/clip",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -919
+    },
+    {
+      "_id": "req_dd03ef220963bc92",
+      "_type": "request",
+      "parentId": "fld_98e1d6e85f7ab0b6",
+      "name": "A 10 minute link to the event's clip (or its keyframe with `?kind=keyframe`) that needs no credential: hand it to a person or a viewer that can only load a URL. Needs events:read with an API key.",
+      "description": "operationId: getEventClipLink\n\nA 10 minute link to the event's clip (or its keyframe with `?kind=keyframe`) that needs no credential: hand it to a person or a viewer that can only load a URL. Needs events:read with an API key.\n\nScopes: events:read.",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/watches/{{ _.watchId }}/events/{{ _.eventId }}/clip/link",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -918
+    },
+    {
+      "_id": "req_5db83481d21333f6",
+      "_type": "request",
+      "parentId": "fld_98e1d6e85f7ab0b6",
+      "name": "Mark an event correct, a false alarm, or partly right (`partly` needs the correction in `note`). With a keyframe a correct or false alarm becomes (or updates) a test case with the image pinned. Leave `note` out to keep the note already stored; send an empty string to clear it. On a Percia event the mark also goes to the watch's running engine: `engine` says whether it was applied or only recorded, and why.",
+      "description": "operationId: sendEventFeedback\n\nMark an event correct, a false alarm, or partly right (`partly` needs the correction in `note`). With a keyframe a correct or false alarm becomes (or updates) a test case with the image pinned. Leave `note` out to keep the note already stored; send an empty string to clear it. On a Percia event the mark also goes to the watch's running engine: `engine` says whether it was applied or only recorded, and why.\n\nScopes: watches:write.",
       "method": "POST",
       "url": "{{ _.baseUrl }}/api/watches/{{ _.watchId }}/events/{{ _.eventId }}/feedback",
       "parameters": [],
@@ -1800,7 +1952,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -923
+      "metaSortKey": -917
     },
     {
       "_id": "req_159142bbc89e58b4",
@@ -1821,7 +1973,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -922
+      "metaSortKey": -916
     },
     {
       "_id": "req_d4841f79a9676967",
@@ -1842,7 +1994,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -921
+      "metaSortKey": -915
     },
     {
       "_id": "req_91fe34cc69712a89",
@@ -1863,7 +2015,78 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -920
+      "metaSortKey": -914
+    },
+    {
+      "_id": "req_88208fc321884f76",
+      "_type": "request",
+      "parentId": "fld_98e1d6e85f7ab0b6",
+      "name": "The misses reported on a watch, newest first, with what the engine did with each",
+      "description": "operationId: listWatchMisses\n\nThe misses reported on a watch, newest first, with what the engine did with each\n\nScopes: watches:read.",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/watches/{{ _.watchId }}/misses",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -913
+    },
+    {
+      "_id": "req_c0c008b5b8245f67",
+      "_type": "request",
+      "parentId": "fld_98e1d6e85f7ab0b6",
+      "name": "Report a miss: the watch should have alerted in this window and did not. The window is at most 600 seconds, not in the future, not older than 30 days. On a running Percia watch it goes to the engine as a `missed` report (recall evidence); otherwise it is only recorded. `concernId` is needed only when the watch has several conditions.",
+      "description": "operationId: reportMiss\n\nReport a miss: the watch should have alerted in this window and did not. The window is at most 600 seconds, not in the future, not older than 30 days. On a running Percia watch it goes to the engine as a `missed` report (recall evidence); otherwise it is only recorded. `concernId` is needed only when the watch has several conditions.\n\nScopes: watches:write.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/watches/{{ _.watchId }}/misses",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"from\": \"2026-11-01T09:30:00Z\",\n  \"to\": \"2026-11-01T09:30:00Z\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -912
+    },
+    {
+      "_id": "req_ac084a5a51e7c06d",
+      "_type": "request",
+      "parentId": "fld_98e1d6e85f7ab0b6",
+      "name": "How right one watch is. `marks` are exact counts of your own Correct / False alarm / Partly / Missed marks (`rightShare` is null until 3 events are rated). `engine` is the running engine's own estimate (precision and recall of its champion and floor with 90% intervals and n, or the reason when there is nothing to estimate), as last reported; null for other engines. Estimates, never ground truth.",
+      "description": "operationId: getWatchQuality\n\nHow right one watch is. `marks` are exact counts of your own Correct / False alarm / Partly / Missed marks (`rightShare` is null until 3 events are rated). `engine` is the running engine's own estimate (precision and recall of its champion and floor with 90% intervals and n, or the reason when there is nothing to estimate), as last reported; null for other engines. Estimates, never ground truth.\n\nScopes: watches:read.",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/watches/{{ _.watchId }}/quality",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -911
     },
     {
       "_id": "fld_bd348a93e4c3798e",
@@ -1872,7 +2095,7 @@
       "name": "Push devices",
       "description": "",
       "environment": {},
-      "metaSortKey": -919
+      "metaSortKey": -910
     },
     {
       "_id": "req_403291138db402f0",
@@ -1893,7 +2116,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -918
+      "metaSortKey": -909
     },
     {
       "_id": "req_7a79b62a8beddd22",
@@ -1922,7 +2145,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -917
+      "metaSortKey": -908
     },
     {
       "_id": "req_7c519af28fc3cb8b",
@@ -1943,7 +2166,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -916
+      "metaSortKey": -907
     },
     {
       "_id": "fld_7e75f6826d2285e0",
@@ -1952,7 +2175,7 @@
       "name": "Plan and usage",
       "description": "",
       "environment": {},
-      "metaSortKey": -915
+      "metaSortKey": -906
     },
     {
       "_id": "req_e41f7321970bb760",
@@ -1981,7 +2204,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -914
+      "metaSortKey": -905
     },
     {
       "_id": "req_c6cb2c2d8366a99d",
@@ -2002,14 +2225,14 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -913
+      "metaSortKey": -904
     },
     {
-      "_id": "req_d43b6f5590bb4076",
+      "_id": "req_9800be827b78afc8",
       "_type": "request",
       "parentId": "fld_7e75f6826d2285e0",
-      "name": "Redeem a credit code for camera-minutes (credits are minutes of watching, used before the free minutes and before the card). A code is shown to its owner once: pass it in the body, never in a URL. Unknown, disabled, expired and used-up codes all answer 404 code_invalid; the same person redeeming twice is 409 code_already_redeemed; too many tries is 429 rate_limited with Retry-After.",
-      "description": "operationId: redeemCreditCode\n\nRedeem a credit code for camera-minutes (credits are minutes of watching, used before the free minutes and before the card). A code is shown to its owner once: pass it in the body, never in a URL. Unknown, disabled, expired and used-up codes all answer 404 code_invalid; the same person redeeming twice is 409 code_already_redeemed; too many tries is 429 rate_limited with Retry-After.\n\nScopes: watches:write.",
+      "name": "Redeem a credit code for camera-minutes (credits are minutes of watching, used before the free minutes and before the card). A code is shown to its owner once: pass it in the body, never in a URL. Needs a card on file while billing is on sale: without one it answers 402 card_required with addCardUrl (the Billing page; only a person can add a card) and the code is not checked or used. Unknown, disabled, expired and used-up codes all answer 404 code_invalid; the same person redeeming twice is 409 code_already_redeemed; too many tries is 429 rate_limited with Retry-After.",
+      "description": "operationId: redeemCreditCode\n\nRedeem a credit code for camera-minutes (credits are minutes of watching, used before the free minutes and before the card). A code is shown to its owner once: pass it in the body, never in a URL. Needs a card on file while billing is on sale: without one it answers 402 card_required with addCardUrl (the Billing page; only a person can add a card) and the code is not checked or used. Unknown, disabled, expired and used-up codes all answer 404 code_invalid; the same person redeeming twice is 409 code_already_redeemed; too many tries is 429 rate_limited with Retry-After.\n\nScopes: watches:write.",
       "method": "POST",
       "url": "{{ _.baseUrl }}/api/billing/redeem",
       "parameters": [],
@@ -2031,7 +2254,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -912
+      "metaSortKey": -903
     },
     {
       "_id": "req_f83c9f5b31da744d",
@@ -2052,7 +2275,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -911
+      "metaSortKey": -902
     },
     {
       "_id": "req_b5c52c5c74d90370",
@@ -2079,7 +2302,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -910
+      "metaSortKey": -901
     },
     {
       "_id": "req_036ae98a1dd4e8d1",
@@ -2100,7 +2323,7 @@
         "type": "bearer",
         "token": "{{ _.apiKey }}"
       },
-      "metaSortKey": -909
+      "metaSortKey": -900
     },
     {
       "_id": "fld_26e328e6e18d598b",
@@ -2109,7 +2332,7 @@
       "name": "Platform",
       "description": "",
       "environment": {},
-      "metaSortKey": -908
+      "metaSortKey": -899
     },
     {
       "_id": "req_87549b18f40be116",
@@ -2127,7 +2350,7 @@
         }
       ],
       "authentication": {},
-      "metaSortKey": -907
+      "metaSortKey": -898
     },
     {
       "_id": "req_592ce55f110373c1",
@@ -2145,7 +2368,7 @@
         }
       ],
       "authentication": {},
-      "metaSortKey": -906
+      "metaSortKey": -897
     },
     {
       "_id": "req_b104c43e04812120",
@@ -2163,7 +2386,671 @@
         }
       ],
       "authentication": {},
-      "metaSortKey": -905
+      "metaSortKey": -896
+    },
+    {
+      "_id": "fld_3a25a2dfe7e8e38e",
+      "_type": "request_group",
+      "parentId": "wrk_efbafea825540508",
+      "name": "tests",
+      "description": "",
+      "environment": {},
+      "metaSortKey": -895
+    },
+    {
+      "_id": "req_36abef66452a59dd",
+      "_type": "request",
+      "parentId": "fld_3a25a2dfe7e8e38e",
+      "name": "The test side of Quality: ground-truth clips (total and across how many watches), tests started in the last 7 days, and per watch its clip count and the scores of its last finished test (`caught`, `falseAlarms` as value/of, or null when unmeasured).",
+      "description": "operationId: getQualityTests\n\nThe test side of Quality: ground-truth clips (total and across how many watches), tests started in the last 7 days, and per watch its clip count and the scores of its last finished test (`caught`, `falseAlarms` as value/of, or null when unmeasured).\n\nScopes: watches:read.",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/quality/tests",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -894
+    },
+    {
+      "_id": "req_7fbd2e5e2cdc9a8a",
+      "_type": "request",
+      "parentId": "fld_3a25a2dfe7e8e38e",
+      "name": "The watch's dataset: clips labelled should_match, should_not or counterfactual. They are the ground truth tests score against.",
+      "description": "operationId: listDatasetClips\n\nThe watch's dataset: clips labelled should_match, should_not or counterfactual. They are the ground truth tests score against.\n\nScopes: watches:read.",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/watches/{{ _.watchId }}/dataset",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -893
+    },
+    {
+      "_id": "req_ae71de270f54eabb",
+      "_type": "request",
+      "parentId": "fld_3a25a2dfe7e8e38e",
+      "name": "Upload one clip to the dataset: multipart/form-data with `file` (MP4 or MOV, up to 32 MB and 120 s), `label` (should_match, should_not, counterfactual) and an optional `note` (up to 120 characters).",
+      "description": "operationId: uploadDatasetClip\n\nUpload one clip to the dataset: multipart/form-data with `file` (MP4 or MOV, up to 32 MB and 120 s), `label` (should_match, should_not, counterfactual) and an optional `note` (up to 120 characters).\n\nScopes: watches:write.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/watches/{{ _.watchId }}/dataset",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -892
+    },
+    {
+      "_id": "req_b10610ae5bb46767",
+      "_type": "request",
+      "parentId": "fld_3a25a2dfe7e8e38e",
+      "name": "Delete a clip and its stored video. The dataset also goes with the watch and with the account.",
+      "description": "operationId: deleteDatasetClip\n\nDelete a clip and its stored video. The dataset also goes with the watch and with the account.\n\nScopes: watches:write, watches:delete.\n\nDestructive: also needs watches:delete (unless noted in the API description).",
+      "method": "DELETE",
+      "url": "{{ _.baseUrl }}/api/watches/{{ _.watchId }}/dataset/{{ _.clipId }}",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -891
+    },
+    {
+      "_id": "req_487429207d9ce6e9",
+      "_type": "request",
+      "parentId": "fld_3a25a2dfe7e8e38e",
+      "name": "Change a clip's label or note.",
+      "description": "operationId: updateDatasetClip\n\nChange a clip's label or note.\n\nScopes: watches:write.",
+      "method": "PATCH",
+      "url": "{{ _.baseUrl }}/api/watches/{{ _.watchId }}/dataset/{{ _.clipId }}",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -890
+    },
+    {
+      "_id": "req_fc49f61897412b77",
+      "_type": "request",
+      "parentId": "fld_3a25a2dfe7e8e38e",
+      "name": "A clip's thumbnail (the event's keyframe), decrypted for the owner. 404 for an uploaded clip (it has none).",
+      "description": "operationId: getDatasetClipThumb\n\nA clip's thumbnail (the event's keyframe), decrypted for the owner. 404 for an uploaded clip (it has none).\n\nScopes: events:read.",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/watches/{{ _.watchId }}/dataset/{{ _.clipId }}/thumb",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -889
+    },
+    {
+      "_id": "req_091e7c97af219651",
+      "_type": "request",
+      "parentId": "fld_3a25a2dfe7e8e38e",
+      "name": "Keep an event's clip in the dataset with a label. An event already in the dataset only has its label changed. Marking an event Correct or False alarm does this by itself (should_match / should_not).",
+      "description": "operationId: addDatasetClipFromEvent\n\nKeep an event's clip in the dataset with a label. An event already in the dataset only has its label changed. Marking an event Correct or False alarm does this by itself (should_match / should_not).\n\nScopes: watches:write.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/watches/{{ _.watchId }}/dataset/from-event",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"eventId\": \"x\",\n  \"label\": \"should_match\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -888
+    },
+    {
+      "_id": "req_d17b76a92d14ee59",
+      "_type": "request",
+      "parentId": "fld_3a25a2dfe7e8e38e",
+      "name": "Keep a video from a pasted link as a dataset clip: {url, label, note?}. Percia fetches the link once (a public https link straight to an MP4 or MOV, up to 32 MB and 120 s; no address numbers, no password in the link, at most three redirects, each checked again), stores the video sealed and does not keep the link. 20 links an hour per user.",
+      "description": "operationId: addDatasetClipFromLink\n\nKeep a video from a pasted link as a dataset clip: {url, label, note?}. Percia fetches the link once (a public https link straight to an MP4 or MOV, up to 32 MB and 120 s; no address numbers, no password in the link, at most three redirects, each checked again), stores the video sealed and does not keep the link. 20 links an hour per user.\n\nScopes: watches:write.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/watches/{{ _.watchId }}/dataset/from-link",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"url\": \"xxxxxxxx\",\n  \"label\": \"should_match\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -887
+    },
+    {
+      "_id": "req_61373882f1cbaa12",
+      "_type": "request",
+      "parentId": "fld_3a25a2dfe7e8e38e",
+      "name": "Keep a miss you reported (POST /watches/{id}/misses) as a dataset clip with a label: the footage of the first 100 seconds of the window you reported is cut from the camera's recording (the last 14 days) and stored sealed. The moment's start inside the clip is unknown, so a clip from a miss has no delay. A miss already in the dataset only has its label changed.",
+      "description": "operationId: addDatasetClipFromMiss\n\nKeep a miss you reported (POST /watches/{id}/misses) as a dataset clip with a label: the footage of the first 100 seconds of the window you reported is cut from the camera's recording (the last 14 days) and stored sealed. The moment's start inside the clip is unknown, so a clip from a miss has no delay. A miss already in the dataset only has its label changed.\n\nScopes: watches:write.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/watches/{{ _.watchId }}/dataset/from-miss",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"missId\": \"x\",\n  \"label\": \"should_match\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -886
+    },
+    {
+      "_id": "req_a70274c2ee0f3c46",
+      "_type": "request",
+      "parentId": "fld_3a25a2dfe7e8e38e",
+      "name": "Moments worth labelling: close calls (alerts the judge was barely sure of), false alarms you marked (events with a stored clip) and the misses you reported (windows, cut from the recording when you keep them), none of them in the dataset yet. Offered, never added by themselves: label an event with POST .../dataset/from-event and a reported miss with POST .../dataset/from-miss.",
+      "description": "operationId: listNearMisses\n\nMoments worth labelling: close calls (alerts the judge was barely sure of), false alarms you marked (events with a stored clip) and the misses you reported (windows, cut from the recording when you keep them), none of them in the dataset yet. Offered, never added by themselves: label an event with POST .../dataset/from-event and a reported miss with POST .../dataset/from-miss.\n\nScopes: watches:read.",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/watches/{{ _.watchId }}/dataset/near-misses",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -885
+    },
+    {
+      "_id": "req_dfd0f2d441b4bc19",
+      "_type": "request",
+      "parentId": "fld_3a25a2dfe7e8e38e",
+      "name": "The watch's test runs, newest first, and the latest finished one with its scores. A test replays the watch on recorded video and scores it; nothing is delivered.",
+      "description": "operationId: listTestRuns\n\nThe watch's test runs, newest first, and the latest finished one with its scores. A test replays the watch on recorded video and scores it; nothing is delivered.\n\nScopes: watches:read.",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/watches/{{ _.watchId }}/tests",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -884
+    },
+    {
+      "_id": "req_61277825517a802e",
+      "_type": "request",
+      "parentId": "fld_3a25a2dfe7e8e38e",
+      "name": "Start a test. JSON {source: \"recent\", minutes?: 1..10} replays the camera's last minutes, {source: \"window\", from, minutes?: 1..10} an earlier time (up to 14 days back, ending at least a minute ago; the host's recording for about two hours, the sealed archive beyond that), {source: \"dataset\"} replays the dataset clips (the newest 40) and scores them: Caught = should_match clips the judge said yes on, False alarms = should_not and counterfactual clips it said yes on. Or multipart/form-data with `file` tests one uploaded clip (deleted afterwards; no labels, so no scores, only what it would alert on). Uses the pool's judge at half the camera's hourly cap. 10 tests an hour per user, one at a time per watch.",
+      "description": "operationId: startTestRun\n\nStart a test. JSON {source: \"recent\", minutes?: 1..10} replays the camera's last minutes, {source: \"window\", from, minutes?: 1..10} an earlier time (up to 14 days back, ending at least a minute ago; the host's recording for about two hours, the sealed archive beyond that), {source: \"dataset\"} replays the dataset clips (the newest 40) and scores them: Caught = should_match clips the judge said yes on, False alarms = should_not and counterfactual clips it said yes on. Or multipart/form-data with `file` tests one uploaded clip (deleted afterwards; no labels, so no scores, only what it would alert on). Uses the pool's judge at half the camera's hourly cap. 10 tests an hour per user, one at a time per watch.\n\nScopes: watches:write.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/watches/{{ _.watchId }}/tests",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"source\": \"recent\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -883
+    },
+    {
+      "_id": "req_ae78f78409432b59",
+      "_type": "request",
+      "parentId": "fld_3a25a2dfe7e8e38e",
+      "name": "One test run. While it runs, `status` is running and there are no scores; when it ends, `scores` has Caught, False alarms, Avg delay and Verdict (each a figure with its total, or null with a note saying why it is unmeasured), the clips' outcomes, the alerts a window test found, coverage and the per-condition capability report.",
+      "description": "operationId: getTestRun\n\nOne test run. While it runs, `status` is running and there are no scores; when it ends, `scores` has Caught, False alarms, Avg delay and Verdict (each a figure with its total, or null with a note saying why it is unmeasured), the clips' outcomes, the alerts a window test found, coverage and the per-condition capability report.\n\nScopes: watches:read.",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/watches/{{ _.watchId }}/tests/{{ _.testId }}",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -882
+    },
+    {
+      "_id": "fld_d07ed0a9cb451eda",
+      "_type": "request_group",
+      "parentId": "wrk_efbafea825540508",
+      "name": "advanced",
+      "description": "",
+      "environment": {},
+      "metaSortKey": -881
+    },
+    {
+      "_id": "req_11d96b01140b6835",
+      "_type": "request",
+      "parentId": "fld_d07ed0a9cb451eda",
+      "name": "Send timed machine signals (Signal) for a camera or site (advanced)",
+      "description": "operationId: postSignals\n\nSend timed machine signals (Signal) for a camera or site (advanced)\n\nwhere recording is on only. Send timed samples from a machine: `{cameraId?, siteId?, signals: [{channel, t_utc, value, seq?, camera_id?, site_id?}]}` (Signal; leave out tenant_id). `t_utc` is the machine's clock in UTC: declare its offset, lag and latency in the site context (`signals[]`); the engine corrects time with them. A repeat of the same channel and `seq` is idempotent. At most 200 signals and 64 KiB per request, 100 signals per second per camera (burst 500), nothing older than 6 hours. Declare a channel in the site context before a watch reads it. Needs scope signals:write.\n\nScopes: signals:write.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/signals",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"cameraId\": \"0f8fad5b-d9cb-469f-a165-70867728950e\",\n  \"signals\": [\n    {\n      \"channel\": \"motor_running\",\n      \"seq\": 1204,\n      \"t_utc\": \"2026-11-22T10:00:01.250Z\",\n      \"value\": true\n    }\n  ]\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -880
+    },
+    {
+      "_id": "req_07c69dfe0a6dcfe0",
+      "_type": "request",
+      "parentId": "fld_d07ed0a9cb451eda",
+      "name": "Read the site's context and its open context requests (advanced)",
+      "description": "operationId: getSiteContext\n\nRead the site's context and its open context requests (advanced)\n\nThe stored SiteContext, its revision, and `openRequests`: what the engine asked for in the watches of this site (each with `how_to_supply`, the SiteContext path to PUT).\n\nScopes: watches:read.",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/sites/{{ _.siteId }}/context",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -879
+    },
+    {
+      "_id": "req_48892688f581d581",
+      "_type": "request",
+      "parentId": "fld_d07ed0a9cb451eda",
+      "name": "Replace the site's context (SiteContext): calibration, facts, zones, signal declarations (advanced)",
+      "description": "operationId: putSiteContext\n\nReplace the site's context (SiteContext): calibration, facts, zones, signal declarations (advanced)\n\nwhere recording is on only. Replace the SiteContext of a site you own : `context` (scene, subjects, notes), `facts`, `cameras[]` (mount, calibration, registration), `zones`, `reference_images`, and `signals[]`, the declarations of the machine channels you will POST to /signals (name, kind, unit, nominal and worst_case_rate_hz, clock_offset_s, lag_s, latency_s, each timing with its uncertainty). Leave out tenant_id, site_id, revision and updated_at: the server sets them. Send `If-Match: <revision>` to avoid overwriting a newer write. A changed document bumps `revision`, and the site's running advanced watches re-plan on it without a restart. Free text in a context is customer data and is shown to models as background, never as instructions. Needs scope context:write.\n\nScopes: context:write.",
+      "method": "PUT",
+      "url": "{{ _.baseUrl }}/api/sites/{{ _.siteId }}/context",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"context\": {\n    \"scene\": \"A packaging line; the belt runs left to right under the camera.\",\n    \"subjects\": [\n      \"belt\",\n      \"boxes\"\n    ]\n  },\n  \"facts\": [\n    {\n      \"name\": \"belt_width\",\n      \"uncertainty\": 2,\n      \"unit\": \"mm\",\n      \"value\": 400\n    }\n  ],\n  \"signals\": [\n    {\n      \"clock_offset_s\": 0,\n      \"clock_offset_uncertainty_s\": 0.5,\n      \"kind\": \"boolean\",\n      \"lag_s\": 1.5,\n      \"lag_uncertainty_s\": 0.5,\n      \"latency_s\": 0.2,\n      \"latency_uncertainty_s\": 0.1,\n      \"name\": \"motor_running\",\n      \"nominal_rate_hz\": 1,\n      \"worst_case_rate_hz\": 0.2\n    }\n  ]\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -878
+    },
+    {
+      "_id": "req_f80345e330e99d28",
+      "_type": "request",
+      "parentId": "fld_d07ed0a9cb451eda",
+      "name": "The typed recommendations (ActionEvent) the engine made for an advanced watch, newest first",
+      "description": "operationId: listWatchActions\n\nThe typed recommendations (ActionEvent) the engine made for an advanced watch, newest first\n\nThe typed recommendations (pause, stop, inspect, adjust, resume_ok) the engine made for a watch made with `advanced`. Percia recommends, you decide. Webhook watches also receive each one as `percia.action`.\n\nScopes: events:read.",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/watches/{{ _.watchId }}/actions",
+      "parameters": [
+        {
+          "name": "limit",
+          "value": "50",
+          "disabled": false
+        },
+        {
+          "name": "cursor",
+          "value": "",
+          "disabled": true
+        }
+      ],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -877
+    },
+    {
+      "_id": "fld_05e48074ddb8eaef",
+      "_type": "request_group",
+      "parentId": "wrk_efbafea825540508",
+      "name": "uploads",
+      "description": "",
+      "environment": {},
+      "metaSortKey": -876
+    },
+    {
+      "_id": "req_05d06f40985b4bbe",
+      "_type": "request",
+      "parentId": "fld_05e48074ddb8eaef",
+      "name": "List your video files, newest first",
+      "description": "operationId: listUploads\n\nList your video files, newest first\n\nScopes: cameras:read.",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/uploads",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -875
+    },
+    {
+      "_id": "req_be30db6079eca09a",
+      "_type": "request",
+      "parentId": "fld_05e48074ddb8eaef",
+      "name": "Start uploading a video file (mp4, mov, webm, mkv) as a watch source. Declare name and size; refused here (400 unsupported_type, 413 too_large, 429 upload_limit) before any byte moves. Returns the id, `partSize` and `parts`: send each part with PUT /uploads/{id}/parts/{n}, then POST /uploads/{id}/complete. 404 while video files are off.",
+      "description": "operationId: startUpload\n\nStart uploading a video file (mp4, mov, webm, mkv) as a watch source. Declare name and size; refused here (400 unsupported_type, 413 too_large, 429 upload_limit) before any byte moves. Returns the id, `partSize` and `parts`: send each part with PUT /uploads/{id}/parts/{n}, then POST /uploads/{id}/complete. 404 while video files are off.\n\nScopes: cameras:write.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/uploads",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"x\",\n  \"size\": 1\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -874
+    },
+    {
+      "_id": "req_f492ed94a3c87233",
+      "_type": "request",
+      "parentId": "fld_05e48074ddb8eaef",
+      "name": "Delete a video file (or stop an upload). The file also goes with the last watch that uses it, with the account, and after its retention period.",
+      "description": "operationId: deleteUpload\n\nDelete a video file (or stop an upload). The file also goes with the last watch that uses it, with the account, and after its retention period.\n\nScopes: cameras:write, watches:delete.\n\nDestructive: also needs watches:delete (unless noted in the API description).",
+      "method": "DELETE",
+      "url": "{{ _.baseUrl }}/api/uploads/{{ _.uploadId }}",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -873
+    },
+    {
+      "_id": "req_608e266ea9df0395",
+      "_type": "request",
+      "parentId": "fld_05e48074ddb8eaef",
+      "name": "One video file",
+      "description": "operationId: getUpload\n\nOne video file\n\nScopes: cameras:read.",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/uploads/{{ _.uploadId }}",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -872
+    },
+    {
+      "_id": "req_33675fb683c9b783",
+      "_type": "request",
+      "parentId": "fld_05e48074ddb8eaef",
+      "name": "Finish the upload with the part etags. The file is read back and checked: container, codec (H.264, H.265, VP8, VP9, AV1) and length (over the limit = too_long). A refused file is deleted at once (400 bad_container, bad_codec, too_long). Returns the upload; `source` is its watch source.",
+      "description": "operationId: completeUpload\n\nFinish the upload with the part etags. The file is read back and checked: container, codec (H.264, H.265, VP8, VP9, AV1) and length (over the limit = too_long). A refused file is deleted at once (400 bad_container, bad_codec, too_long). Returns the upload; `source` is its watch source.\n\nScopes: cameras:write.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/uploads/{{ _.uploadId }}/complete",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"parts\": [\n    {\n      \"partNumber\": 1,\n      \"etag\": \"x\"\n    }\n  ]\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -871
+    },
+    {
+      "_id": "req_8af209fd12c52935",
+      "_type": "request",
+      "parentId": "fld_05e48074ddb8eaef",
+      "name": "Send part n (1-based) as the raw request body (application/octet-stream). Every part but the last is exactly `partSize` bytes. Returns the etag to give to /complete. A part may be sent again. Needs a client that can send bytes: MCP agents cannot, a person uses the app.",
+      "description": "operationId: uploadPart\n\nSend part n (1-based) as the raw request body (application/octet-stream). Every part but the last is exactly `partSize` bytes. Returns the etag to give to /complete. A part may be sent again. Needs a client that can send bytes: MCP agents cannot, a person uses the app.\n\nScopes: cameras:write.",
+      "method": "PUT",
+      "url": "{{ _.baseUrl }}/api/uploads/{{ _.uploadId }}/parts/{{ _.n }}",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -870
+    },
+    {
+      "_id": "req_92b0b5da706878b9",
+      "_type": "request",
+      "parentId": "fld_05e48074ddb8eaef",
+      "name": "A short-lived (15 minutes) signed address for playing the file in a video element. A credential: do not store or share it.",
+      "description": "operationId: getUploadPlayUrl\n\nA short-lived (15 minutes) signed address for playing the file in a video element. A credential: do not store or share it.\n\nScopes: cameras:read.",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/uploads/{{ _.uploadId }}/play",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -869
+    },
+    {
+      "_id": "req_999d41f2e855d57d",
+      "_type": "request",
+      "parentId": "fld_05e48074ddb8eaef",
+      "name": "Make a video file from a public https URL (for MCP agents, which cannot send bytes). Percia fetches it itself, one request: public https only (no IP addresses, private or internal names, user names or odd ports; each redirect is checked again), content type must be a video (mp4, mov, webm, mkv) or a generic binary with a video file name, and the same size and length limits as an upload apply (400 invalid_url, 400 unsupported_type, 400 fetch_failed, 413 too_large, 400 too_long, bad_container, bad_codec, 429 upload_limit). Returns the ready upload: `uploadId` (= `id`) and `source` (`percia-file://<uploadId>`), which you pass as `sourceUrl` to POST /watches/owned. 404 while video files are off.",
+      "description": "operationId: uploadFromUrl\n\nMake a video file from a public https URL (for MCP agents, which cannot send bytes). Percia fetches it itself, one request: public https only (no IP addresses, private or internal names, user names or odd ports; each redirect is checked again), content type must be a video (mp4, mov, webm, mkv) or a generic binary with a video file name, and the same size and length limits as an upload apply (400 invalid_url, 400 unsupported_type, 400 fetch_failed, 413 too_large, 400 too_long, bad_container, bad_codec, 429 upload_limit). Returns the ready upload: `uploadId` (= `id`) and `source` (`percia-file://<uploadId>`), which you pass as `sourceUrl` to POST /watches/owned. 404 while video files are off.\n\nScopes: cameras:write.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/uploads/from-url",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"url\": \"x\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -868
+    },
+    {
+      "_id": "req_9e9b9a4299df0e6f",
+      "_type": "request",
+      "parentId": "fld_05e48074ddb8eaef",
+      "name": "Make a short-lived upload page for a video file on the person's own device (for MCP agents, which cannot send bytes). No body. Returns `uploadUrl` (valid 30 minutes, no sign-in needed on it): show it to the person with show_link, never as plain text. They pick the file on that page and it uploads and is checked. When they say it is done, GET /uploads and take the newest file with `status: ready` and `createdAt` after the link's `createdAt`: its `source` (`percia-file://<id>`) is the `sourceUrl` for POST /watches/owned. 404 while video files are off.",
+      "description": "operationId: createUploadLink\n\nMake a short-lived upload page for a video file on the person's own device (for MCP agents, which cannot send bytes). No body. Returns `uploadUrl` (valid 30 minutes, no sign-in needed on it): show it to the person with show_link, never as plain text. They pick the file on that page and it uploads and is checked. When they say it is done, GET /uploads and take the newest file with `status: ready` and `createdAt` after the link's `createdAt`: its `source` (`percia-file://<id>`) is the `sourceUrl` for POST /watches/owned. 404 while video files are off.\n\nScopes: cameras:write.",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/uploads/link",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -867
     }
   ]
 }

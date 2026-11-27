@@ -17,6 +17,8 @@ T = TypeVar("T", bound="GetConfigResponse200")
 class GetConfigResponse200:
     """
     Attributes:
+        file_sources_enabled (Union[Unset, bool]): Present and true only where video files can be uploaded as a watch
+            source.
         integrations_enabled (Union[Unset, bool]): False while integrations are switched off (their routes then answer
             404).
         mail_enabled (Union[Unset, bool]):
@@ -24,6 +26,7 @@ class GetConfigResponse200:
         turnstile_site_key (Union[Unset, str]):
     """
 
+    file_sources_enabled: Union[Unset, bool] = UNSET
     integrations_enabled: Union[Unset, bool] = UNSET
     mail_enabled: Union[Unset, bool] = UNSET
     phone_camera_enabled: Union[Unset, bool] = UNSET
@@ -31,6 +34,8 @@ class GetConfigResponse200:
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        file_sources_enabled = self.file_sources_enabled
+
         integrations_enabled = self.integrations_enabled
 
         mail_enabled = self.mail_enabled
@@ -42,6 +47,8 @@ class GetConfigResponse200:
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update({})
+        if file_sources_enabled is not UNSET:
+            field_dict["fileSourcesEnabled"] = file_sources_enabled
         if integrations_enabled is not UNSET:
             field_dict["integrationsEnabled"] = integrations_enabled
         if mail_enabled is not UNSET:
@@ -56,6 +63,8 @@ class GetConfigResponse200:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
+        file_sources_enabled = d.pop("fileSourcesEnabled", UNSET)
+
         integrations_enabled = d.pop("integrationsEnabled", UNSET)
 
         mail_enabled = d.pop("mailEnabled", UNSET)
@@ -65,6 +74,7 @@ class GetConfigResponse200:
         turnstile_site_key = d.pop("turnstileSiteKey", UNSET)
 
         get_config_response_200 = cls(
+            file_sources_enabled=file_sources_enabled,
             integrations_enabled=integrations_enabled,
             mail_enabled=mail_enabled,
             phone_camera_enabled=phone_camera_enabled,

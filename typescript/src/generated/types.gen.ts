@@ -186,11 +186,18 @@ export type Camera = {
     externalId?: string | null;
     id?: string;
     /**
-     * phone = paired by link; push = a connector on a LAN pushes WHIP with a token.
+     * phone = paired by link; push = a connector on a LAN pushes WHIP with a token; link = a public RTSP/RTSPS/HTTP/HTTPS address Percia pulls itself; file = an uploaded video, played once. link and file exist while PULL_CAMERAS is on.
      */
-    kind?: 'phone' | 'push';
+    kind?: 'phone' | 'push' | 'link' | 'file';
     lastSeenAt?: string | null;
     name?: string;
+    /**
+     * link and file cameras only: the last report of the puller. Never an address.
+     */
+    pull?: {
+        reason?: 'unreachable' | 'auth' | 'private_address' | 'unsupported_codec' | 'keyframe_interval' | 'timeout' | 'other';
+        state?: 'running' | 'done' | 'failed';
+    };
     /**
      * online = heartbeat or an allowed publish under 60 s ago.
      */
@@ -254,7 +261,7 @@ export type Entity = {
  */
 export type Error = {
     error: {
-        code: 'unauthenticated' | 'invalid_api_key' | 'insufficient_scope' | 'not_found' | 'invalid_request' | 'rate_limited' | 'bot_check_failed' | 'conflict' | 'forbidden' | 'internal' | 'instant_disabled' | 'daily_cap' | 'ip_cap' | 'pairing_invalid' | 'camera_in_use' | 'wrong_kind' | 'camera_limit' | 'goal_not_allowed' | 'agent_limit' | 'nothing_to_publish' | 'agent_in_use' | 'agent_not_published' | 'builder_unavailable' | 'interpret_unavailable' | 'site_limit' | 'ask_unavailable' | 'judge_unavailable' | 'live_unavailable' | 'plan_limit' | 'key_invalid' | 'keys_unavailable' | 'selling_disabled' | 'payment_required' | 'integration_unavailable' | 'reauth_required' | 'deletion_incomplete' | 'code_invalid' | 'code_already_redeemed' | 'already_subscribed';
+        code: 'unauthenticated' | 'invalid_api_key' | 'insufficient_scope' | 'not_found' | 'invalid_request' | 'rate_limited' | 'bot_check_failed' | 'conflict' | 'forbidden' | 'internal' | 'instant_disabled' | 'daily_cap' | 'ip_cap' | 'pairing_invalid' | 'camera_in_use' | 'unsupported_type' | 'too_large' | 'too_long' | 'bad_container' | 'bad_codec' | 'bad_part' | 'upload_limit' | 'invalid_url' | 'fetch_failed' | 'in_use' | 'draft_closed' | 'draft_ready' | 'draft_refused' | 'draft_too_long' | 'draft_not_ready' | 'draft_changed' | 'draft_multi_watch' | 'draft_unreadable' | 'clarification_needed' | 'unsupported_not_acknowledged' | 'layer_unconfigured' | 'layer_budget' | 'layer_unavailable' | 'wrong_kind' | 'demo_unavailable' | 'demo_capped' | 'session_frames' | 'session_over' | 'bad_token' | 'judge_failed' | 'camera_limit' | 'goal_not_allowed' | 'agent_limit' | 'nothing_to_publish' | 'agent_in_use' | 'agent_not_published' | 'builder_unavailable' | 'gone' | 'site_limit' | 'ask_unavailable' | 'judge_unavailable' | 'live_unavailable' | 'plan_limit' | 'key_invalid' | 'keys_unavailable' | 'selling_disabled' | 'payment_required' | 'integration_unavailable' | 'reauth_required' | 'deletion_incomplete' | 'code_invalid' | 'code_already_redeemed' | 'card_required' | 'already_subscribed' | 'advanced_unavailable' | 'advanced_needs_percia_camera' | 'advanced_signal_undeclared' | 'advanced_required' | 'revision_mismatch' | 'context_limit' | 'signal_rejected' | 'signals_unavailable' | 'event_here' | 'tests_unavailable' | 'test_running' | 'clip_unavailable';
         /**
          * Name of the offending request field, on validation errors.
          */
@@ -283,6 +290,18 @@ export type Event = {
     at: string;
     attempts?: number;
     /**
+     * `pending` while the clip is being cut (retried for up to 90 minutes after the event), `ready` when hasClip, `evidence_expired` when the footage can no longer be cut (it left the host's 2 hour buffer and the archive); null when the event has no clip.
+     */
+    clipStatus?: 'pending' | 'ready' | 'evidence_expired';
+    /**
+     * True when a long event's clip shows only its start (the opening clip is kept; later parts are not cut).
+     */
+    clipTruncated?: boolean;
+    /**
+     * Path of the owner-only clip route when hasClip is true (needs the same credential as the API), else null.
+     */
+    clipUrl?: string | null;
+    /**
      * The agent concern that fired (null for plain watches).
      */
     concernId?: string | null;
@@ -293,10 +312,34 @@ export type Event = {
     decisionId?: string;
     deliveryStatus?: 'pending' | 'delivered' | 'failed';
     /**
+     * When the event really ended (RFC 3339), reported by the engine; null until then.
+     */
+    endedAt?: string | null;
+    /**
+     * Which wall-clock moments the stored keyframe and clip cover, so a viewer can line a clip up with the event. Null when neither was cut.
+     */
+    evidence?: {
+        clipFrom?: string | null;
+        clipTo?: string | null;
+        keyframeAt?: string | null;
+    } | null;
+    /**
      * The owner's verdict.
      */
-    feedback?: 'correct' | 'false_alarm';
+    feedback?: 'correct' | 'false_alarm' | 'partly';
     feedbackNote?: string | null;
+    /**
+     * Events with recording: what the running engine did with the mark; null = nothing to say.
+     */
+    feedbackState?: 'applied' | 'recorded';
+    /**
+     * Plain words for feedbackState.
+     */
+    feedbackWords?: string | null;
+    /**
+     * True while a stored clip of the moment can still be fetched (GET /watches/{id}/events/{eventId}/clip). Only watches on a Percia camera with evidence on get clips; false everywhere else.
+     */
+    hasClip?: boolean;
     /**
      * True while a stored keyframe can still be fetched.
      */
@@ -308,6 +351,10 @@ export type Event = {
     integrationResults?: Array<IntegrationResult>;
     occurrenceId?: string;
     /**
+     * True for a few minutes while an event has a span and no reported end.
+     */
+    ongoing?: boolean;
+    /**
      * Typed outputs extracted from the keyframe, else null.
      */
     outputs?: unknown;
@@ -316,6 +363,10 @@ export type Event = {
      * Untrusted model text.
      */
     reason?: string | null;
+    /**
+     * True for an event found during a live test run (the UI shows a Test tag; the webhook body carries `test: true`; it is not counted in the events usage meter).
+     */
+    test?: boolean;
     /**
      * `goal.met`.
      */
@@ -487,12 +538,6 @@ export type TestRun = {
     createdAt?: string;
     failed?: number;
     id?: string;
-    /**
-     * What Percia understands of the goal (additive; null on a watch created before goal understanding, with an agent, on Percia core, or with interpret false and no kind). version, shape (narrow, compound, open_ended), summary, kind (state = something stays true, event = something happens, mixed), concerns [{id, text, kind, evidence, ignore}] (the conditions the watch runs), assumptions, gaps [{description, reason, question}] (what a camera cannot see or the goal leaves open: ask the person the questions), untestable (words a camera cannot judge), confidence, clarity (0..1), cadence (a suggestion, not applied), source (model, rules, user, agent), degraded (null, or why Percia used the words as written: unavailable, invalid, quota, killed, review_skipped), needsLook, applied, createdAt, reviewedAt. Event kind is the one that fires on arrivals; kind is an intent hint the engine may override.
-     */
-    interpretation?: {
-        [key: string]: unknown;
-    } | null;
     passRate?: number | null;
     passed?: number;
     results?: Array<{
@@ -517,6 +562,22 @@ export type TestRun = {
 
 export type Watch = {
     /**
+     * Only on a watch made with `advanced` (Percia engine). `conditions` and `actions` as you sent them; `contextRequests` are what the engine asked you to supply (each has `how_to_supply`, a SiteContext path to PUT), `[]` when none or not yet known; `state` is `pending` until the engine reported them; `siteRev` is the revision of the site's context it runs on.
+     */
+    advanced?: {
+        actions?: Array<{
+            [key: string]: unknown;
+        }>;
+        conditions?: Array<{
+            [key: string]: unknown;
+        }>;
+        contextRequests?: Array<{
+            [key: string]: unknown;
+        }>;
+        siteRev?: number | null;
+        state?: 'pending' | 'ready';
+    };
+    /**
      * Only on watches deployed with an agent. version is the one it runs; followsLatest is true when it was not pinned.
      */
     agent?: {
@@ -533,16 +594,28 @@ export type Watch = {
         name?: string;
         status?: 'online' | 'offline' | 'never';
     } | null;
-    /**
-     * Only on core watches. running is judging; absent is paused (nothing runs on Percia core); off means the core switch was off when it was created; error: see syncError.
-     */
-    coreState?: 'pending' | 'configuring' | 'running' | 'degraded' | 'stopped' | 'absent' | 'off' | 'error';
     createdAt?: string;
+    /**
+     * One plain sentence for a watch whose newest settled delivery failed ("Slack answered 500."), else null.
+     */
+    deliveryProblem?: string | null;
+    /**
+     * Connected destinations (Slack, Discord ...) this watch alerts, from its integration rules. Empty while integrations are off.
+     */
+    destinations?: Array<{
+        connectionId?: string;
+        label?: string;
+        service?: string;
+    }>;
     /**
      * Needs attention when syncError is set, the last delivery failed, a rule of the watch points at a broken integration, or an active watch gets no video (noVideoSince set).
      */
     displayStatus?: 'active' | 'paused' | 'attention';
     eventCount?: number;
+    /**
+     * Events in the last 24 hours.
+     */
+    events24h?: number;
     /**
      * For a deployed watch, the agent's name.
      */
@@ -597,6 +670,10 @@ export type Watch = {
         type?: string;
     } | null;
     /**
+     * Camera-minutes this UTC month on the stream this watch uses (watches on one camera share its minutes).
+     */
+    minutesThisMonth?: number;
+    /**
      * When the camera stopped sending video, else null. An active watch is paused automatically 60 minutes after this time (pausedReason no_video). Kept on a no_video pause; cleared on resume.
      */
     noVideoSince?: string | null;
@@ -605,13 +682,22 @@ export type Watch = {
         type?: 'email' | 'webhook';
     };
     /**
-     * Why a paused watch is paused: user (paused by the owner or an agent, or an older pause with no recorded reason), no_video (paused automatically after 60 minutes without video from the camera), needs_billing (free minutes and credits used, no card), spend_cap (the monthly cap was reached), payment_failed (a payment failed and the 48-hour grace is over; resumes by itself when the payment succeeds) or ended (a short-term watch reached its end). Resume with PATCH status active.
+     * Why a paused watch is paused: user (paused by the owner or an agent, or an older pause with no recorded reason), no_video (paused automatically after 60 minutes without video from the camera), needs_billing (free minutes and credits used, no card), spend_cap (the monthly cap was reached), payment_failed (a payment failed and the 48-hour grace is over; resumes by itself when the payment succeeds) ended (a short-term watch reached its end) testing (made with `startPaused` to be tested before going live; PATCH status active goes live) or test_ended (a 30-minute test run ended; PATCH status active goes live). Resume with PATCH status active.
      */
     pausedReason?: string | null;
     /**
-     * Where the watch is judged: pool (default) or core (Percia core, Percept Cloud). Fixed when the watch is created.
+     * Detail only. A converted watch that waits for an answer: the question, its options (may be empty), when it was asked and the draft to answer through POST /watches/draft/{draftId}/answer. Null otherwise.
      */
-    runtime?: 'pool' | 'core';
+    pendingQuestion?: {
+        askedAt?: string;
+        draftId?: string;
+        options?: Array<string>;
+        question?: string;
+    } | null;
+    /**
+     * Always pool (kept for older clients): every watch is judged on the Percia engine.
+     */
+    runtime?: 'pool';
     /**
      * The site this watch belongs to (shared memory), else null.
      */
@@ -620,16 +706,20 @@ export type Watch = {
         name?: string;
     } | null;
     /**
-     * phone = a paired phone or laptop camera; sourceUrl is then percia-cam://<cameraId>.
+     * phone = a paired phone, tablet or computer camera; sourceUrl is then percia-cam://<cameraId>.
      */
     sourceType?: 'rtsp' | 'video' | 'phone';
     /**
-     * Credentials are redacted.
+     * Credentials are redacted. A video file is percia-file://<uploadId>.
      */
     sourceUrl?: string;
     status?: 'active' | 'paused';
     syncError?: string | null;
     syncedAt?: string | null;
+    /**
+     * Set while the watch is in a live test run: when it ends (30 minutes after PATCH {status: "active", testRun: true}). Its events are marked `test: true`, its webhooks carry `test: true`, and the watch is paused by itself at this time (pausedReason test_ended). PATCH {status: "active"} goes live with no restart; null otherwise.
+     */
+    testUntil?: string | null;
 };
 
 export type ListAgentsData = {
@@ -1571,6 +1661,10 @@ export type RedeemCreditCodeErrors = {
      */
     401: Error;
     /**
+     * card_required (add a card first; body has addCardUrl).
+     */
+    402: Error;
+    /**
      * code_invalid.
      */
     404: Error;
@@ -1669,6 +1763,37 @@ export type SendCameraHeartbeatResponses = {
 
 export type SendCameraHeartbeatResponse = SendCameraHeartbeatResponses[keyof SendCameraHeartbeatResponses];
 
+export type GetCameraWhipUrlData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/cam/whip';
+};
+
+export type GetCameraWhipUrlErrors = {
+    /**
+     * Wrong or revoked camera token.
+     */
+    401: Error;
+    /**
+     * Phone cameras are off.
+     */
+    404: Error;
+};
+
+export type GetCameraWhipUrlError = GetCameraWhipUrlErrors[keyof GetCameraWhipUrlErrors];
+
+export type GetCameraWhipUrlResponses = {
+    /**
+     * Current WHIP address.
+     */
+    200: {
+        whipUrl?: string;
+    };
+};
+
+export type GetCameraWhipUrlResponse = GetCameraWhipUrlResponses[keyof GetCameraWhipUrlResponses];
+
 export type ListCamerasData = {
     body?: never;
     path?: never;
@@ -1753,7 +1878,7 @@ export type CreateCameraResponses = {
         expiresAt?: null;
         pairExpiresAt?: string;
         /**
-         * Single-use link (10 minutes) for the person to open on the phone that will be the camera; you cannot open it for them. On an iPhone with the Percia Camera app it pairs in the app, otherwise the page can pair the browser. Tell them to keep the app or page open on screen while it watches: the camera stops when they switch apps or lock the phone, so they should keep talking to you from another device. With MCP, show it with the show_link tool.
+         * Single-use link (10 minutes) for the person to open on the phone, tablet or computer that will be the camera (also for "use my laptop/webcam as a camera"); you cannot open it for them. On an iPhone with the Percia Camera app it pairs in the app, otherwise the page can pair the browser. Tell them to keep the app or page open on screen while it watches: the camera stops when they switch apps or lock the device, so they should keep talking to you from another device. With MCP, show it with the show_link tool.
          */
         pairUrl?: string;
         publish?: {
@@ -1825,6 +1950,60 @@ export type CreateCamerasResponses = {
 };
 
 export type CreateCamerasResponse = CreateCamerasResponses[keyof CreateCamerasResponses];
+
+export type CreateLinkCameraData = {
+    body: {
+        name?: string;
+        sourceUrl: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/cameras/link';
+};
+
+export type CreateLinkCameraErrors = {
+    /**
+     * Not a video address, or a private address (use the Percia bridge).
+     */
+    400: Error;
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry.
+     */
+    402: Error;
+    /**
+     * Link cameras are off.
+     */
+    404: Error;
+    /**
+     * camera_limit: at most 10 cameras.
+     */
+    429: Error;
+};
+
+export type CreateLinkCameraError = CreateLinkCameraErrors[keyof CreateLinkCameraErrors];
+
+export type CreateLinkCameraResponses = {
+    /**
+     * This link already had a camera.
+     */
+    200: {
+        camera?: Camera;
+        existing?: boolean;
+    };
+    /**
+     * Created.
+     */
+    201: {
+        camera?: Camera;
+        existing?: boolean;
+    };
+};
+
+export type CreateLinkCameraResponse = CreateLinkCameraResponses[keyof CreateLinkCameraResponses];
 
 export type CheckCameraPairingData = {
     body: {
@@ -1941,7 +2120,7 @@ export type CreateCameraPairingResponses = {
     200: {
         pairExpiresAt?: string;
         /**
-         * Single-use link (10 minutes) for the person to open on the phone that will be the camera; you cannot open it for them. On an iPhone with the Percia Camera app it pairs in the app, otherwise the page can pair the browser. Tell them to keep the app or page open on screen while it watches: the camera stops when they switch apps or lock the phone, so they should keep talking to you from another device. With MCP, show it with the show_link tool.
+         * Single-use link (10 minutes) for the person to open on the phone, tablet or computer that will be the camera (also for "use my laptop/webcam as a camera"); you cannot open it for them. On an iPhone with the Percia Camera app it pairs in the app, otherwise the page can pair the browser. Tell them to keep the app or page open on screen while it watches: the camera stops when they switch apps or lock the device, so they should keep talking to you from another device. With MCP, show it with the show_link tool.
          */
         pairUrl?: string;
     };
@@ -1978,7 +2157,7 @@ export type GetCameraStatusResponses = {
     200: {
         hint?: string | null;
         id?: string;
-        kind?: 'phone' | 'push';
+        kind?: 'phone' | 'push' | 'link' | 'file';
         lastSeenAt?: string | null;
         secondsSinceSeen?: number | null;
         state?: 'waiting' | 'online' | 'offline' | 'revoked';
@@ -1988,6 +2167,35 @@ export type GetCameraStatusResponses = {
 };
 
 export type GetCameraStatusResponse = GetCameraStatusResponses[keyof GetCameraStatusResponses];
+
+export type GetCameraThumbnailData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/cameras/{id}/thumbnail';
+};
+
+export type GetCameraThumbnailErrors = {
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * Not your camera, or it has never sent video.
+     */
+    404: Error;
+};
+
+export type GetCameraThumbnailError = GetCameraThumbnailErrors[keyof GetCameraThumbnailErrors];
+
+export type GetCameraThumbnailResponses = {
+    /**
+     * image/jpeg, `Cache-Control: private, no-store`.
+     */
+    200: unknown;
+};
 
 export type RevokeCameraTokenData = {
     body?: never;
@@ -2069,37 +2277,6 @@ export type RotateCameraTokenResponses = {
 
 export type RotateCameraTokenResponse = RotateCameraTokenResponses[keyof RotateCameraTokenResponses];
 
-export type GetWatchClaimData = {
-    body?: never;
-    path: {
-        token: string;
-    };
-    query?: never;
-    url: '/claim/{token}';
-};
-
-export type GetWatchClaimErrors = {
-    /**
-     * Not signed in.
-     */
-    401: Error;
-    /**
-     * Unknown, used or expired claim token.
-     */
-    404: Error;
-};
-
-export type GetWatchClaimError = GetWatchClaimErrors[keyof GetWatchClaimErrors];
-
-export type GetWatchClaimResponses = {
-    /**
-     * The watch, now yours and no longer expiring.
-     */
-    200: Watch;
-};
-
-export type GetWatchClaimResponse = GetWatchClaimResponses[keyof GetWatchClaimResponses];
-
 export type GetConfigData = {
     body?: never;
     path?: never;
@@ -2121,6 +2298,10 @@ export type GetConfigResponses = {
      * Config.
      */
     200: {
+        /**
+         * Present and true only where video files can be uploaded as a watch source.
+         */
+        fileSourcesEnabled?: boolean;
         /**
          * False while integrations are switched off (their routes then answer 404).
          */
@@ -2348,6 +2529,10 @@ export type ListAccountEventsData = {
          * Only events after this time: ISO 8601 or unix seconds.
          */
         since?: string;
+        /**
+         * `1`: only alerts you have not marked yet (met events of the last 14 days).
+         */
+        review?: string;
     };
     url: '/events';
 };
@@ -2424,6 +2609,14 @@ export type StreamEventsData = {
          */
         since?: string;
         /**
+         * `page`: the dashboard's own slot pool (session only; ignored for keys).
+         */
+        client?: string;
+        /**
+         * `fast`: poll every second (page streams only).
+         */
+        interval?: string;
+        /**
          * First send your latest N events (0 to 20, default 0). Without a cursor the stream starts at now.
          */
         backlog?: number;
@@ -2454,7 +2647,61 @@ export type StreamEventsError = StreamEventsErrors[keyof StreamEventsErrors];
 
 export type StreamEventsResponses = {
     /**
-     * `text/event-stream`, open for up to 10 minutes. Each message: `id` (cursor), `event` (the type), `data` (the webhook JSON body plus `eventId`). Also `: ping` comments every 15 s, `event: resync`, and `event: end` before the server closes; reconnect with `Last-Event-ID`. For local development and tests, not a delivery guarantee: webhooks stay the production path. A stream never ends, so an `execute` call cannot use it: run it with curl, fetch or `percia listen`.
+     * `text/event-stream`, open for up to 10 minutes. Each message: `id` (cursor), `event` (the type), `data` (the webhook JSON body plus `eventId`). Also `: ping` comments every 15 s, `event: event.ended` (`{eventId, watchId, endedAt}`, no `id`: an end stored while you listen), `event: resync`, and `event: end` before the server closes; reconnect with `Last-Event-ID`. For local development and tests, not a delivery guarantee: webhooks stay the production path. A stream never ends, so an `execute` call cannot use it: run it with curl, fetch or `percia listen`.
+     */
+    200: unknown;
+};
+
+export type GetSignedEvidenceData = {
+    body?: never;
+    path: {
+        token: string;
+    };
+    query?: never;
+    url: '/evidence/{token}';
+};
+
+export type GetSignedEvidenceErrors = {
+    /**
+     * Unknown, expired or not found.
+     */
+    404: Error;
+};
+
+export type GetSignedEvidenceError = GetSignedEvidenceErrors[keyof GetSignedEvidenceErrors];
+
+export type GetSignedEvidenceResponses = {
+    /**
+     * video/mp4 or image/jpeg.
+     */
+    200: unknown;
+    /**
+     * A range of the clip.
+     */
+    206: unknown;
+};
+
+export type GetFileData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/files/{id}';
+};
+
+export type GetFileErrors = {
+    /**
+     * Bad or expired signature, or no such file.
+     */
+    404: Error;
+};
+
+export type GetFileError = GetFileErrors[keyof GetFileErrors];
+
+export type GetFileResponses = {
+    /**
+     * The bytes (206 for a Range request).
      */
     200: unknown;
 };
@@ -3681,7 +3928,7 @@ export type GetPlanResponses = {
         enforced?: boolean;
         freeMinutes?: number;
         /**
-         * Free minutes left: this month's 10 plus any one-time card bonus not yet used.
+         * The monthly free minutes left (at most freeMinutes). The one-time card bonus is bonusMinutesLeft: never add them.
          */
         freeMinutesLeft?: number;
         /**
@@ -3741,6 +3988,71 @@ export type GetPlanResponses = {
 
 export type GetPlanResponse = GetPlanResponses[keyof GetPlanResponses];
 
+export type GetQualityData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/quality';
+};
+
+export type GetQualityErrors = {
+    /**
+     * Not signed in.
+     */
+    401: Error;
+};
+
+export type GetQualityError = GetQualityErrors[keyof GetQualityErrors];
+
+export type GetQualityResponses = {
+    /**
+     * `marks`, `toReview`, `watches[]`, `tip`.
+     */
+    200: {
+        [key: string]: unknown;
+    };
+};
+
+export type GetQualityResponse = GetQualityResponses[keyof GetQualityResponses];
+
+export type GetQualityTestsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/quality/tests';
+};
+
+export type GetQualityTestsErrors = {
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * Not found (recording is off).
+     */
+    404: Error;
+};
+
+export type GetQualityTestsError = GetQualityTestsErrors[keyof GetQualityTestsErrors];
+
+export type GetQualityTestsResponses = {
+    /**
+     * `clips`, `testsWeek`, `watches` keyed by watch id.
+     */
+    200: {
+        clips?: {
+            total?: number;
+            watches?: number;
+        };
+        testsWeek?: number;
+        watches?: {
+            [key: string]: unknown;
+        };
+    };
+};
+
+export type GetQualityTestsResponse = GetQualityTestsResponses[keyof GetQualityTestsResponses];
+
 export type GetSessionHintData = {
     body?: never;
     path?: never;
@@ -3763,6 +4075,95 @@ export type GetSessionHintResponses = {
      */
     200: unknown;
 };
+
+export type PostSignalsData = {
+    body: {
+        /**
+         * Default camera for the signals that name none.
+         */
+        cameraId?: string;
+        signals: Array<{
+            camera_id?: string;
+            channel: string;
+            seq?: number;
+            site_id?: string;
+            /**
+             * The machine's clock, RFC 3339 UTC.
+             */
+            t_utc: string;
+            value: number | boolean | string;
+        }>;
+        /**
+         * Default site for the signals that name none (a signal with only a site goes to the site's stream).
+         */
+        siteId?: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/signals';
+};
+
+export type PostSignalsErrors = {
+    /**
+     * Invalid body.
+     */
+    400: Error;
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry.
+     */
+    402: Error;
+    /**
+     * insufficient_scope: needs signals:write.
+     */
+    403: Error;
+    /**
+     * Advanced features are not available on this deployment.
+     */
+    404: Error;
+    /**
+     * too_large: more than 64 KiB.
+     */
+    413: Error;
+    /**
+     * signal_rejected: none was accepted; `rejected` says why.
+     */
+    422: Error;
+    /**
+     * rate_limited: over 100 signals per second for a camera or site (burst 500). Retry-After says when.
+     */
+    429: Error;
+    /**
+     * signals_unavailable: the stream is unreachable. Retry in a moment.
+     */
+    503: Error;
+};
+
+export type PostSignalsError = PostSignalsErrors[keyof PostSignalsErrors];
+
+export type PostSignalsResponses = {
+    /**
+     * Accepted into the stream the engine reads. `rejected` lists signals that were not (index, code, field, message); the others were.
+     */
+    202: {
+        accepted: number;
+        rejected: Array<{
+            code?: 'invalid_signal' | 'invalid_target' | 'too_old' | 'unknown_target' | 'rate_limited';
+            field?: string;
+            index?: number;
+            message?: string;
+        }>;
+        /**
+         * Accepted minus repeats (same channel and seq).
+         */
+        stored?: number;
+    };
+};
+
+export type PostSignalsResponse = PostSignalsResponses[keyof PostSignalsResponses];
 
 export type ListSitesData = {
     body?: never;
@@ -3992,6 +4393,135 @@ export type AskSiteResponses = {
 
 export type AskSiteResponse = AskSiteResponses[keyof AskSiteResponses];
 
+export type GetSiteContextData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/sites/{id}/context';
+};
+
+export type GetSiteContextErrors = {
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * Not found, no context yet, or advanced features are not available on this deployment.
+     */
+    404: Error;
+};
+
+export type GetSiteContextError = GetSiteContextErrors[keyof GetSiteContextErrors];
+
+export type GetSiteContextResponses = {
+    /**
+     * The stored SiteContext and its revision.
+     */
+    200: {
+        changed?: boolean;
+        /**
+         * The SiteContext with tenant_id, site_id, revision and updated_at set by the server.
+         */
+        context: {
+            [key: string]: unknown;
+        };
+        openRequests?: Array<{
+            /**
+             * A context request: item, name, why, how_to_supply, required, degraded_mode.
+             */
+            request?: {
+                [key: string]: unknown;
+            };
+            watchId?: string;
+        }>;
+        revision: number;
+        updatedAt?: string;
+    };
+};
+
+export type GetSiteContextResponse = GetSiteContextResponses[keyof GetSiteContextResponses];
+
+export type PutSiteContextData = {
+    /**
+     * A SiteContext without tenant_id, site_id, revision, updated_at: `context {scene, subjects, notes}`, `facts[]`, `cameras[]`, `zones[]`, `reference_images[]`, `signals[]` (declarations). See /docs/advanced.md.
+     */
+    body: {
+        [key: string]: unknown;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/sites/{id}/context';
+};
+
+export type PutSiteContextErrors = {
+    /**
+     * Invalid field: `field` names the path in your document (context.signals[0].worst_case_rate_hz).
+     */
+    400: Error;
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry.
+     */
+    402: Error;
+    /**
+     * insufficient_scope: needs context:write.
+     */
+    403: Error;
+    /**
+     * Not found, or advanced features are not available on this deployment.
+     */
+    404: Error;
+    /**
+     * revision_mismatch: If-Match did not equal the current revision.
+     */
+    412: Error;
+    /**
+     * too_large: more than 64 KiB.
+     */
+    413: Error;
+    /**
+     * context_limit: an array is over its limit (32 cameras, 64 zones, 64 signals, 128 facts, 16 reference_images).
+     */
+    422: Error;
+};
+
+export type PutSiteContextError = PutSiteContextErrors[keyof PutSiteContextErrors];
+
+export type PutSiteContextResponses = {
+    /**
+     * Stored. `revision` goes up by one when the document changed (and the site's running advanced watches re-plan on it, no restart); an identical document changes nothing. `openRequests` are the context requests the engine still has for the site's watches.
+     */
+    200: {
+        changed?: boolean;
+        /**
+         * The SiteContext with tenant_id, site_id, revision and updated_at set by the server.
+         */
+        context: {
+            [key: string]: unknown;
+        };
+        openRequests?: Array<{
+            /**
+             * A context request: item, name, why, how_to_supply, required, degraded_mode.
+             */
+            request?: {
+                [key: string]: unknown;
+            };
+            watchId?: string;
+        }>;
+        revision: number;
+        updatedAt?: string;
+    };
+};
+
+export type PutSiteContextResponse = PutSiteContextResponses[keyof PutSiteContextResponses];
+
 export type UpdateSiteMemoryData = {
     body: {
         brief?: string;
@@ -4179,6 +4709,32 @@ export type ReceiveStripeWebhookResponses = {
     200: unknown;
 };
 
+export type GetTestClipData = {
+    body?: never;
+    path: {
+        testId: string;
+        clipId: string;
+    };
+    query?: never;
+    url: '/test-clips/{testId}/{clipId}';
+};
+
+export type GetTestClipErrors = {
+    /**
+     * Bad or expired signature, a finished test, or no such clip.
+     */
+    404: Error;
+};
+
+export type GetTestClipError = GetTestClipErrors[keyof GetTestClipErrors];
+
+export type GetTestClipResponses = {
+    /**
+     * The clip (MP4).
+     */
+    200: unknown;
+};
+
 export type DeleteTestCaseData = {
     body?: never;
     path: {
@@ -4275,6 +4831,504 @@ export type GetTestCaseImageLinkResponses = {
 };
 
 export type GetTestCaseImageLinkResponse = GetTestCaseImageLinkResponses[keyof GetTestCaseImageLinkResponses];
+
+export type ListUploadsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/uploads';
+};
+
+export type ListUploadsErrors = {
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * Video files are off.
+     */
+    404: Error;
+};
+
+export type ListUploadsError = ListUploadsErrors[keyof ListUploadsErrors];
+
+export type ListUploadsResponses = {
+    /**
+     * Files.
+     */
+    200: Array<{
+        codec?: 'h264' | 'hevc' | 'vp8' | 'vp9' | 'av1';
+        container?: 'mp4' | 'mov' | 'webm' | 'mkv';
+        createdAt?: string;
+        durationSeconds?: number | null;
+        /**
+         * Why a `failed` upload was refused.
+         */
+        error?: string | null;
+        /**
+         * The file is deleted then, or earlier with its last watch.
+         */
+        expiresAt?: string;
+        /**
+         * The audio is never used: the watch reads video only and the player is muted.
+         */
+        hasAudio?: boolean;
+        height?: number | null;
+        id?: string;
+        name?: string;
+        /**
+         * Bytes.
+         */
+        size?: number;
+        /**
+         * Use as `sourceUrl` of POST /watches: percia-file://<id>. Append ?loop=1 to repeat the file (testing; only where looping is enabled).
+         */
+        source?: string;
+        /**
+         * Only `ready` files can be a watch source.
+         */
+        status?: 'uploading' | 'ready' | 'failed';
+        width?: number | null;
+    }>;
+};
+
+export type ListUploadsResponse = ListUploadsResponses[keyof ListUploadsResponses];
+
+export type StartUploadData = {
+    body: {
+        name: string;
+        size: number;
+    };
+    path?: never;
+    query?: never;
+    url: '/uploads';
+};
+
+export type StartUploadErrors = {
+    /**
+     * unsupported_type or invalid request.
+     */
+    400: Error;
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry.
+     */
+    402: Error;
+    /**
+     * Video files are off.
+     */
+    404: Error;
+    /**
+     * too_large: over the size limit.
+     */
+    413: Error;
+    /**
+     * upload_limit: too many files.
+     */
+    429: Error;
+};
+
+export type StartUploadError = StartUploadErrors[keyof StartUploadErrors];
+
+export type StartUploadResponses = {
+    /**
+     * Started.
+     */
+    201: {
+        id?: string;
+        maxSeconds?: number;
+        partSize?: number;
+        parts?: number;
+    };
+};
+
+export type StartUploadResponse = StartUploadResponses[keyof StartUploadResponses];
+
+export type UploadFromUrlData = {
+    body: {
+        url: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/uploads/from-url';
+};
+
+export type UploadFromUrlErrors = {
+    /**
+     * invalid_url, unsupported_type, fetch_failed, too_long, bad_container or bad_codec.
+     */
+    400: Error;
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry.
+     */
+    402: Error;
+    /**
+     * Video files are off.
+     */
+    404: Error;
+    /**
+     * too_large: over the size limit.
+     */
+    413: Error;
+    /**
+     * upload_limit: too many files.
+     */
+    429: Error;
+};
+
+export type UploadFromUrlError = UploadFromUrlErrors[keyof UploadFromUrlErrors];
+
+export type UploadFromUrlResponses = {
+    /**
+     * Fetched, checked and ready.
+     */
+    201: {
+        codec?: 'h264' | 'hevc' | 'vp8' | 'vp9' | 'av1';
+        container?: 'mp4' | 'mov' | 'webm' | 'mkv';
+        createdAt?: string;
+        durationSeconds?: number | null;
+        /**
+         * Why a `failed` upload was refused.
+         */
+        error?: string | null;
+        /**
+         * The file is deleted then, or earlier with its last watch.
+         */
+        expiresAt?: string;
+        /**
+         * The audio is never used: the watch reads video only and the player is muted.
+         */
+        hasAudio?: boolean;
+        height?: number | null;
+        id?: string;
+        name?: string;
+        /**
+         * Bytes.
+         */
+        size?: number;
+        /**
+         * Use as `sourceUrl` of POST /watches: percia-file://<id>. Append ?loop=1 to repeat the file (testing; only where looping is enabled).
+         */
+        source?: string;
+        /**
+         * Only `ready` files can be a watch source.
+         */
+        status?: 'uploading' | 'ready' | 'failed';
+        width?: number | null;
+    };
+};
+
+export type UploadFromUrlResponse = UploadFromUrlResponses[keyof UploadFromUrlResponses];
+
+export type CreateUploadLinkData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/uploads/link';
+};
+
+export type CreateUploadLinkErrors = {
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry.
+     */
+    402: Error;
+    /**
+     * Video files are off.
+     */
+    404: Error;
+};
+
+export type CreateUploadLinkError = CreateUploadLinkErrors[keyof CreateUploadLinkErrors];
+
+export type CreateUploadLinkResponses = {
+    /**
+     * The page address.
+     */
+    201: {
+        createdAt?: string;
+        expiresAt?: string;
+        maxMb?: number;
+        maxSeconds?: number;
+        next?: string;
+        uploadUrl?: string;
+    };
+};
+
+export type CreateUploadLinkResponse = CreateUploadLinkResponses[keyof CreateUploadLinkResponses];
+
+export type DeleteUploadData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/uploads/{id}';
+};
+
+export type DeleteUploadErrors = {
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry.
+     */
+    402: Error;
+    /**
+     * Not found.
+     */
+    404: Error;
+    /**
+     * in_use: a watch still uses the file.
+     */
+    409: Error;
+};
+
+export type DeleteUploadError = DeleteUploadErrors[keyof DeleteUploadErrors];
+
+export type DeleteUploadResponses = {
+    /**
+     * Deleted.
+     */
+    204: void;
+};
+
+export type DeleteUploadResponse = DeleteUploadResponses[keyof DeleteUploadResponses];
+
+export type GetUploadData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/uploads/{id}';
+};
+
+export type GetUploadErrors = {
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * Not found.
+     */
+    404: Error;
+};
+
+export type GetUploadError = GetUploadErrors[keyof GetUploadErrors];
+
+export type GetUploadResponses = {
+    /**
+     * The file.
+     */
+    200: {
+        codec?: 'h264' | 'hevc' | 'vp8' | 'vp9' | 'av1';
+        container?: 'mp4' | 'mov' | 'webm' | 'mkv';
+        createdAt?: string;
+        durationSeconds?: number | null;
+        /**
+         * Why a `failed` upload was refused.
+         */
+        error?: string | null;
+        /**
+         * The file is deleted then, or earlier with its last watch.
+         */
+        expiresAt?: string;
+        /**
+         * The audio is never used: the watch reads video only and the player is muted.
+         */
+        hasAudio?: boolean;
+        height?: number | null;
+        id?: string;
+        name?: string;
+        /**
+         * Bytes.
+         */
+        size?: number;
+        /**
+         * Use as `sourceUrl` of POST /watches: percia-file://<id>. Append ?loop=1 to repeat the file (testing; only where looping is enabled).
+         */
+        source?: string;
+        /**
+         * Only `ready` files can be a watch source.
+         */
+        status?: 'uploading' | 'ready' | 'failed';
+        width?: number | null;
+    };
+};
+
+export type GetUploadResponse = GetUploadResponses[keyof GetUploadResponses];
+
+export type CompleteUploadData = {
+    body: {
+        parts: Array<{
+            etag: string;
+            partNumber: number;
+        }>;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/uploads/{id}/complete';
+};
+
+export type CompleteUploadErrors = {
+    /**
+     * Refused: bad_container, bad_codec or too_long.
+     */
+    400: Error;
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry.
+     */
+    402: Error;
+    /**
+     * Not found.
+     */
+    404: Error;
+    /**
+     * The upload is closed.
+     */
+    409: Error;
+};
+
+export type CompleteUploadError = CompleteUploadErrors[keyof CompleteUploadErrors];
+
+export type CompleteUploadResponses = {
+    /**
+     * Ready.
+     */
+    200: {
+        codec?: 'h264' | 'hevc' | 'vp8' | 'vp9' | 'av1';
+        container?: 'mp4' | 'mov' | 'webm' | 'mkv';
+        createdAt?: string;
+        durationSeconds?: number | null;
+        /**
+         * Why a `failed` upload was refused.
+         */
+        error?: string | null;
+        /**
+         * The file is deleted then, or earlier with its last watch.
+         */
+        expiresAt?: string;
+        /**
+         * The audio is never used: the watch reads video only and the player is muted.
+         */
+        hasAudio?: boolean;
+        height?: number | null;
+        id?: string;
+        name?: string;
+        /**
+         * Bytes.
+         */
+        size?: number;
+        /**
+         * Use as `sourceUrl` of POST /watches: percia-file://<id>. Append ?loop=1 to repeat the file (testing; only where looping is enabled).
+         */
+        source?: string;
+        /**
+         * Only `ready` files can be a watch source.
+         */
+        status?: 'uploading' | 'ready' | 'failed';
+        width?: number | null;
+    };
+};
+
+export type CompleteUploadResponse = CompleteUploadResponses[keyof CompleteUploadResponses];
+
+export type UploadPartData = {
+    body?: never;
+    path: {
+        id: string;
+        n: string;
+    };
+    query?: never;
+    url: '/uploads/{id}/parts/{n}';
+};
+
+export type UploadPartErrors = {
+    /**
+     * bad_part: wrong length.
+     */
+    400: Error;
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry.
+     */
+    402: Error;
+    /**
+     * Unknown or closed upload.
+     */
+    404: Error;
+};
+
+export type UploadPartError = UploadPartErrors[keyof UploadPartErrors];
+
+export type UploadPartResponses = {
+    /**
+     * Stored.
+     */
+    200: {
+        etag?: string;
+        partNumber?: number;
+    };
+};
+
+export type UploadPartResponse = UploadPartResponses[keyof UploadPartResponses];
+
+export type GetUploadPlayUrlData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/uploads/{id}/play';
+};
+
+export type GetUploadPlayUrlErrors = {
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * Not found.
+     */
+    404: Error;
+};
+
+export type GetUploadPlayUrlError = GetUploadPlayUrlErrors[keyof GetUploadPlayUrlErrors];
+
+export type GetUploadPlayUrlResponses = {
+    /**
+     * The address.
+     */
+    200: {
+        durationSeconds?: number | null;
+        expiresAt?: string;
+        hasAudio?: boolean;
+        url?: string;
+    };
+};
+
+export type GetUploadPlayUrlResponse = GetUploadPlayUrlResponses[keyof GetUploadPlayUrlResponses];
 
 export type GetUsageData = {
     body?: never;
@@ -4373,150 +5427,132 @@ export type GetCameraUsageResponses = {
 
 export type GetCameraUsageResponse = GetCameraUsageResponses[keyof GetCameraUsageResponses];
 
-export type CreateInstantWatchData = {
+export type CreateWatchDraftData = {
     body: {
+        cameraId?: string;
         goal: string;
-        sourceUrl: string;
-        webhookUrl: string;
+        sourceUrl?: string;
     };
     path?: never;
     query?: never;
-    url: '/v1/instant';
+    url: '/watches/draft';
 };
 
-export type CreateInstantWatchErrors = {
+export type CreateWatchDraftErrors = {
     /**
-     * Invalid field.
+     * Invalid ask or camera.
      */
     400: Error;
-    /**
-     * code `daily_cap` (global budget used up) or `ip_cap` (this IP already started one in 24 hours). Retry-After is set.
-     */
-    429: Error;
-    /**
-     * code `instant_disabled`: the kill switch is off.
-     */
-    503: Error;
-};
-
-export type CreateInstantWatchError = CreateInstantWatchErrors[keyof CreateInstantWatchErrors];
-
-export type CreateInstantWatchResponses = {
-    /**
-     * Created. webhookSecret and apiKey are returned only here, once. apiKey can read the watch and its events and stops working at expiresAt.
-     */
-    201: {
-        apiKey?: string;
-        /**
-         * Open while signed in to keep the watch.
-         */
-        claimUrl?: string;
-        expiresAt?: string;
-        watch?: Watch;
-        webhookSecret?: string;
-    };
-};
-
-export type CreateInstantWatchResponse = CreateInstantWatchResponses[keyof CreateInstantWatchResponses];
-
-export type CreatePublicWatchData = {
-    body: {
-        goal: string;
-        notify: {
-            target: string;
-            type: 'email';
-        } | {
-            target: string;
-            type: 'webhook';
-        };
-        sourceUrl: string | string;
-    };
-    path?: never;
-    query?: never;
-    url: '/watches';
-};
-
-export type CreatePublicWatchErrors = {
-    /**
-     * Invalid field, or a phone-camera source (needs an account).
-     */
-    400: Error;
-    /**
-     * Webhook target: sign in to use webhooks.
-     */
-    401: Error;
-    /**
-     * Too many requests.
-     */
-    429: Error;
-};
-
-export type CreatePublicWatchError = CreatePublicWatchErrors[keyof CreatePublicWatchErrors];
-
-export type CreatePublicWatchResponses = {
-    /**
-     * Created; the manage link is emailed.
-     */
-    201: {
-        emailed?: boolean;
-        id?: string;
-        notifyType?: 'email';
-    };
-};
-
-export type CreatePublicWatchResponse = CreatePublicWatchResponses[keyof CreatePublicWatchResponses];
-
-export type InterpretGoalData = {
-    body: {
-        goal: string;
-    };
-    path?: never;
-    query?: never;
-    url: '/watches/interpret';
-};
-
-export type InterpretGoalErrors = {
-    /**
-     * Invalid goal.
-     */
-    400: Error;
-    /**
-     * Not signed in.
-     */
-    401: Error;
     /**
      * payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry.
      */
     402: Error;
     /**
-     * rate_limited: too many interpretations this hour.
+     * recording is not on.
      */
-    429: Error;
+    404: Error;
     /**
-     * Goal understanding is off or unavailable: create the watch with your words as written.
+     * draft_unreadable: the layer could not understand the ask; say it another way.
+     */
+    422: Error;
+    /**
+     * layer_unavailable, layer_unconfigured or layer_budget: clarifying is not available right now.
      */
     503: Error;
 };
 
-export type InterpretGoalError = InterpretGoalErrors[keyof InterpretGoalErrors];
+export type CreateWatchDraftError = CreateWatchDraftErrors[keyof CreateWatchDraftErrors];
 
-export type InterpretGoalResponses = {
+export type CreateWatchDraftResponses = {
     /**
-     * The interpretation (shape, summary, kind, concerns with evidence and ignore, assumptions, gaps, untestable, confidence, clarity, cadence, source, degraded, needsLook) and cached.
+     * The draft: draftId, status (clarifying, ready, refused), question, options [{label, definition}; when the layer gave none, plain readings with `fallback: true` and `answer`, the text to send], intent {summary, purpose, riskTier}, conditions [{id, kind, observable}], understanding {summary, kind: event|state|mixed, conditions, definitions [{term, definition}]}, unsupported [{part, needs, refused}], needsAcknowledgement, turns, rounds.
      */
-    200: {
-        cached?: boolean;
-        /**
-         * Preview only, true when no model answered within the preview budget: the interpretation is the plain-words fallback, understand it on create instead.
-         */
-        deferred?: boolean;
-        interpretation?: {
-            [key: string]: unknown;
-        };
+    201: {
+        [key: string]: unknown;
     };
 };
 
-export type InterpretGoalResponse = InterpretGoalResponses[keyof InterpretGoalResponses];
+export type CreateWatchDraftResponse = CreateWatchDraftResponses[keyof CreateWatchDraftResponses];
+
+export type GetWatchDraftData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/watches/draft/{id}';
+};
+
+export type GetWatchDraftErrors = {
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * Unknown draft, or recording is not on.
+     */
+    404: Error;
+};
+
+export type GetWatchDraftError = GetWatchDraftErrors[keyof GetWatchDraftErrors];
+
+export type GetWatchDraftResponses = {
+    /**
+     * The draft, as POST /watches/draft returns it.
+     */
+    200: {
+        [key: string]: unknown;
+    };
+};
+
+export type GetWatchDraftResponse = GetWatchDraftResponses[keyof GetWatchDraftResponses];
+
+export type AnswerWatchDraftData = {
+    body: {
+        text: string;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/watches/draft/{id}/answer';
+};
+
+export type AnswerWatchDraftErrors = {
+    /**
+     * payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry.
+     */
+    402: Error;
+    /**
+     * Unknown draft, or recording is not on.
+     */
+    404: Error;
+    /**
+     * draft_closed, draft_ready, draft_refused, draft_too_long or draft_changed.
+     */
+    409: Error;
+    /**
+     * draft_unreadable.
+     */
+    422: Error;
+    /**
+     * layer_unavailable, layer_unconfigured or layer_budget.
+     */
+    503: Error;
+};
+
+export type AnswerWatchDraftError = AnswerWatchDraftErrors[keyof AnswerWatchDraftErrors];
+
+export type AnswerWatchDraftResponses = {
+    /**
+     * The updated draft.
+     */
+    200: {
+        [key: string]: unknown;
+    };
+};
+
+export type AnswerWatchDraftResponse = AnswerWatchDraftResponses[keyof AnswerWatchDraftResponses];
 
 export type ListWatchesData = {
     body?: never;
@@ -4545,18 +5581,25 @@ export type ListWatchesResponse = ListWatchesResponses[keyof ListWatchesResponse
 
 export type CreateWatchData = {
     body: {
+        acknowledgeUnsupported?: boolean;
+        /**
+         * Beta, only where recording is on (422 advanced_unavailable elsewhere): your own conditions. `conditions[]` are Condition objects {condition_id, kind (event|state|measurement), observable, role?: helper, while?/and_not?: {condition_id} or {signal: {signal, op, value}}, window_by?, window?, window_signal?, thresholds?: {..., trend, trend_window_s, trend_min_samples, trend_noise_floor, trend_slope}}. Example, alert if the belt stops while the motor is on: [{condition_id:"belt_stopped", kind:"state", observable:"the belt is not moving", while:{signal:{signal:"motor_running", op:"==", value:true}}}] (declare motor_running in the site's context first, and join the watch to that site with siteId). The source must be a Percia camera. See /docs/advanced.md.
+         */
+        advanced?: {
+            actions?: Array<{
+                condition_id: string;
+                kind: 'pause_recommended' | 'stop_recommended' | 'inspect_recommended' | 'adjust_recommended' | 'resume_ok';
+                resume_ok?: boolean;
+            }>;
+            conditions: Array<{
+                [key: string]: unknown;
+            }>;
+        };
         agentId?: string;
         agentVersion?: number;
-        concerns?: Array<{
-            id?: string;
-            ignore?: Array<string>;
-            kind: 'state' | 'event';
-            text: string;
-        }>;
         destinations?: Array<string>;
+        draftId?: string;
         goal?: string;
-        interpret?: boolean;
-        kind?: 'state' | 'event';
         media?: 'off' | 'keyframes';
         notify?: {
             target: string;
@@ -4565,9 +5608,9 @@ export type CreateWatchData = {
             target: string;
             type: 'webhook';
         };
-        runtime?: 'pool' | 'core';
         siteId?: string;
-        sourceUrl: string | string;
+        sourceUrl: string;
+        startPaused?: boolean;
     };
     path?: never;
     query?: never;
@@ -4588,13 +5631,36 @@ export type CreateWatchErrors = {
      */
     402: Error;
     /**
-     * forbidden: runtime core is not available.
+     * unsupported_not_acknowledged (Percia): part of the goal cannot be watched; the body has `draftId` and `unsupported`. Also draft_closed, draft_not_ready.
      */
-    403: Error;
+    409: Error;
+    /**
+     * where recording is on. `clarification_needed`: nothing was created; the body has `draftId`, `question`, `options` [{label, definition}] and `guidance`. Also `draft_refused` (nothing visible to watch; `unsupported` lists why), `draft_multi_watch`, and `invalid_request` with `error.field` naming a refused v1-only input (cooldownS, kind, rearmS, recheckS, minConfidence, notWhen, zones, concerns, judgeKey, interpret, runtime).
+     */
+    422: {
+        draftId?: string;
+        error?: {
+            code?: string;
+            field?: string;
+            message?: string;
+        };
+        guidance?: {
+            [key: string]: unknown;
+        };
+        options?: Array<{
+            definition?: string;
+            label?: string;
+        }>;
+        question?: string;
+    };
     /**
      * Too many requests.
      */
     429: Error;
+    /**
+     * where recording is on: layer_unavailable, layer_unconfigured or layer_budget; nothing was created.
+     */
+    503: Error;
 };
 
 export type CreateWatchError = CreateWatchErrors[keyof CreateWatchErrors];
@@ -4604,6 +5670,22 @@ export type CreateWatchResponses = {
      * Created. webhookSecret is returned only here, once, for webhook watches.
      */
     201: {
+        /**
+         * Only on a watch made with `advanced` (Percia engine). `conditions` and `actions` as you sent them; `contextRequests` are what the engine asked you to supply (each has `how_to_supply`, a SiteContext path to PUT), `[]` when none or not yet known; `state` is `pending` until the engine reported them; `siteRev` is the revision of the site's context it runs on.
+         */
+        advanced?: {
+            actions?: Array<{
+                [key: string]: unknown;
+            }>;
+            conditions?: Array<{
+                [key: string]: unknown;
+            }>;
+            contextRequests?: Array<{
+                [key: string]: unknown;
+            }>;
+            siteRev?: number | null;
+            state?: 'pending' | 'ready';
+        };
         /**
          * Only on watches deployed with an agent. version is the one it runs; followsLatest is true when it was not pinned.
          */
@@ -4621,11 +5703,19 @@ export type CreateWatchResponses = {
             name?: string;
             status?: 'online' | 'offline' | 'never';
         } | null;
-        /**
-         * Only on core watches. running is judging; absent is paused (nothing runs on Percia core); off means the core switch was off when it was created; error: see syncError.
-         */
-        coreState?: 'pending' | 'configuring' | 'running' | 'degraded' | 'stopped' | 'absent' | 'off' | 'error';
         createdAt?: string;
+        /**
+         * One plain sentence for a watch whose newest settled delivery failed ("Slack answered 500."), else null.
+         */
+        deliveryProblem?: string | null;
+        /**
+         * Connected destinations (Slack, Discord ...) this watch alerts, from its integration rules. Empty while integrations are off.
+         */
+        destinations?: Array<{
+            connectionId?: string;
+            label?: string;
+            service?: string;
+        }>;
         /**
          * Connected destinations that now have a rule on this watch (0 when none).
          */
@@ -4639,6 +5729,10 @@ export type CreateWatchResponses = {
          */
         displayStatus?: 'active' | 'paused' | 'attention';
         eventCount?: number;
+        /**
+         * Events in the last 24 hours.
+         */
+        events24h?: number;
         /**
          * For a deployed watch, the agent's name.
          */
@@ -4693,6 +5787,10 @@ export type CreateWatchResponses = {
             type?: string;
         } | null;
         /**
+         * Camera-minutes this UTC month on the stream this watch uses (watches on one camera share its minutes).
+         */
+        minutesThisMonth?: number;
+        /**
          * When the camera stopped sending video, else null. An active watch is paused automatically 60 minutes after this time (pausedReason no_video). Kept on a no_video pause; cleared on resume.
          */
         noVideoSince?: string | null;
@@ -4701,13 +5799,22 @@ export type CreateWatchResponses = {
             type?: 'email' | 'webhook';
         };
         /**
-         * Why a paused watch is paused: user (paused by the owner or an agent, or an older pause with no recorded reason), no_video (paused automatically after 60 minutes without video from the camera), needs_billing (free minutes and credits used, no card), spend_cap (the monthly cap was reached), payment_failed (a payment failed and the 48-hour grace is over; resumes by itself when the payment succeeds) or ended (a short-term watch reached its end). Resume with PATCH status active.
+         * Why a paused watch is paused: user (paused by the owner or an agent, or an older pause with no recorded reason), no_video (paused automatically after 60 minutes without video from the camera), needs_billing (free minutes and credits used, no card), spend_cap (the monthly cap was reached), payment_failed (a payment failed and the 48-hour grace is over; resumes by itself when the payment succeeds) ended (a short-term watch reached its end) testing (made with `startPaused` to be tested before going live; PATCH status active goes live) or test_ended (a 30-minute test run ended; PATCH status active goes live). Resume with PATCH status active.
          */
         pausedReason?: string | null;
         /**
-         * Where the watch is judged: pool (default) or core (Percia core, Percept Cloud). Fixed when the watch is created.
+         * Detail only. A converted watch that waits for an answer: the question, its options (may be empty), when it was asked and the draft to answer through POST /watches/draft/{draftId}/answer. Null otherwise.
          */
-        runtime?: 'pool' | 'core';
+        pendingQuestion?: {
+            askedAt?: string;
+            draftId?: string;
+            options?: Array<string>;
+            question?: string;
+        } | null;
+        /**
+         * Always pool (kept for older clients): every watch is judged on the Percia engine.
+         */
+        runtime?: 'pool';
         secretHint?: string | null;
         /**
          * The site this watch belongs to (shared memory), else null.
@@ -4717,16 +5824,20 @@ export type CreateWatchResponses = {
             name?: string;
         } | null;
         /**
-         * phone = a paired phone or laptop camera; sourceUrl is then percia-cam://<cameraId>.
+         * phone = a paired phone, tablet or computer camera; sourceUrl is then percia-cam://<cameraId>.
          */
         sourceType?: 'rtsp' | 'video' | 'phone';
         /**
-         * Credentials are redacted.
+         * Credentials are redacted. A video file is percia-file://<uploadId>.
          */
         sourceUrl?: string;
         status?: 'active' | 'paused';
         syncError?: string | null;
         syncedAt?: string | null;
+        /**
+         * Set while the watch is in a live test run: when it ends (30 minutes after PATCH {status: "active", testRun: true}). Its events are marked `test: true`, its webhooks carry `test: true`, and the watch is paused by itself at this time (pausedReason test_ended). PATCH {status: "active"} goes live with no restart; null otherwise.
+         */
+        testUntil?: string | null;
         webhookSecret?: string;
     };
 };
@@ -4790,9 +5901,25 @@ export type GetWatchError = GetWatchErrors[keyof GetWatchErrors];
 
 export type GetWatchResponses = {
     /**
-     * The watch, with secretHint (last 4 characters) for webhook watches and the engine release it runs.
+     * The watch, with secretHint (last 4 characters) for webhook watches.
      */
     200: {
+        /**
+         * Only on a watch made with `advanced` (Percia engine). `conditions` and `actions` as you sent them; `contextRequests` are what the engine asked you to supply (each has `how_to_supply`, a SiteContext path to PUT), `[]` when none or not yet known; `state` is `pending` until the engine reported them; `siteRev` is the revision of the site's context it runs on.
+         */
+        advanced?: {
+            actions?: Array<{
+                [key: string]: unknown;
+            }>;
+            conditions?: Array<{
+                [key: string]: unknown;
+            }>;
+            contextRequests?: Array<{
+                [key: string]: unknown;
+            }>;
+            siteRev?: number | null;
+            state?: 'pending' | 'ready';
+        };
         /**
          * Only on watches deployed with an agent. version is the one it runs; followsLatest is true when it was not pinned.
          */
@@ -4810,27 +5937,28 @@ export type GetWatchResponses = {
             name?: string;
             status?: 'online' | 'offline' | 'never';
         } | null;
-        /**
-         * Only on core watches. running is judging; absent is paused (nothing runs on Percia core); off means the core switch was off when it was created; error: see syncError.
-         */
-        coreState?: 'pending' | 'configuring' | 'running' | 'degraded' | 'stopped' | 'absent' | 'off' | 'error';
         createdAt?: string;
+        /**
+         * One plain sentence for a watch whose newest settled delivery failed ("Slack answered 500."), else null.
+         */
+        deliveryProblem?: string | null;
+        /**
+         * Connected destinations (Slack, Discord ...) this watch alerts, from its integration rules. Empty while integrations are off.
+         */
+        destinations?: Array<{
+            connectionId?: string;
+            label?: string;
+            service?: string;
+        }>;
         /**
          * Needs attention when syncError is set, the last delivery failed, a rule of the watch points at a broken integration, or an active watch gets no video (noVideoSince set).
          */
         displayStatus?: 'active' | 'paused' | 'attention';
-        /**
-         * The engine release (Percept version plus Percia's runner revision) that judges this watch, or would when it is active. pinned is true when support fixed it for this watch; otherwise it follows Percia's staged rollout. Null while none is assigned. Informational: there is nothing to set.
-         */
-        engine?: {
-            /**
-             * Release id, e.g. pv1.1.0-r18.
-             */
-            id?: string;
-            perceptVersion?: string;
-            pinned?: boolean;
-        } | null;
         eventCount?: number;
+        /**
+         * Events in the last 24 hours.
+         */
+        events24h?: number;
         /**
          * For a deployed watch, the agent's name.
          */
@@ -4885,6 +6013,10 @@ export type GetWatchResponses = {
             type?: string;
         } | null;
         /**
+         * Camera-minutes this UTC month on the stream this watch uses (watches on one camera share its minutes).
+         */
+        minutesThisMonth?: number;
+        /**
          * When the camera stopped sending video, else null. An active watch is paused automatically 60 minutes after this time (pausedReason no_video). Kept on a no_video pause; cleared on resume.
          */
         noVideoSince?: string | null;
@@ -4893,13 +6025,22 @@ export type GetWatchResponses = {
             type?: 'email' | 'webhook';
         };
         /**
-         * Why a paused watch is paused: user (paused by the owner or an agent, or an older pause with no recorded reason), no_video (paused automatically after 60 minutes without video from the camera), needs_billing (free minutes and credits used, no card), spend_cap (the monthly cap was reached), payment_failed (a payment failed and the 48-hour grace is over; resumes by itself when the payment succeeds) or ended (a short-term watch reached its end). Resume with PATCH status active.
+         * Why a paused watch is paused: user (paused by the owner or an agent, or an older pause with no recorded reason), no_video (paused automatically after 60 minutes without video from the camera), needs_billing (free minutes and credits used, no card), spend_cap (the monthly cap was reached), payment_failed (a payment failed and the 48-hour grace is over; resumes by itself when the payment succeeds) ended (a short-term watch reached its end) testing (made with `startPaused` to be tested before going live; PATCH status active goes live) or test_ended (a 30-minute test run ended; PATCH status active goes live). Resume with PATCH status active.
          */
         pausedReason?: string | null;
         /**
-         * Where the watch is judged: pool (default) or core (Percia core, Percept Cloud). Fixed when the watch is created.
+         * Detail only. A converted watch that waits for an answer: the question, its options (may be empty), when it was asked and the draft to answer through POST /watches/draft/{draftId}/answer. Null otherwise.
          */
-        runtime?: 'pool' | 'core';
+        pendingQuestion?: {
+            askedAt?: string;
+            draftId?: string;
+            options?: Array<string>;
+            question?: string;
+        } | null;
+        /**
+         * Always pool (kept for older clients): every watch is judged on the Percia engine.
+         */
+        runtime?: 'pool';
         secretHint?: string | null;
         /**
          * The site this watch belongs to (shared memory), else null.
@@ -4909,16 +6050,20 @@ export type GetWatchResponses = {
             name?: string;
         } | null;
         /**
-         * phone = a paired phone or laptop camera; sourceUrl is then percia-cam://<cameraId>.
+         * phone = a paired phone, tablet or computer camera; sourceUrl is then percia-cam://<cameraId>.
          */
         sourceType?: 'rtsp' | 'video' | 'phone';
         /**
-         * Credentials are redacted.
+         * Credentials are redacted. A video file is percia-file://<uploadId>.
          */
         sourceUrl?: string;
         status?: 'active' | 'paused';
         syncError?: string | null;
         syncedAt?: string | null;
+        /**
+         * Set while the watch is in a live test run: when it ends (30 minutes after PATCH {status: "active", testRun: true}). Its events are marked `test: true`, its webhooks carry `test: true`, and the watch is paused by itself at this time (pausedReason test_ended). PATCH {status: "active"} goes live with no restart; null otherwise.
+         */
+        testUntil?: string | null;
     };
 };
 
@@ -4926,19 +6071,22 @@ export type GetWatchResponse = GetWatchResponses[keyof GetWatchResponses];
 
 export type UpdateWatchData = {
     body: {
-        acknowledge?: true;
+        /**
+         * Beta, only where recording is on (422 advanced_unavailable elsewhere): your own conditions. `conditions[]` are Condition objects {condition_id, kind (event|state|measurement), observable, role?: helper, while?/and_not?: {condition_id} or {signal: {signal, op, value}}, window_by?, window?, window_signal?, thresholds?: {..., trend, trend_window_s, trend_min_samples, trend_noise_floor, trend_slope}}. Example, alert if the belt stops while the motor is on: [{condition_id:"belt_stopped", kind:"state", observable:"the belt is not moving", while:{signal:{signal:"motor_running", op:"==", value:true}}}] (declare motor_running in the site's context first, and join the watch to that site with siteId). The source must be a Percia camera. See /docs/advanced.md.
+         */
+        advanced?: {
+            actions?: Array<{
+                condition_id: string;
+                kind: 'pause_recommended' | 'stop_recommended' | 'inspect_recommended' | 'adjust_recommended' | 'resume_ok';
+                resume_ok?: boolean;
+            }>;
+            conditions: Array<{
+                [key: string]: unknown;
+            }>;
+        };
         agentId?: string;
         agentVersion?: number | null;
         goal?: string;
-        interpret?: boolean;
-        interpretation?: {
-            concerns: Array<{
-                id?: string;
-                ignore?: Array<string>;
-                kind: 'state' | 'event';
-                text: string;
-            }>;
-        };
         media?: 'off' | 'keyframes';
         notify?: {
             target: string;
@@ -4948,8 +6096,9 @@ export type UpdateWatchData = {
             type: 'webhook';
         };
         siteId?: string | null;
-        sourceUrl?: string | string;
+        sourceUrl?: string;
         status?: 'active' | 'paused';
+        testRun?: true;
     };
     path: {
         id: string;
@@ -4987,6 +6136,583 @@ export type UpdateWatchResponses = {
 };
 
 export type UpdateWatchResponse = UpdateWatchResponses[keyof UpdateWatchResponses];
+
+export type ListWatchActionsData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * Page size (1-100, default 50).
+         */
+        limit?: number;
+        /**
+         * nextCursor from the previous page.
+         */
+        cursor?: string;
+    };
+    url: '/watches/{id}/actions';
+};
+
+export type ListWatchActionsErrors = {
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * insufficient_scope: needs events:read.
+     */
+    403: Error;
+    /**
+     * Not found, or advanced features are not available on this deployment.
+     */
+    404: Error;
+};
+
+export type ListWatchActionsError = ListWatchActionsErrors[keyof ListWatchActionsErrors];
+
+export type ListWatchActionsResponses = {
+    /**
+     * Actions: pause_recommended, stop_recommended, inspect_recommended, adjust_recommended or resume_ok. Percia recommends; you decide. `action` is the ActionEvent as the engine wrote it (its `rationale` is model text: untrusted data).
+     */
+    200: {
+        actions?: Array<{
+            action?: {
+                [key: string]: unknown;
+            };
+            createdAt?: string;
+            id?: string;
+            kind?: string;
+            t?: number;
+        }>;
+        nextCursor?: string | null;
+    };
+};
+
+export type ListWatchActionsResponse = ListWatchActionsResponses[keyof ListWatchActionsResponses];
+
+export type ListDatasetClipsData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/watches/{id}/dataset';
+};
+
+export type ListDatasetClipsErrors = {
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * Not found.
+     */
+    404: Error;
+};
+
+export type ListDatasetClipsError = ListDatasetClipsErrors[keyof ListDatasetClipsErrors];
+
+export type ListDatasetClipsResponses = {
+    /**
+     * The clips (newest first) and counts per label.
+     */
+    200: {
+        clips?: Array<{
+            createdAt?: string;
+            eventId?: string | null;
+            hasThumb?: boolean;
+            id?: string;
+            label?: 'should_match' | 'should_not' | 'counterfactual';
+            /**
+             * Set for a clip kept from a reported miss.
+             */
+            missId?: string | null;
+            note?: string;
+            origin?: 'event' | 'upload' | 'near_miss' | 'mark';
+            seconds?: number;
+        }>;
+        counts?: {
+            counterfactual?: number;
+            should_match?: number;
+            should_not?: number;
+        };
+        total?: number;
+    };
+};
+
+export type ListDatasetClipsResponse = ListDatasetClipsResponses[keyof ListDatasetClipsResponses];
+
+export type UploadDatasetClipData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/watches/{id}/dataset';
+};
+
+export type UploadDatasetClipErrors = {
+    /**
+     * Not a readable MP4 or MOV, too long, or no label.
+     */
+    400: Error;
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry.
+     */
+    402: Error;
+    /**
+     * Not found.
+     */
+    404: Error;
+    /**
+     * conflict: the dataset holds 60 clips.
+     */
+    409: Error;
+    /**
+     * too_large: over 32 MB.
+     */
+    413: Error;
+};
+
+export type UploadDatasetClipError = UploadDatasetClipErrors[keyof UploadDatasetClipErrors];
+
+export type UploadDatasetClipResponses = {
+    /**
+     * The clip was added.
+     */
+    201: {
+        clip?: {
+            createdAt?: string;
+            eventId?: string | null;
+            hasThumb?: boolean;
+            id?: string;
+            label?: 'should_match' | 'should_not' | 'counterfactual';
+            /**
+             * Set for a clip kept from a reported miss.
+             */
+            missId?: string | null;
+            note?: string;
+            origin?: 'event' | 'upload' | 'near_miss' | 'mark';
+            seconds?: number;
+        };
+    };
+};
+
+export type UploadDatasetClipResponse = UploadDatasetClipResponses[keyof UploadDatasetClipResponses];
+
+export type AddDatasetClipFromEventData = {
+    body: {
+        eventId: string;
+        label: 'should_match' | 'should_not' | 'counterfactual';
+        note?: string;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/watches/{id}/dataset/from-event';
+};
+
+export type AddDatasetClipFromEventErrors = {
+    /**
+     * Invalid label.
+     */
+    400: Error;
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry.
+     */
+    402: Error;
+    /**
+     * Not found, or the event has no stored clip (clip_unavailable).
+     */
+    404: Error;
+    /**
+     * conflict: the dataset holds 60 clips.
+     */
+    409: Error;
+};
+
+export type AddDatasetClipFromEventError = AddDatasetClipFromEventErrors[keyof AddDatasetClipFromEventErrors];
+
+export type AddDatasetClipFromEventResponses = {
+    /**
+     * The event was already in the dataset; its label changed.
+     */
+    200: {
+        clip?: {
+            createdAt?: string;
+            eventId?: string | null;
+            hasThumb?: boolean;
+            id?: string;
+            label?: 'should_match' | 'should_not' | 'counterfactual';
+            /**
+             * Set for a clip kept from a reported miss.
+             */
+            missId?: string | null;
+            note?: string;
+            origin?: 'event' | 'upload' | 'near_miss' | 'mark';
+            seconds?: number;
+        };
+        created?: boolean;
+    };
+    /**
+     * The clip was added.
+     */
+    201: {
+        clip?: {
+            createdAt?: string;
+            eventId?: string | null;
+            hasThumb?: boolean;
+            id?: string;
+            label?: 'should_match' | 'should_not' | 'counterfactual';
+            /**
+             * Set for a clip kept from a reported miss.
+             */
+            missId?: string | null;
+            note?: string;
+            origin?: 'event' | 'upload' | 'near_miss' | 'mark';
+            seconds?: number;
+        };
+        created?: boolean;
+    };
+};
+
+export type AddDatasetClipFromEventResponse = AddDatasetClipFromEventResponses[keyof AddDatasetClipFromEventResponses];
+
+export type AddDatasetClipFromLinkData = {
+    body: {
+        label: 'should_match' | 'should_not' | 'counterfactual';
+        note?: string;
+        url: string;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/watches/{id}/dataset/from-link';
+};
+
+export type AddDatasetClipFromLinkErrors = {
+    /**
+     * Not an https link to a readable MP4 or MOV, too long, too big, or needs a sign-in.
+     */
+    400: Error;
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry.
+     */
+    402: Error;
+    /**
+     * Not found.
+     */
+    404: Error;
+    /**
+     * conflict: the dataset holds 60 clips.
+     */
+    409: Error;
+    /**
+     * rate_limited.
+     */
+    429: Error;
+    /**
+     * tests_unavailable: clip storage is unavailable.
+     */
+    503: Error;
+};
+
+export type AddDatasetClipFromLinkError = AddDatasetClipFromLinkErrors[keyof AddDatasetClipFromLinkErrors];
+
+export type AddDatasetClipFromLinkResponses = {
+    /**
+     * The clip was added.
+     */
+    201: {
+        clip?: {
+            createdAt?: string;
+            eventId?: string | null;
+            hasThumb?: boolean;
+            id?: string;
+            label?: 'should_match' | 'should_not' | 'counterfactual';
+            /**
+             * Set for a clip kept from a reported miss.
+             */
+            missId?: string | null;
+            note?: string;
+            origin?: 'event' | 'upload' | 'near_miss' | 'mark';
+            seconds?: number;
+        };
+    };
+};
+
+export type AddDatasetClipFromLinkResponse = AddDatasetClipFromLinkResponses[keyof AddDatasetClipFromLinkResponses];
+
+export type AddDatasetClipFromMissData = {
+    body: {
+        label: 'should_match' | 'should_not' | 'counterfactual';
+        missId: string;
+        note?: string;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/watches/{id}/dataset/from-miss';
+};
+
+export type AddDatasetClipFromMissErrors = {
+    /**
+     * Invalid label.
+     */
+    400: Error;
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry.
+     */
+    402: Error;
+    /**
+     * Not found, or that moment is no longer recorded (clip_unavailable).
+     */
+    404: Error;
+    /**
+     * conflict: the dataset holds 60 clips.
+     */
+    409: Error;
+};
+
+export type AddDatasetClipFromMissError = AddDatasetClipFromMissErrors[keyof AddDatasetClipFromMissErrors];
+
+export type AddDatasetClipFromMissResponses = {
+    /**
+     * The miss was already in the dataset; its label changed.
+     */
+    200: {
+        clip?: {
+            createdAt?: string;
+            eventId?: string | null;
+            hasThumb?: boolean;
+            id?: string;
+            label?: 'should_match' | 'should_not' | 'counterfactual';
+            /**
+             * Set for a clip kept from a reported miss.
+             */
+            missId?: string | null;
+            note?: string;
+            origin?: 'event' | 'upload' | 'near_miss' | 'mark';
+            seconds?: number;
+        };
+        created?: boolean;
+    };
+    /**
+     * The clip was added.
+     */
+    201: {
+        clip?: {
+            createdAt?: string;
+            eventId?: string | null;
+            hasThumb?: boolean;
+            id?: string;
+            label?: 'should_match' | 'should_not' | 'counterfactual';
+            /**
+             * Set for a clip kept from a reported miss.
+             */
+            missId?: string | null;
+            note?: string;
+            origin?: 'event' | 'upload' | 'near_miss' | 'mark';
+            seconds?: number;
+        };
+        created?: boolean;
+    };
+};
+
+export type AddDatasetClipFromMissResponse = AddDatasetClipFromMissResponses[keyof AddDatasetClipFromMissResponses];
+
+export type ListNearMissesData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/watches/{id}/dataset/near-misses';
+};
+
+export type ListNearMissesErrors = {
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * Not found.
+     */
+    404: Error;
+};
+
+export type ListNearMissesError = ListNearMissesErrors[keyof ListNearMissesErrors];
+
+export type ListNearMissesResponses = {
+    /**
+     * Up to six suggestions.
+     */
+    200: {
+        suggestions?: Array<{
+            at?: string;
+            confidence?: number | null;
+            /**
+             * Set for a close call or false alarm.
+             */
+            eventId?: string | null;
+            /**
+             * Set for a reported miss.
+             */
+            missId?: string | null;
+            text?: string;
+            why?: 'close_call' | 'reported_miss' | 'false_alarm';
+        }>;
+    };
+};
+
+export type ListNearMissesResponse = ListNearMissesResponses[keyof ListNearMissesResponses];
+
+export type DeleteDatasetClipData = {
+    body?: never;
+    path: {
+        id: string;
+        clipId: string;
+    };
+    query?: never;
+    url: '/watches/{id}/dataset/{clipId}';
+};
+
+export type DeleteDatasetClipErrors = {
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry.
+     */
+    402: Error;
+    /**
+     * Not found.
+     */
+    404: Error;
+};
+
+export type DeleteDatasetClipError = DeleteDatasetClipErrors[keyof DeleteDatasetClipErrors];
+
+export type DeleteDatasetClipResponses = {
+    /**
+     * Deleted.
+     */
+    200: {
+        ok?: boolean;
+    };
+};
+
+export type DeleteDatasetClipResponse = DeleteDatasetClipResponses[keyof DeleteDatasetClipResponses];
+
+export type UpdateDatasetClipData = {
+    body: {
+        label?: 'should_match' | 'should_not' | 'counterfactual';
+        note?: string;
+    };
+    path: {
+        id: string;
+        clipId: string;
+    };
+    query?: never;
+    url: '/watches/{id}/dataset/{clipId}';
+};
+
+export type UpdateDatasetClipErrors = {
+    /**
+     * Invalid label or note.
+     */
+    400: Error;
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry.
+     */
+    402: Error;
+    /**
+     * Not found.
+     */
+    404: Error;
+};
+
+export type UpdateDatasetClipError = UpdateDatasetClipErrors[keyof UpdateDatasetClipErrors];
+
+export type UpdateDatasetClipResponses = {
+    /**
+     * The clip.
+     */
+    200: {
+        clip?: {
+            createdAt?: string;
+            eventId?: string | null;
+            hasThumb?: boolean;
+            id?: string;
+            label?: 'should_match' | 'should_not' | 'counterfactual';
+            /**
+             * Set for a clip kept from a reported miss.
+             */
+            missId?: string | null;
+            note?: string;
+            origin?: 'event' | 'upload' | 'near_miss' | 'mark';
+            seconds?: number;
+        };
+    };
+};
+
+export type UpdateDatasetClipResponse = UpdateDatasetClipResponses[keyof UpdateDatasetClipResponses];
+
+export type GetDatasetClipThumbData = {
+    body?: never;
+    path: {
+        id: string;
+        clipId: string;
+    };
+    query?: never;
+    url: '/watches/{id}/dataset/{clipId}/thumb';
+};
+
+export type GetDatasetClipThumbErrors = {
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * Not found.
+     */
+    404: Error;
+};
+
+export type GetDatasetClipThumbError = GetDatasetClipThumbErrors[keyof GetDatasetClipThumbErrors];
+
+export type GetDatasetClipThumbResponses = {
+    /**
+     * A JPEG.
+     */
+    200: unknown;
+};
 
 export type ListWatchEventsData = {
     body?: never;
@@ -5028,10 +6754,76 @@ export type ListWatchEventsResponses = {
 
 export type ListWatchEventsResponse = ListWatchEventsResponses[keyof ListWatchEventsResponses];
 
+export type GetEventClipData = {
+    body?: never;
+    path: {
+        id: string;
+        eventId: string;
+    };
+    query?: never;
+    url: '/watches/{id}/events/{eventId}/clip';
+};
+
+export type GetEventClipErrors = {
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * No clip: the watch is not on a Percia camera, the event was not recorded, or the clip has passed its retention days.
+     */
+    404: Error;
+    /**
+     * Range not satisfiable.
+     */
+    416: Error;
+};
+
+export type GetEventClipError = GetEventClipErrors[keyof GetEventClipErrors];
+
+export type GetEventClipResponses = {
+    /**
+     * video/mp4, `Cache-Control: private, no-store`. 206 for a range.
+     */
+    200: unknown;
+};
+
+export type GetEventClipLinkData = {
+    body?: never;
+    path: {
+        id: string;
+        eventId: string;
+    };
+    query?: never;
+    url: '/watches/{id}/events/{eventId}/clip/link';
+};
+
+export type GetEventClipLinkErrors = {
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * No clip (or keyframe), it has expired, or evidence clips are not available.
+     */
+    404: Error;
+};
+
+export type GetEventClipLinkError = GetEventClipLinkErrors[keyof GetEventClipLinkErrors];
+
+export type GetEventClipLinkResponses = {
+    /**
+     * The link.
+     */
+    200: ImageLink;
+};
+
+export type GetEventClipLinkResponse = GetEventClipLinkResponses[keyof GetEventClipLinkResponses];
+
 export type SendEventFeedbackData = {
     body: {
         note?: string;
-        verdict: 'correct' | 'false_alarm';
+        verdict: 'correct' | 'false_alarm' | 'partly';
     };
     path: {
         id: string;
@@ -5064,11 +6856,16 @@ export type SendEventFeedbackError = SendEventFeedbackErrors[keyof SendEventFeed
 
 export type SendEventFeedbackResponses = {
     /**
-     * The stored verdict and the test case (null when the event has no keyframe).
+     * The stored verdict, the test case (null when the event has no keyframe or the verdict is partly) and, on an event with recording, what the engine did with it (`engine`: state applied or recorded, a reason and plain words; null for other engines).
      */
     200: {
+        engine?: {
+            reason?: string;
+            state?: 'applied' | 'recorded';
+            words?: string | null;
+        } | null;
         eventId?: string;
-        feedback?: 'correct' | 'false_alarm';
+        feedback?: 'correct' | 'false_alarm' | 'partly';
         note?: string | null;
         testCase?: TestCase;
     };
@@ -5261,18 +7058,58 @@ export type StartLiveViewResponses = {
 
 export type StartLiveViewResponse = StartLiveViewResponses[keyof StartLiveViewResponses];
 
-export type ReinterpretWatchData = {
+export type ListWatchMissesData = {
     body?: never;
     path: {
         id: string;
     };
     query?: never;
-    url: '/watches/{id}/reinterpret';
+    url: '/watches/{id}/misses';
 };
 
-export type ReinterpretWatchErrors = {
+export type ListWatchMissesErrors = {
     /**
-     * The watch has an agent or runs on Percia core: no goal to interpret.
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * Not found.
+     */
+    404: Error;
+};
+
+export type ListWatchMissesError = ListWatchMissesErrors[keyof ListWatchMissesErrors];
+
+export type ListWatchMissesResponses = {
+    /**
+     * `misses`: id, from, to, concernId, note, state (applied, recorded or null), words, createdAt.
+     */
+    200: {
+        misses?: Array<{
+            [key: string]: unknown;
+        }>;
+    };
+};
+
+export type ListWatchMissesResponse = ListWatchMissesResponses[keyof ListWatchMissesResponses];
+
+export type ReportMissData = {
+    body: {
+        concernId?: string;
+        from: string;
+        note?: string;
+        to: string;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/watches/{id}/misses';
+};
+
+export type ReportMissErrors = {
+    /**
+     * Invalid window (`field: from` or `to`) or note.
      */
     400: Error;
     /**
@@ -5288,25 +7125,69 @@ export type ReinterpretWatchErrors = {
      */
     404: Error;
     /**
-     * rate_limited: too many interpretations this hour (Retry-After).
+     * `event_here`: the running watch did alert in that window; mark that alert instead. Nothing was stored.
+     */
+    422: Error;
+    /**
+     * 30 misses per user per hour.
      */
     429: Error;
-    /**
-     * interpret_unavailable.
-     */
-    503: Error;
 };
 
-export type ReinterpretWatchError = ReinterpretWatchErrors[keyof ReinterpretWatchErrors];
+export type ReportMissError = ReportMissErrors[keyof ReportMissErrors];
 
-export type ReinterpretWatchResponses = {
+export type ReportMissResponses = {
     /**
-     * The watch with its new interpretation.
+     * The stored miss and what the engine did with it.
      */
-    200: Watch;
+    201: {
+        concernId?: string | null;
+        engine?: {
+            reason?: string;
+            state?: 'applied' | 'recorded';
+            words?: string | null;
+        };
+        from?: string;
+        id?: string;
+        to?: string;
+        watchId?: string;
+    };
 };
 
-export type ReinterpretWatchResponse = ReinterpretWatchResponses[keyof ReinterpretWatchResponses];
+export type ReportMissResponse = ReportMissResponses[keyof ReportMissResponses];
+
+export type GetWatchQualityData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/watches/{id}/quality';
+};
+
+export type GetWatchQualityErrors = {
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * Not found.
+     */
+    404: Error;
+};
+
+export type GetWatchQualityError = GetWatchQualityErrors[keyof GetWatchQualityErrors];
+
+export type GetWatchQualityResponses = {
+    /**
+     * The watch's quality row and a coaching `tip` (null unless your marks give a real basis).
+     */
+    200: {
+        [key: string]: unknown;
+    };
+};
+
+export type GetWatchQualityResponse = GetWatchQualityResponses[keyof GetWatchQualityResponses];
 
 export type RotateWatchSecretData = {
     body?: never;
@@ -5392,3 +7273,297 @@ export type TestWatchDeliveryResponses = {
 };
 
 export type TestWatchDeliveryResponse = TestWatchDeliveryResponses[keyof TestWatchDeliveryResponses];
+
+export type ListTestRunsData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/watches/{id}/tests';
+};
+
+export type ListTestRunsErrors = {
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * Not found.
+     */
+    404: Error;
+};
+
+export type ListTestRunsError = ListTestRunsErrors[keyof ListTestRunsErrors];
+
+export type ListTestRunsResponses = {
+    /**
+     * History rows (When, On, Caught, False alarms, verdict), the latest finished run in full, and the id of the run in progress (null if none).
+     */
+    200: {
+        latest?: {
+            alerts?: Array<{
+                [key: string]: unknown;
+            }>;
+            capability?: Array<{
+                [key: string]: unknown;
+            }>;
+            caught?: {
+                of?: number | null;
+                value?: number;
+            } | null;
+            clipCount?: number;
+            clips?: Array<{
+                [key: string]: unknown;
+            }>;
+            coverage?: {
+                [key: string]: unknown;
+            };
+            createdAt?: string;
+            engine?: string | null;
+            error?: string | null;
+            falseAlarms?: {
+                of?: number | null;
+                value?: number;
+            } | null;
+            finishedAt?: string | null;
+            id?: string;
+            judge?: 'fake' | 'real';
+            /**
+             * caught, falseAlarms and avgDelayS are figures or null; each null has a *Note saying why it is unmeasured. verdict is ready, review or unmeasured with verdictWhy (the stated rule: ready needs at least 3 should_match and 1 should_not or counterfactual clip, all caught, no false alarm).
+             */
+            scores?: {
+                [key: string]: unknown;
+            };
+            source?: 'recent' | 'window' | 'dataset' | 'upload';
+            spendUsd?: number | null;
+            status?: 'running' | 'done' | 'failed';
+            verdict?: 'ready' | 'review' | 'unmeasured';
+            window?: {
+                from?: string;
+                to?: string;
+            } | null;
+        } | null;
+        running?: string | null;
+        tests?: Array<{
+            alerts?: Array<{
+                [key: string]: unknown;
+            }>;
+            capability?: Array<{
+                [key: string]: unknown;
+            }>;
+            caught?: {
+                of?: number | null;
+                value?: number;
+            } | null;
+            clipCount?: number;
+            clips?: Array<{
+                [key: string]: unknown;
+            }>;
+            coverage?: {
+                [key: string]: unknown;
+            };
+            createdAt?: string;
+            engine?: string | null;
+            error?: string | null;
+            falseAlarms?: {
+                of?: number | null;
+                value?: number;
+            } | null;
+            finishedAt?: string | null;
+            id?: string;
+            judge?: 'fake' | 'real';
+            /**
+             * caught, falseAlarms and avgDelayS are figures or null; each null has a *Note saying why it is unmeasured. verdict is ready, review or unmeasured with verdictWhy (the stated rule: ready needs at least 3 should_match and 1 should_not or counterfactual clip, all caught, no false alarm).
+             */
+            scores?: {
+                [key: string]: unknown;
+            };
+            source?: 'recent' | 'window' | 'dataset' | 'upload';
+            spendUsd?: number | null;
+            status?: 'running' | 'done' | 'failed';
+            verdict?: 'ready' | 'review' | 'unmeasured';
+            window?: {
+                from?: string;
+                to?: string;
+            } | null;
+        }>;
+    };
+};
+
+export type ListTestRunsResponse = ListTestRunsResponses[keyof ListTestRunsResponses];
+
+export type StartTestRunData = {
+    body: {
+        from?: string;
+        minutes?: number;
+        source: 'recent' | 'dataset' | 'window';
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/watches/{id}/tests';
+};
+
+export type StartTestRunErrors = {
+    /**
+     * Invalid source, a start time that cannot be tested, or not a readable clip.
+     */
+    400: Error;
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * payment_required: the last payment failed and the 48-hour grace is over. Body: error.code payment_required, paymentState blocked, billingUrl. Reads still work. Tell the person to update their payment method on the Billing page; do not retry.
+     */
+    402: Error;
+    /**
+     * Not found.
+     */
+    404: Error;
+    /**
+     * test_running: one is already running for this watch.
+     */
+    409: Error;
+    /**
+     * too_large.
+     */
+    413: Error;
+    /**
+     * rate_limited.
+     */
+    429: Error;
+    /**
+     * tests_unavailable: no engine release that runs tests is ready, or the pool is unreachable.
+     */
+    503: Error;
+};
+
+export type StartTestRunError = StartTestRunErrors[keyof StartTestRunErrors];
+
+export type StartTestRunResponses = {
+    /**
+     * The run, status running. Read it with GET .../tests/{testId}.
+     */
+    201: {
+        alerts?: Array<{
+            [key: string]: unknown;
+        }>;
+        capability?: Array<{
+            [key: string]: unknown;
+        }>;
+        caught?: {
+            of?: number | null;
+            value?: number;
+        } | null;
+        clipCount?: number;
+        clips?: Array<{
+            [key: string]: unknown;
+        }>;
+        coverage?: {
+            [key: string]: unknown;
+        };
+        createdAt?: string;
+        engine?: string | null;
+        error?: string | null;
+        falseAlarms?: {
+            of?: number | null;
+            value?: number;
+        } | null;
+        finishedAt?: string | null;
+        id?: string;
+        judge?: 'fake' | 'real';
+        /**
+         * caught, falseAlarms and avgDelayS are figures or null; each null has a *Note saying why it is unmeasured. verdict is ready, review or unmeasured with verdictWhy (the stated rule: ready needs at least 3 should_match and 1 should_not or counterfactual clip, all caught, no false alarm).
+         */
+        scores?: {
+            [key: string]: unknown;
+        };
+        source?: 'recent' | 'window' | 'dataset' | 'upload';
+        spendUsd?: number | null;
+        status?: 'running' | 'done' | 'failed';
+        verdict?: 'ready' | 'review' | 'unmeasured';
+        window?: {
+            from?: string;
+            to?: string;
+        } | null;
+    };
+};
+
+export type StartTestRunResponse = StartTestRunResponses[keyof StartTestRunResponses];
+
+export type GetTestRunData = {
+    body?: never;
+    path: {
+        id: string;
+        testId: string;
+    };
+    query?: never;
+    url: '/watches/{id}/tests/{testId}';
+};
+
+export type GetTestRunErrors = {
+    /**
+     * Not signed in.
+     */
+    401: Error;
+    /**
+     * Not found.
+     */
+    404: Error;
+};
+
+export type GetTestRunError = GetTestRunErrors[keyof GetTestRunErrors];
+
+export type GetTestRunResponses = {
+    /**
+     * The run.
+     */
+    200: {
+        alerts?: Array<{
+            [key: string]: unknown;
+        }>;
+        capability?: Array<{
+            [key: string]: unknown;
+        }>;
+        caught?: {
+            of?: number | null;
+            value?: number;
+        } | null;
+        clipCount?: number;
+        clips?: Array<{
+            [key: string]: unknown;
+        }>;
+        coverage?: {
+            [key: string]: unknown;
+        };
+        createdAt?: string;
+        engine?: string | null;
+        error?: string | null;
+        falseAlarms?: {
+            of?: number | null;
+            value?: number;
+        } | null;
+        finishedAt?: string | null;
+        id?: string;
+        judge?: 'fake' | 'real';
+        /**
+         * caught, falseAlarms and avgDelayS are figures or null; each null has a *Note saying why it is unmeasured. verdict is ready, review or unmeasured with verdictWhy (the stated rule: ready needs at least 3 should_match and 1 should_not or counterfactual clip, all caught, no false alarm).
+         */
+        scores?: {
+            [key: string]: unknown;
+        };
+        source?: 'recent' | 'window' | 'dataset' | 'upload';
+        spendUsd?: number | null;
+        status?: 'running' | 'done' | 'failed';
+        verdict?: 'ready' | 'review' | 'unmeasured';
+        window?: {
+            from?: string;
+            to?: string;
+        } | null;
+    };
+};
+
+export type GetTestRunResponse = GetTestRunResponses[keyof GetTestRunResponses];

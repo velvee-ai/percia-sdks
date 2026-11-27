@@ -4,7 +4,7 @@ Percia delivers a webhook by calling a **public https** address from its servers
 
 `percia listen` removes the tunnel for development and tests. It follows the **developer event feed**, `GET /api/events/stream` (Server-Sent Events, authenticated with the API key you already have), and POSTs every event to a local URL, **signed like a real delivery**. Your receiver verifies it with the code you will run in production.
 
-> This is a development and test tool, not a delivery path. The stream sends each event once per connection, is only as available as the connection, and carries no secret. Production stays on [webhooks](https://github.com/percia-ai/percia-sdks#readme) (they retry for hours and are signed). Server contract: percia-cf `docs/specs/platform/dev-feed.md`.
+> This is a development and test tool, not a delivery path. The stream sends each event once per connection, is only as available as the connection, and carries no secret. Production stays on [webhooks](https://playground.percia.ai/docs/) (they retry for hours and are signed).
 
 ## Quick start
 
@@ -102,4 +102,4 @@ Delete the hook afterwards (`percia hooks delete <id>`).
 
 ## Availability
 
-The dev feed is implemented in percia-cf (spec above). Against a host that does not have it yet, `percia listen` fails with a 404 (not your watch, or no such route); check `percia doctor` and the host's `/api/openapi.json` for `/events/stream`.
+Against a host that does not have the dev feed, `percia listen` fails with a 404 (not your watch, or no such route); check `percia doctor` and the host's `/api/openapi.json` for `/events/stream`.

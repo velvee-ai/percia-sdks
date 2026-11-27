@@ -5,7 +5,7 @@ The `percia` command line, built on [`@percia/sdk`](../typescript). Node 20+.
 > Not published yet. From this repository: `pnpm install && pnpm --filter @percia/sdk build && pnpm --filter @percia/cli build`, then `node cli/dist/bin.js --help`.
 
 ```bash
-npm install -g @percia/cli      # after the owner publishes it
+npm install -g @percia/cli      # once published (not on npm yet)
 percia login                    # browser sign-in (OAuth 2.1 + PKCE); or: percia login --with-key
 percia whoami                      # account, scopes and billing
 percia plan                        # free minutes left, credit, how you are charged
@@ -27,7 +27,7 @@ Credentials live in the OS config directory (macOS `~/Library/Application Suppor
 
 ```
 percia plan                                                        # free minutes left, credit, how you are charged, next step
-percia watches list | get <id> | create | interpret <goal> | reinterpret <id> | pause <id> | resume <id> | delete <id> | test <id> | rotate-secret <id>
+percia watches list | get <id> | create | pause <id> | resume <id> | delete <id> | test <id> | rotate-secret <id>
 percia events list [--watch id] [--type t] [--since time] [--limit n] [--all] [--follow]
 percia cameras add <name> [--device-kind phone|tablet|computer] | list | pair <id> | remove <id>        # add prints the pairing link and a QR
 percia cameras push register --name N --external-id ID [--rtsp URL]   # private-network camera: WHIP URL + token, once
@@ -47,8 +47,6 @@ Examples:
 ```bash
 percia watches create --source rtsp://cam.example.com/stream --goal "A person is standing at the front door" --webhook https://example.com/hooks/percia
 percia plan                                       # "Free minutes: 4 left this month", credit, how charged, next step
-percia watches create --source rtsp://cam.example.com/s --goal "A car pulls in" --no-interpret --kind event   # keep your words
-percia watches interpret "Keep my shop safe"      # what Percia understands, creates nothing
 percia events list --follow                       # new events as they arrive (polls every 5 s)
 percia cameras add "Hall phone"                   # link + QR; then --source percia-cam://<id>
 percia destinations connect slack                 # prints the single-use link; a person approves it

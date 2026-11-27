@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AskSiteData, AskSiteErrors, AskSiteResponses, BuildAgentData, BuildAgentErrors, BuildAgentResponses, ChatWithAgentData, ChatWithAgentErrors, ChatWithAgentResponses, CheckCameraPairingData, CheckCameraPairingErrors, CheckCameraPairingResponses, ClaimCameraDeviceData, ClaimCameraDeviceErrors, ClaimCameraDeviceResponses, ClearSiteMemoryData, ClearSiteMemoryErrors, ClearSiteMemoryResponses, ConnectWithKeyData, ConnectWithKeyErrors, ConnectWithKeyResponses, ConnectWithTwilioData, ConnectWithTwilioErrors, ConnectWithTwilioResponses, ConnectWithUrlData, ConnectWithUrlErrors, ConnectWithUrlResponses, CreateAgentData, CreateAgentErrors, CreateAgentResponses, CreateApiKeyData, CreateApiKeyErrors, CreateApiKeyResponses, CreateCameraData, CreateCameraErrors, CreateCameraPairingData, CreateCameraPairingErrors, CreateCameraPairingResponses, CreateCameraResponses, CreateCamerasData, CreateCamerasErrors, CreateCamerasResponses, CreateCheckoutSessionData, CreateCheckoutSessionErrors, CreateCheckoutSessionResponses, CreateConnectLinkData, CreateConnectLinkErrors, CreateConnectLinkResponses, CreateHookData, CreateHookErrors, CreateHookResponses, CreateInstantWatchData, CreateInstantWatchErrors, CreateInstantWatchResponses, CreatePortalSessionData, CreatePortalSessionErrors, CreatePortalSessionResponses, CreatePublicWatchData, CreatePublicWatchErrors, CreatePublicWatchResponses, CreateSiteData, CreateSiteErrors, CreateSiteResponses, CreateWatchData, CreateWatchErrors, CreateWatchResponses, DeleteAccountData, DeleteAccountErrors, DeleteAccountResponses, DeleteAgentData, DeleteAgentErrors, DeleteAgentResponses, DeleteApiKeyData, DeleteApiKeyErrors, DeleteApiKeyResponses, DeleteCameraData, DeleteCameraErrors, DeleteCameraResponses, DeleteDeviceData, DeleteDeviceErrors, DeleteDeviceResponses, DeleteHookData, DeleteHookErrors, DeleteHookResponses, DeleteIntegrationData, DeleteIntegrationErrors, DeleteIntegrationResponses, DeleteSiteData, DeleteSiteErrors, DeleteSiteResponses, DeleteTestCaseData, DeleteTestCaseErrors, DeleteTestCaseResponses, DeleteWatchData, DeleteWatchErrors, DeleteWatchResponses, FinishCardReplaceData, FinishCardReplaceErrors, FinishCardReplaceResponses, FinishOAuthConnectData, FinishOAuthConnectErrors, GetAccountData, GetAccountErrors, GetAccountResponses, GetAgentData, GetAgentErrors, GetAgentResponses, GetAgentVersionData, GetAgentVersionErrors, GetAgentVersionResponses, GetAuthResourceData, GetAuthResourceErrors, GetAuthResourceResponses, GetCameraStatusData, GetCameraStatusErrors, GetCameraStatusResponses, GetCameraUsageData, GetCameraUsageErrors, GetCameraUsageResponses, GetConfigData, GetConfigErrors, GetConfigResponses, GetConnectLinkData, GetConnectLinkErrors, GetConnectLinkResponses, GetCreditsData, GetCreditsErrors, GetCreditsResponses, GetEventKeyframeData, GetEventKeyframeErrors, GetEventKeyframeLinkData, GetEventKeyframeLinkErrors, GetEventKeyframeLinkResponses, GetEventKeyframeResponses, GetHealthData, GetHealthErrors, GetHealthResponses, GetManagedWatchData, GetManagedWatchErrors, GetManagedWatchResponses, GetMetricsData, GetMetricsErrors, GetMetricsResponses, GetOpenApiDocumentData, GetOpenApiDocumentErrors, GetOpenApiDocumentResponses, GetPlanData, GetPlanErrors, GetPlanResponses, GetSampleEventData, GetSampleEventErrors, GetSampleEventResponses, GetSessionHintData, GetSessionHintErrors, GetSessionHintResponses, GetSignedImageData, GetSignedImageErrors, GetSignedImageResponses, GetSignInMethodsData, GetSignInMethodsErrors, GetSignInMethodsResponses, GetSiteData, GetSiteErrors, GetSiteResponses, GetSiteTimelineData, GetSiteTimelineErrors, GetSiteTimelineResponses, GetStatusData, GetStatusErrors, GetStatusResponses, GetTestCaseImageData, GetTestCaseImageErrors, GetTestCaseImageLinkData, GetTestCaseImageLinkErrors, GetTestCaseImageLinkResponses, GetTestCaseImageResponses, GetUsageData, GetUsageErrors, GetUsageResponses, GetWatchClaimData, GetWatchClaimErrors, GetWatchClaimResponses, GetWatchData, GetWatchErrors, GetWatchResponses, InterpretGoalData, InterpretGoalErrors, InterpretGoalResponses, ListAccountEventsData, ListAccountEventsErrors, ListAccountEventsResponses, ListAgentMessagesData, ListAgentMessagesErrors, ListAgentMessagesResponses, ListAgentsData, ListAgentsErrors, ListAgentsResponses, ListAgentTestRunsData, ListAgentTestRunsErrors, ListAgentTestRunsResponses, ListAgentTestsData, ListAgentTestsErrors, ListAgentTestsResponses, ListApiKeysData, ListApiKeysErrors, ListApiKeysResponses, ListCamerasData, ListCamerasErrors, ListCamerasResponses, ListConnectedAppsData, ListConnectedAppsErrors, ListConnectedAppsResponses, ListDeploymentsData, ListDeploymentsErrors, ListDeploymentsResponses, ListDevicesData, ListDevicesErrors, ListDevicesResponses, ListHooksData, ListHooksErrors, ListHooksResponses, ListIntegrationsData, ListIntegrationsErrors, ListIntegrationServicesData, ListIntegrationServicesErrors, ListIntegrationServicesResponses, ListIntegrationsResponses, ListSitesData, ListSitesErrors, ListSitesResponses, ListWatchesData, ListWatchesErrors, ListWatchesResponses, ListWatchEventsData, ListWatchEventsErrors, ListWatchEventsResponses, ListWatchIntegrationsData, ListWatchIntegrationsErrors, ListWatchIntegrationsResponses, PayInvoiceData, PayInvoiceErrors, PayInvoiceResponses, PublishAgentData, PublishAgentErrors, PublishAgentResponses, ReceiveStripeWebhookData, ReceiveStripeWebhookErrors, ReceiveStripeWebhookResponses, ReceiveTelegramUpdateData, ReceiveTelegramUpdateErrors, ReceiveTelegramUpdateResponses, RedeemCreditCodeData, RedeemCreditCodeErrors, RedeemCreditCodeResponses, RegisterDeviceData, RegisterDeviceErrors, RegisterDeviceResponses, ReinterpretWatchData, ReinterpretWatchErrors, ReinterpretWatchResponses, ReplaceCardData, ReplaceCardErrors, ReplaceCardResponses, RevokeCameraTokenData, RevokeCameraTokenErrors, RevokeCameraTokenResponses, RevokeConnectedAppData, RevokeConnectedAppErrors, RevokeConnectedAppResponses, RotateCameraTokenData, RotateCameraTokenErrors, RotateCameraTokenResponses, RotateWatchSecretData, RotateWatchSecretErrors, RotateWatchSecretResponses, RunAgentTestsData, RunAgentTestsErrors, RunAgentTestsResponses, SendCameraHeartbeatData, SendCameraHeartbeatErrors, SendCameraHeartbeatResponses, SendEventFeedbackData, SendEventFeedbackErrors, SendEventFeedbackResponses, SetBillingCapData, SetBillingCapErrors, SetBillingCapResponses, SetWatchIntegrationsData, SetWatchIntegrationsErrors, SetWatchIntegrationsResponses, StartConnectData, StartConnectErrors, StartConnectResponses, StartLiveViewData, StartLiveViewErrors, StartLiveViewResponses, StreamEventsData, StreamEventsErrors, StreamEventsResponses, SubmitAuthActionData, SubmitAuthActionErrors, SubmitAuthActionResponses, TestAgentActionData, TestAgentActionErrors, TestAgentActionResponses, TestHookData, TestHookErrors, TestHookResponses, TestIntegrationData, TestIntegrationErrors, TestIntegrationResponses, TestWatchDeliveryData, TestWatchDeliveryErrors, TestWatchDeliveryResponses, UpdateAgentData, UpdateAgentErrors, UpdateAgentResponses, UpdateIntegrationData, UpdateIntegrationErrors, UpdateIntegrationResponses, UpdateSiteData, UpdateSiteErrors, UpdateSiteMemoryData, UpdateSiteMemoryErrors, UpdateSiteMemoryResponses, UpdateSiteResponses, UpdateWatchData, UpdateWatchErrors, UpdateWatchResponses } from './types.gen';
+import type { AddDatasetClipFromEventData, AddDatasetClipFromEventErrors, AddDatasetClipFromEventResponses, AddDatasetClipFromLinkData, AddDatasetClipFromLinkErrors, AddDatasetClipFromLinkResponses, AddDatasetClipFromMissData, AddDatasetClipFromMissErrors, AddDatasetClipFromMissResponses, AnswerWatchDraftData, AnswerWatchDraftErrors, AnswerWatchDraftResponses, AskSiteData, AskSiteErrors, AskSiteResponses, BuildAgentData, BuildAgentErrors, BuildAgentResponses, ChatWithAgentData, ChatWithAgentErrors, ChatWithAgentResponses, CheckCameraPairingData, CheckCameraPairingErrors, CheckCameraPairingResponses, ClaimCameraDeviceData, ClaimCameraDeviceErrors, ClaimCameraDeviceResponses, ClearSiteMemoryData, ClearSiteMemoryErrors, ClearSiteMemoryResponses, CompleteUploadData, CompleteUploadErrors, CompleteUploadResponses, ConnectWithKeyData, ConnectWithKeyErrors, ConnectWithKeyResponses, ConnectWithTwilioData, ConnectWithTwilioErrors, ConnectWithTwilioResponses, ConnectWithUrlData, ConnectWithUrlErrors, ConnectWithUrlResponses, CreateAgentData, CreateAgentErrors, CreateAgentResponses, CreateApiKeyData, CreateApiKeyErrors, CreateApiKeyResponses, CreateCameraData, CreateCameraErrors, CreateCameraPairingData, CreateCameraPairingErrors, CreateCameraPairingResponses, CreateCameraResponses, CreateCamerasData, CreateCamerasErrors, CreateCamerasResponses, CreateCheckoutSessionData, CreateCheckoutSessionErrors, CreateCheckoutSessionResponses, CreateConnectLinkData, CreateConnectLinkErrors, CreateConnectLinkResponses, CreateHookData, CreateHookErrors, CreateHookResponses, CreateLinkCameraData, CreateLinkCameraErrors, CreateLinkCameraResponses, CreatePortalSessionData, CreatePortalSessionErrors, CreatePortalSessionResponses, CreateSiteData, CreateSiteErrors, CreateSiteResponses, CreateUploadLinkData, CreateUploadLinkErrors, CreateUploadLinkResponses, CreateWatchData, CreateWatchDraftData, CreateWatchDraftErrors, CreateWatchDraftResponses, CreateWatchErrors, CreateWatchResponses, DeleteAccountData, DeleteAccountErrors, DeleteAccountResponses, DeleteAgentData, DeleteAgentErrors, DeleteAgentResponses, DeleteApiKeyData, DeleteApiKeyErrors, DeleteApiKeyResponses, DeleteCameraData, DeleteCameraErrors, DeleteCameraResponses, DeleteDatasetClipData, DeleteDatasetClipErrors, DeleteDatasetClipResponses, DeleteDeviceData, DeleteDeviceErrors, DeleteDeviceResponses, DeleteHookData, DeleteHookErrors, DeleteHookResponses, DeleteIntegrationData, DeleteIntegrationErrors, DeleteIntegrationResponses, DeleteSiteData, DeleteSiteErrors, DeleteSiteResponses, DeleteTestCaseData, DeleteTestCaseErrors, DeleteTestCaseResponses, DeleteUploadData, DeleteUploadErrors, DeleteUploadResponses, DeleteWatchData, DeleteWatchErrors, DeleteWatchResponses, FinishCardReplaceData, FinishCardReplaceErrors, FinishCardReplaceResponses, FinishOAuthConnectData, FinishOAuthConnectErrors, GetAccountData, GetAccountErrors, GetAccountResponses, GetAgentData, GetAgentErrors, GetAgentResponses, GetAgentVersionData, GetAgentVersionErrors, GetAgentVersionResponses, GetAuthResourceData, GetAuthResourceErrors, GetAuthResourceResponses, GetCameraStatusData, GetCameraStatusErrors, GetCameraStatusResponses, GetCameraThumbnailData, GetCameraThumbnailErrors, GetCameraThumbnailResponses, GetCameraUsageData, GetCameraUsageErrors, GetCameraUsageResponses, GetCameraWhipUrlData, GetCameraWhipUrlErrors, GetCameraWhipUrlResponses, GetConfigData, GetConfigErrors, GetConfigResponses, GetConnectLinkData, GetConnectLinkErrors, GetConnectLinkResponses, GetCreditsData, GetCreditsErrors, GetCreditsResponses, GetDatasetClipThumbData, GetDatasetClipThumbErrors, GetDatasetClipThumbResponses, GetEventClipData, GetEventClipErrors, GetEventClipLinkData, GetEventClipLinkErrors, GetEventClipLinkResponses, GetEventClipResponses, GetEventKeyframeData, GetEventKeyframeErrors, GetEventKeyframeLinkData, GetEventKeyframeLinkErrors, GetEventKeyframeLinkResponses, GetEventKeyframeResponses, GetFileData, GetFileErrors, GetFileResponses, GetHealthData, GetHealthErrors, GetHealthResponses, GetManagedWatchData, GetManagedWatchErrors, GetManagedWatchResponses, GetMetricsData, GetMetricsErrors, GetMetricsResponses, GetOpenApiDocumentData, GetOpenApiDocumentErrors, GetOpenApiDocumentResponses, GetPlanData, GetPlanErrors, GetPlanResponses, GetQualityData, GetQualityErrors, GetQualityResponses, GetQualityTestsData, GetQualityTestsErrors, GetQualityTestsResponses, GetSampleEventData, GetSampleEventErrors, GetSampleEventResponses, GetSessionHintData, GetSessionHintErrors, GetSessionHintResponses, GetSignedEvidenceData, GetSignedEvidenceErrors, GetSignedEvidenceResponses, GetSignedImageData, GetSignedImageErrors, GetSignedImageResponses, GetSignInMethodsData, GetSignInMethodsErrors, GetSignInMethodsResponses, GetSiteContextData, GetSiteContextErrors, GetSiteContextResponses, GetSiteData, GetSiteErrors, GetSiteResponses, GetSiteTimelineData, GetSiteTimelineErrors, GetSiteTimelineResponses, GetStatusData, GetStatusErrors, GetStatusResponses, GetTestCaseImageData, GetTestCaseImageErrors, GetTestCaseImageLinkData, GetTestCaseImageLinkErrors, GetTestCaseImageLinkResponses, GetTestCaseImageResponses, GetTestClipData, GetTestClipErrors, GetTestClipResponses, GetTestRunData, GetTestRunErrors, GetTestRunResponses, GetUploadData, GetUploadErrors, GetUploadPlayUrlData, GetUploadPlayUrlErrors, GetUploadPlayUrlResponses, GetUploadResponses, GetUsageData, GetUsageErrors, GetUsageResponses, GetWatchData, GetWatchDraftData, GetWatchDraftErrors, GetWatchDraftResponses, GetWatchErrors, GetWatchQualityData, GetWatchQualityErrors, GetWatchQualityResponses, GetWatchResponses, ListAccountEventsData, ListAccountEventsErrors, ListAccountEventsResponses, ListAgentMessagesData, ListAgentMessagesErrors, ListAgentMessagesResponses, ListAgentsData, ListAgentsErrors, ListAgentsResponses, ListAgentTestRunsData, ListAgentTestRunsErrors, ListAgentTestRunsResponses, ListAgentTestsData, ListAgentTestsErrors, ListAgentTestsResponses, ListApiKeysData, ListApiKeysErrors, ListApiKeysResponses, ListCamerasData, ListCamerasErrors, ListCamerasResponses, ListConnectedAppsData, ListConnectedAppsErrors, ListConnectedAppsResponses, ListDatasetClipsData, ListDatasetClipsErrors, ListDatasetClipsResponses, ListDeploymentsData, ListDeploymentsErrors, ListDeploymentsResponses, ListDevicesData, ListDevicesErrors, ListDevicesResponses, ListHooksData, ListHooksErrors, ListHooksResponses, ListIntegrationsData, ListIntegrationsErrors, ListIntegrationServicesData, ListIntegrationServicesErrors, ListIntegrationServicesResponses, ListIntegrationsResponses, ListNearMissesData, ListNearMissesErrors, ListNearMissesResponses, ListSitesData, ListSitesErrors, ListSitesResponses, ListTestRunsData, ListTestRunsErrors, ListTestRunsResponses, ListUploadsData, ListUploadsErrors, ListUploadsResponses, ListWatchActionsData, ListWatchActionsErrors, ListWatchActionsResponses, ListWatchesData, ListWatchesErrors, ListWatchesResponses, ListWatchEventsData, ListWatchEventsErrors, ListWatchEventsResponses, ListWatchIntegrationsData, ListWatchIntegrationsErrors, ListWatchIntegrationsResponses, ListWatchMissesData, ListWatchMissesErrors, ListWatchMissesResponses, PayInvoiceData, PayInvoiceErrors, PayInvoiceResponses, PostSignalsData, PostSignalsErrors, PostSignalsResponses, PublishAgentData, PublishAgentErrors, PublishAgentResponses, PutSiteContextData, PutSiteContextErrors, PutSiteContextResponses, ReceiveStripeWebhookData, ReceiveStripeWebhookErrors, ReceiveStripeWebhookResponses, ReceiveTelegramUpdateData, ReceiveTelegramUpdateErrors, ReceiveTelegramUpdateResponses, RedeemCreditCodeData, RedeemCreditCodeErrors, RedeemCreditCodeResponses, RegisterDeviceData, RegisterDeviceErrors, RegisterDeviceResponses, ReplaceCardData, ReplaceCardErrors, ReplaceCardResponses, ReportMissData, ReportMissErrors, ReportMissResponses, RevokeCameraTokenData, RevokeCameraTokenErrors, RevokeCameraTokenResponses, RevokeConnectedAppData, RevokeConnectedAppErrors, RevokeConnectedAppResponses, RotateCameraTokenData, RotateCameraTokenErrors, RotateCameraTokenResponses, RotateWatchSecretData, RotateWatchSecretErrors, RotateWatchSecretResponses, RunAgentTestsData, RunAgentTestsErrors, RunAgentTestsResponses, SendCameraHeartbeatData, SendCameraHeartbeatErrors, SendCameraHeartbeatResponses, SendEventFeedbackData, SendEventFeedbackErrors, SendEventFeedbackResponses, SetBillingCapData, SetBillingCapErrors, SetBillingCapResponses, SetWatchIntegrationsData, SetWatchIntegrationsErrors, SetWatchIntegrationsResponses, StartConnectData, StartConnectErrors, StartConnectResponses, StartLiveViewData, StartLiveViewErrors, StartLiveViewResponses, StartTestRunData, StartTestRunErrors, StartTestRunResponses, StartUploadData, StartUploadErrors, StartUploadResponses, StreamEventsData, StreamEventsErrors, StreamEventsResponses, SubmitAuthActionData, SubmitAuthActionErrors, SubmitAuthActionResponses, TestAgentActionData, TestAgentActionErrors, TestAgentActionResponses, TestHookData, TestHookErrors, TestHookResponses, TestIntegrationData, TestIntegrationErrors, TestIntegrationResponses, TestWatchDeliveryData, TestWatchDeliveryErrors, TestWatchDeliveryResponses, UpdateAgentData, UpdateAgentErrors, UpdateAgentResponses, UpdateDatasetClipData, UpdateDatasetClipErrors, UpdateDatasetClipResponses, UpdateIntegrationData, UpdateIntegrationErrors, UpdateIntegrationResponses, UpdateSiteData, UpdateSiteErrors, UpdateSiteMemoryData, UpdateSiteMemoryErrors, UpdateSiteMemoryResponses, UpdateSiteResponses, UpdateWatchData, UpdateWatchErrors, UpdateWatchResponses, UploadDatasetClipData, UploadDatasetClipErrors, UploadDatasetClipResponses, UploadFromUrlData, UploadFromUrlErrors, UploadFromUrlResponses, UploadPartData, UploadPartErrors, UploadPartResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -330,7 +330,7 @@ export const createPortalSession = <ThrowOnError extends boolean = false>(option
 });
 
 /**
- * Redeem a credit code for camera-minutes (credits are minutes of watching, used before the free minutes and before the card). A code is shown to its owner once: pass it in the body, never in a URL. Unknown, disabled, expired and used-up codes all answer 404 code_invalid; the same person redeeming twice is 409 code_already_redeemed; too many tries is 429 rate_limited with Retry-After.
+ * Redeem a credit code for camera-minutes (credits are minutes of watching, used before the free minutes and before the card). A code is shown to its owner once: pass it in the body, never in a URL. Needs a card on file while billing is on sale: without one it answers 402 card_required with addCardUrl (the Billing page; only a person can add a card) and the code is not checked or used. Unknown, disabled, expired and used-up codes all answer 404 code_invalid; the same person redeeming twice is 409 code_already_redeemed; too many tries is 429 rate_limited with Retry-After.
  */
 export const redeemCreditCode = <ThrowOnError extends boolean = false>(options: Options<RedeemCreditCodeData, ThrowOnError>): RequestResult<RedeemCreditCodeResponses, RedeemCreditCodeErrors, ThrowOnError> => (options.client ?? client).post<RedeemCreditCodeResponses, RedeemCreditCodeErrors, ThrowOnError>({
     security: [{
@@ -364,6 +364,11 @@ export const claimCameraDevice = <ThrowOnError extends boolean = false>(options:
 export const sendCameraHeartbeat = <ThrowOnError extends boolean = false>(options?: Options<SendCameraHeartbeatData, ThrowOnError>): RequestResult<SendCameraHeartbeatResponses, SendCameraHeartbeatErrors, ThrowOnError> => (options?.client ?? client).post<SendCameraHeartbeatResponses, SendCameraHeartbeatErrors, ThrowOnError>({ url: '/cam/heartbeat', ...options });
 
 /**
+ * Where this camera publishes right now. Authorization: Bearer <camera token>. Returns {whipUrl}: the camera's home relay host while it is up, else another up relay. Ask on every (re)connect so a relay failure moves the camera by itself; a client that stored the URL stays on that relay. 401 for a wrong or revoked token, 404 when phone cameras are off.
+ */
+export const getCameraWhipUrl = <ThrowOnError extends boolean = false>(options?: Options<GetCameraWhipUrlData, ThrowOnError>): RequestResult<GetCameraWhipUrlResponses, GetCameraWhipUrlErrors, ThrowOnError> => (options?.client ?? client).get<GetCameraWhipUrlResponses, GetCameraWhipUrlErrors, ThrowOnError>({ url: '/cam/whip', ...options });
+
+/**
  * List your cameras, newest first
  */
 export const listCameras = <ThrowOnError extends boolean = false>(options?: Options<ListCamerasData, ThrowOnError>): RequestResult<ListCamerasResponses, ListCamerasErrors, ThrowOnError> => (options?.client ?? client).get<ListCamerasResponses, ListCamerasErrors, ThrowOnError>({
@@ -377,7 +382,7 @@ export const listCameras = <ThrowOnError extends boolean = false>(options?: Opti
 });
 
 /**
- * Create a camera. For a camera on a private network (ONVIF, RTSP, Frigate, Home Assistant, NVR) the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge), which registers the cameras itself. Default (phone): returns a pairing link (single use, 10 minutes). With kind:"push" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.
+ * Create a camera. For a camera on a private network (ONVIF, RTSP, Frigate, Home Assistant, NVR) the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge), which registers the cameras itself. Default (a paired phone, tablet or computer; its deviceKind is set when it opens the link): returns a pairing link (single use, 10 minutes). With kind:"push" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.
  */
 export const createCamera = <ThrowOnError extends boolean = false>(options: Options<CreateCameraData, ThrowOnError>): RequestResult<CreateCameraResponses, CreateCameraErrors, ThrowOnError> => (options.client ?? client).post<CreateCameraResponses, CreateCameraErrors, ThrowOnError>({
     security: [{
@@ -403,6 +408,23 @@ export const createCameras = <ThrowOnError extends boolean = false>(options: Opt
             type: 'http'
         }],
     url: '/cameras/bulk',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Make a camera from a public video link (rtsp, rtsps, http or https). Percia pulls it on its media host while a watch on it is active, so the camera then works like any other: use percia-cam://<id> as a watch's sourceUrl. The same link returns the same camera (200, existing true). A watch created with the link itself as sourceUrl does this for you. A private address (192.168.x.x, 10.x.x.x, localhost, an ONVIF/RTSP/Frigate/Home Assistant camera on a home network) is refused with 400 and a pointer to the Percia bridge. 404 unless link cameras are on.
+ */
+export const createLinkCamera = <ThrowOnError extends boolean = false>(options: Options<CreateLinkCameraData, ThrowOnError>): RequestResult<CreateLinkCameraResponses, CreateLinkCameraErrors, ThrowOnError> => (options.client ?? client).post<CreateLinkCameraResponses, CreateLinkCameraErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/cameras/link',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -467,6 +489,19 @@ export const getCameraStatus = <ThrowOnError extends boolean = false>(options: O
 });
 
 /**
+ * The latest snapshot (JPEG) of one of your cameras, cut from its recording: the picture on watch cards and camera tiles. 404 when the camera never sent video. Needs cameras:read and events:read with an API key.
+ */
+export const getCameraThumbnail = <ThrowOnError extends boolean = false>(options: Options<GetCameraThumbnailData, ThrowOnError>): RequestResult<GetCameraThumbnailResponses, GetCameraThumbnailErrors, ThrowOnError> => (options.client ?? client).get<GetCameraThumbnailResponses, GetCameraThumbnailErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/cameras/{id}/thumbnail',
+    ...options
+});
+
+/**
  * Revoke the publish token of a push camera: publishing stops at once, the camera stays. Rotate to publish again.
  */
 export const revokeCameraToken = <ThrowOnError extends boolean = false>(options: Options<RevokeCameraTokenData, ThrowOnError>): RequestResult<RevokeCameraTokenResponses, RevokeCameraTokenErrors, ThrowOnError> => (options.client ?? client).delete<RevokeCameraTokenResponses, RevokeCameraTokenErrors, ThrowOnError>({
@@ -489,19 +524,6 @@ export const rotateCameraToken = <ThrowOnError extends boolean = false>(options:
             type: 'http'
         }],
     url: '/cameras/{id}/token',
-    ...options
-});
-
-/**
- * Claim an instant watch for the signed-in account and clear its expiry
- */
-export const getWatchClaim = <ThrowOnError extends boolean = false>(options: Options<GetWatchClaimData, ThrowOnError>): RequestResult<GetWatchClaimResponses, GetWatchClaimErrors, ThrowOnError> => (options.client ?? client).get<GetWatchClaimResponses, GetWatchClaimErrors, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'better-auth.session_token',
-            type: 'apiKey'
-        }],
-    url: '/claim/{token}',
     ...options
 });
 
@@ -634,6 +656,16 @@ export const streamEvents = <ThrowOnError extends boolean = false>(options?: Opt
     url: '/events/stream',
     ...options
 });
+
+/**
+ * The clip (video/mp4, ranges supported) or keyframe (JPEG) a signed link names. Public: the token is the credential, it names one event and expires (24 hours for links in email, integrations and webhook bodies; 10 minutes for links minted for the app and agents). 404 for anything else, always the same answer.
+ */
+export const getSignedEvidence = <ThrowOnError extends boolean = false>(options: Options<GetSignedEvidenceData, ThrowOnError>): RequestResult<GetSignedEvidenceResponses, GetSignedEvidenceErrors, ThrowOnError> => (options.client ?? client).get<GetSignedEvidenceResponses, GetSignedEvidenceErrors, ThrowOnError>({ url: '/evidence/{token}', ...options });
+
+/**
+ * The signed, ranged read of a video file (query exp and sig). Used by the pool and the player; the signature is the credential. Never cached.
+ */
+export const getFile = <ThrowOnError extends boolean = false>(options: Options<GetFileData, ThrowOnError>): RequestResult<GetFileResponses, GetFileErrors, ThrowOnError> => (options.client ?? client).get<GetFileResponses, GetFileErrors, ThrowOnError>({ url: '/files/{id}', ...options });
 
 /**
  * Liveness check
@@ -1013,9 +1045,54 @@ export const getPlan = <ThrowOnError extends boolean = false>(options?: Options<
 });
 
 /**
+ * How right all your watches are: totals from your marks, events still to review (unmarked alerts of the last 14 days), one row per watch, and a coaching tip when your marks give a real basis
+ */
+export const getQuality = <ThrowOnError extends boolean = false>(options?: Options<GetQualityData, ThrowOnError>): RequestResult<GetQualityResponses, GetQualityErrors, ThrowOnError> => (options?.client ?? client).get<GetQualityResponses, GetQualityErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/quality',
+    ...options
+});
+
+/**
+ * The test side of Quality: ground-truth clips (total and across how many watches), tests started in the last 7 days, and per watch its clip count and the scores of its last finished test (`caught`, `falseAlarms` as value/of, or null when unmeasured).
+ */
+export const getQualityTests = <ThrowOnError extends boolean = false>(options?: Options<GetQualityTestsData, ThrowOnError>): RequestResult<GetQualityTestsResponses, GetQualityTestsErrors, ThrowOnError> => (options?.client ?? client).get<GetQualityTestsResponses, GetQualityTestsErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/quality/tests',
+    ...options
+});
+
+/**
  * Is this browser signed in? Reads the session cookie only and answers {signedIn} (no user data). For the percia.ai landing page: CORS with credentials for https://percia.ai and https://www.percia.ai only; any failure is {signedIn:false}.
  */
 export const getSessionHint = <ThrowOnError extends boolean = false>(options?: Options<GetSessionHintData, ThrowOnError>): RequestResult<GetSessionHintResponses, GetSessionHintErrors, ThrowOnError> => (options?.client ?? client).get<GetSessionHintResponses, GetSessionHintErrors, ThrowOnError>({ url: '/session-hint', ...options });
+
+/**
+ * Send timed machine signals (Signal) for a camera or site (advanced)
+ *
+ * where recording is on only. Send timed samples from a machine: `{cameraId?, siteId?, signals: [{channel, t_utc, value, seq?, camera_id?, site_id?}]}` (Signal; leave out tenant_id). `t_utc` is the machine's clock in UTC: declare its offset, lag and latency in the site context (`signals[]`); the engine corrects time with them. A repeat of the same channel and `seq` is idempotent. At most 200 signals and 64 KiB per request, 100 signals per second per camera (burst 500), nothing older than 6 hours. Declare a channel in the site context before a watch reads it. Needs scope signals:write.
+ */
+export const postSignals = <ThrowOnError extends boolean = false>(options: Options<PostSignalsData, ThrowOnError>): RequestResult<PostSignalsResponses, PostSignalsErrors, ThrowOnError> => (options.client ?? client).post<PostSignalsResponses, PostSignalsErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/signals',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * List your sites with watchCount and memoryUpdatedAt
@@ -1108,6 +1185,40 @@ export const askSite = <ThrowOnError extends boolean = false>(options: Options<A
 });
 
 /**
+ * Read the site's context and its open context requests (advanced)
+ *
+ * The stored SiteContext, its revision, and `openRequests`: what the engine asked for in the watches of this site (each with `how_to_supply`, the SiteContext path to PUT).
+ */
+export const getSiteContext = <ThrowOnError extends boolean = false>(options: Options<GetSiteContextData, ThrowOnError>): RequestResult<GetSiteContextResponses, GetSiteContextErrors, ThrowOnError> => (options.client ?? client).get<GetSiteContextResponses, GetSiteContextErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/sites/{id}/context',
+    ...options
+});
+
+/**
+ * Replace the site's context (SiteContext): calibration, facts, zones, signal declarations (advanced)
+ *
+ * where recording is on only. Replace the SiteContext of a site you own : `context` (scene, subjects, notes), `facts`, `cameras[]` (mount, calibration, registration), `zones`, `reference_images`, and `signals[]`, the declarations of the machine channels you will POST to /signals (name, kind, unit, nominal and worst_case_rate_hz, clock_offset_s, lag_s, latency_s, each timing with its uncertainty). Leave out tenant_id, site_id, revision and updated_at: the server sets them. Send `If-Match: <revision>` to avoid overwriting a newer write. A changed document bumps `revision`, and the site's running advanced watches re-plan on it without a restart. Free text in a context is customer data and is shown to models as background, never as instructions. Needs scope context:write.
+ */
+export const putSiteContext = <ThrowOnError extends boolean = false>(options: Options<PutSiteContextData, ThrowOnError>): RequestResult<PutSiteContextResponses, PutSiteContextErrors, ThrowOnError> => (options.client ?? client).put<PutSiteContextResponses, PutSiteContextErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/sites/{id}/context',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
  * Correct the memory: brief and/or entities (at most 30)
  */
 export const updateSiteMemory = <ThrowOnError extends boolean = false>(options: Options<UpdateSiteMemoryData, ThrowOnError>): RequestResult<UpdateSiteMemoryResponses, UpdateSiteMemoryErrors, ThrowOnError> => (options.client ?? client).patch<UpdateSiteMemoryResponses, UpdateSiteMemoryErrors, ThrowOnError>({
@@ -1161,6 +1272,11 @@ export const getStatus = <ThrowOnError extends boolean = false>(options?: Option
 export const receiveStripeWebhook = <ThrowOnError extends boolean = false>(options?: Options<ReceiveStripeWebhookData, ThrowOnError>): RequestResult<ReceiveStripeWebhookResponses, ReceiveStripeWebhookErrors, ThrowOnError> => (options?.client ?? client).post<ReceiveStripeWebhookResponses, ReceiveStripeWebhookErrors, ThrowOnError>({ url: '/stripe/webhook', ...options });
 
 /**
+ * The signed, short-lived read of one dataset or uploaded clip for a running test, or (clipId arc-<n>) of one five minute range of the camera's archive for an earlier-time test (query exp and sig). Used by the pool's test job; the signature is the credential. Never cached.
+ */
+export const getTestClip = <ThrowOnError extends boolean = false>(options: Options<GetTestClipData, ThrowOnError>): RequestResult<GetTestClipResponses, GetTestClipErrors, ThrowOnError> => (options.client ?? client).get<GetTestClipResponses, GetTestClipErrors, ThrowOnError>({ url: '/test-clips/{testId}/{clipId}', ...options });
+
+/**
  * Delete a test case and its pinned image
  */
 export const deleteTestCase = <ThrowOnError extends boolean = false>(options: Options<DeleteTestCaseData, ThrowOnError>): RequestResult<DeleteTestCaseResponses, DeleteTestCaseErrors, ThrowOnError> => (options.client ?? client).delete<DeleteTestCaseResponses, DeleteTestCaseErrors, ThrowOnError>({
@@ -1200,6 +1316,135 @@ export const getTestCaseImageLink = <ThrowOnError extends boolean = false>(optio
 });
 
 /**
+ * List your video files, newest first
+ */
+export const listUploads = <ThrowOnError extends boolean = false>(options?: Options<ListUploadsData, ThrowOnError>): RequestResult<ListUploadsResponses, ListUploadsErrors, ThrowOnError> => (options?.client ?? client).get<ListUploadsResponses, ListUploadsErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/uploads',
+    ...options
+});
+
+/**
+ * Start uploading a video file (mp4, mov, webm, mkv) as a watch source. Declare name and size; refused here (400 unsupported_type, 413 too_large, 429 upload_limit) before any byte moves. Returns the id, `partSize` and `parts`: send each part with PUT /uploads/{id}/parts/{n}, then POST /uploads/{id}/complete. 404 while video files are off.
+ */
+export const startUpload = <ThrowOnError extends boolean = false>(options: Options<StartUploadData, ThrowOnError>): RequestResult<StartUploadResponses, StartUploadErrors, ThrowOnError> => (options.client ?? client).post<StartUploadResponses, StartUploadErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/uploads',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Make a video file from a public https URL (for MCP agents, which cannot send bytes). Percia fetches it itself, one request: public https only (no IP addresses, private or internal names, user names or odd ports; each redirect is checked again), content type must be a video (mp4, mov, webm, mkv) or a generic binary with a video file name, and the same size and length limits as an upload apply (400 invalid_url, 400 unsupported_type, 400 fetch_failed, 413 too_large, 400 too_long, bad_container, bad_codec, 429 upload_limit). Returns the ready upload: `uploadId` (= `id`) and `source` (`percia-file://<uploadId>`), which you pass as `sourceUrl` to POST /watches/owned. 404 while video files are off.
+ */
+export const uploadFromUrl = <ThrowOnError extends boolean = false>(options: Options<UploadFromUrlData, ThrowOnError>): RequestResult<UploadFromUrlResponses, UploadFromUrlErrors, ThrowOnError> => (options.client ?? client).post<UploadFromUrlResponses, UploadFromUrlErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/uploads/from-url',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Make a short-lived upload page for a video file on the person's own device (for MCP agents, which cannot send bytes). No body. Returns `uploadUrl` (valid 30 minutes, no sign-in needed on it): show it to the person with show_link, never as plain text. They pick the file on that page and it uploads and is checked. When they say it is done, GET /uploads and take the newest file with `status: ready` and `createdAt` after the link's `createdAt`: its `source` (`percia-file://<id>`) is the `sourceUrl` for POST /watches/owned. 404 while video files are off.
+ */
+export const createUploadLink = <ThrowOnError extends boolean = false>(options?: Options<CreateUploadLinkData, ThrowOnError>): RequestResult<CreateUploadLinkResponses, CreateUploadLinkErrors, ThrowOnError> => (options?.client ?? client).post<CreateUploadLinkResponses, CreateUploadLinkErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/uploads/link',
+    ...options
+});
+
+/**
+ * Delete a video file (or stop an upload). The file also goes with the last watch that uses it, with the account, and after its retention period.
+ */
+export const deleteUpload = <ThrowOnError extends boolean = false>(options: Options<DeleteUploadData, ThrowOnError>): RequestResult<DeleteUploadResponses, DeleteUploadErrors, ThrowOnError> => (options.client ?? client).delete<DeleteUploadResponses, DeleteUploadErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/uploads/{id}',
+    ...options
+});
+
+/**
+ * One video file
+ */
+export const getUpload = <ThrowOnError extends boolean = false>(options: Options<GetUploadData, ThrowOnError>): RequestResult<GetUploadResponses, GetUploadErrors, ThrowOnError> => (options.client ?? client).get<GetUploadResponses, GetUploadErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/uploads/{id}',
+    ...options
+});
+
+/**
+ * Finish the upload with the part etags. The file is read back and checked: container, codec (H.264, H.265, VP8, VP9, AV1) and length (over the limit = too_long). A refused file is deleted at once (400 bad_container, bad_codec, too_long). Returns the upload; `source` is its watch source.
+ */
+export const completeUpload = <ThrowOnError extends boolean = false>(options: Options<CompleteUploadData, ThrowOnError>): RequestResult<CompleteUploadResponses, CompleteUploadErrors, ThrowOnError> => (options.client ?? client).post<CompleteUploadResponses, CompleteUploadErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/uploads/{id}/complete',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Send part n (1-based) as the raw request body (application/octet-stream). Every part but the last is exactly `partSize` bytes. Returns the etag to give to /complete. A part may be sent again. Needs a client that can send bytes: MCP agents cannot, a person uses the app.
+ */
+export const uploadPart = <ThrowOnError extends boolean = false>(options: Options<UploadPartData, ThrowOnError>): RequestResult<UploadPartResponses, UploadPartErrors, ThrowOnError> => (options.client ?? client).put<UploadPartResponses, UploadPartErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/uploads/{id}/parts/{n}',
+    ...options
+});
+
+/**
+ * A short-lived (15 minutes) signed address for playing the file in a video element. A credential: do not store or share it.
+ */
+export const getUploadPlayUrl = <ThrowOnError extends boolean = false>(options: Options<GetUploadPlayUrlData, ThrowOnError>): RequestResult<GetUploadPlayUrlResponses, GetUploadPlayUrlErrors, ThrowOnError> => (options.client ?? client).get<GetUploadPlayUrlResponses, GetUploadPlayUrlErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/uploads/{id}/play',
+    ...options
+});
+
+/**
  * Daily usage (UTC days): active watch-hours, camera-minutes (what is priced), events, model calls and action calls
  */
 export const getUsage = <ThrowOnError extends boolean = false>(options?: Options<GetUsageData, ThrowOnError>): RequestResult<GetUsageResponses, GetUsageErrors, ThrowOnError> => (options?.client ?? client).get<GetUsageResponses, GetUsageErrors, ThrowOnError>({
@@ -1226,39 +1471,45 @@ export const getCameraUsage = <ThrowOnError extends boolean = false>(options?: O
 });
 
 /**
- * Start without signup: an ephemeral webhook watch (about 60 minutes, 2 judge requests a minute) with a read-only key and a claim URL
+ * Start a watch the clarifying way (Percia; 404 unless Percia has it on). Send the plain ask and the camera (`cameraId` of one of your cameras, or a public `sourceUrl`). Percia's intelligence layer reads it and answers with a draft: `status` clarifying (ask the person `question`; `options` are numbered meanings they may pick by number or replace with their own words), ready (conditions understood: create the watch with POST /watches/owned {draftId, sourceUrl}), or refused (nothing visible is left to watch). `unsupported` lists parts that cannot be watched (audio, several cameras, who someone is: `refused` true); when `needsAcknowledgement` is true tell the person, then create with `acknowledgeUnsupported: true`. Nothing is created yet.
  */
-export const createInstantWatch = <ThrowOnError extends boolean = false>(options: Options<CreateInstantWatchData, ThrowOnError>): RequestResult<CreateInstantWatchResponses, CreateInstantWatchErrors, ThrowOnError> => (options.client ?? client).post<CreateInstantWatchResponses, CreateInstantWatchErrors, ThrowOnError>({
-    url: '/v1/instant',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Create an email watch (anonymous allowed). Webhook watches need sign-in: use POST /watches/owned.
- */
-export const createPublicWatch = <ThrowOnError extends boolean = false>(options: Options<CreatePublicWatchData, ThrowOnError>): RequestResult<CreatePublicWatchResponses, CreatePublicWatchErrors, ThrowOnError> => (options.client ?? client).post<CreatePublicWatchResponses, CreatePublicWatchErrors, ThrowOnError>({
-    url: '/watches',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * What Percia understands of a goal, without creating anything: the kind of each condition (something happens / something stays true), what it ignores, what a camera cannot see (with questions to ask the person), and how clear the goal is. Use it before POST /watches/owned to check a goal; creating a watch does the same understanding by itself. Cached for 7 days; limited per person per hour (429 rate_limited with Retry-After).
- */
-export const interpretGoal = <ThrowOnError extends boolean = false>(options: Options<InterpretGoalData, ThrowOnError>): RequestResult<InterpretGoalResponses, InterpretGoalErrors, ThrowOnError> => (options.client ?? client).post<InterpretGoalResponses, InterpretGoalErrors, ThrowOnError>({
+export const createWatchDraft = <ThrowOnError extends boolean = false>(options: Options<CreateWatchDraftData, ThrowOnError>): RequestResult<CreateWatchDraftResponses, CreateWatchDraftErrors, ThrowOnError> => (options.client ?? client).post<CreateWatchDraftResponses, CreateWatchDraftErrors, ThrowOnError>({
     security: [{
             key: 'bearerAuth',
             scheme: 'bearer',
             type: 'http'
         }],
-    url: '/watches/interpret',
+    url: '/watches/draft',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Read a clarify draft (your own): its status, question, options, conditions and the conversation so far.
+ */
+export const getWatchDraft = <ThrowOnError extends boolean = false>(options: Options<GetWatchDraftData, ThrowOnError>): RequestResult<GetWatchDraftResponses, GetWatchDraftErrors, ThrowOnError> => (options.client ?? client).get<GetWatchDraftResponses, GetWatchDraftErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/watches/draft/{id}',
+    ...options
+});
+
+/**
+ * Answer the draft's question: `text` is the number of one of the options ("2") or the person's own words. Only a draft that is still clarifying takes an answer; a draft that became a watch is closed (a running watch is never questioned). Returns the updated draft (a new question, or ready). When the layer cannot use the words, they are joined to the first ask and read again as one new ask (`restated: true`).
+ */
+export const answerWatchDraft = <ThrowOnError extends boolean = false>(options: Options<AnswerWatchDraftData, ThrowOnError>): RequestResult<AnswerWatchDraftResponses, AnswerWatchDraftErrors, ThrowOnError> => (options.client ?? client).post<AnswerWatchDraftResponses, AnswerWatchDraftErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/watches/draft/{id}/answer',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1280,7 +1531,7 @@ export const listWatches = <ThrowOnError extends boolean = false>(options?: Opti
 });
 
 /**
- * Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge) to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: "core"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read `interpretation.gaps` and `untestable` and ask the person those questions. Send `interpret: false` to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent.
+ * Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge) to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: "core"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read `interpretation.gaps` and `untestable` and ask the person those questions. Send `draftId` (a ready draft from POST /watches/draft, with `acknowledgeUnsupported: true` when it left parts out) instead of `goal`; the draft has the conditions. Send `interpret: false` to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent. With clarifying (when Percia has it on; see GET /config): a create with a `goal` is read by Percia's layer first. A clear goal creates the watch as before. An unclear one creates nothing and answers 422 `clarification_needed` with `draftId`, `question` and `options` (and `guidance`): ask the person, answer with POST /watches/draft/{draftId}/answer {text}, then create with {sourceUrl, draftId}; or send a clearer goal. Parts that cannot be watched answer 409 `unsupported_not_acknowledged` (tell the person, then repeat with `acknowledgeUnsupported: true`). The old per-watch knobs are refused with 422 naming the field in `error.field`, from the first call: cooldownS, kind, rearmS, recheckS, minConfidence, notWhen, zones, concerns, judgeKey, interpret, and runtime: core.
  */
 export const createWatch = <ThrowOnError extends boolean = false>(options: Options<CreateWatchData, ThrowOnError>): RequestResult<CreateWatchResponses, CreateWatchErrors, ThrowOnError> => (options.client ?? client).post<CreateWatchResponses, CreateWatchErrors, ThrowOnError>({
     security: [{
@@ -1323,7 +1574,7 @@ export const getWatch = <ThrowOnError extends boolean = false>(options: Options<
 });
 
 /**
- * Update a watch. A new goal is understood again (interpret: false keeps the words as written); interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal detaches the agent.
+ * Update a watch. `status: "active"` with `testRun: true` starts a 30-minute live test run (events are marked test events); `status: "active"` alone goes live, also from a running test, with no restart. A new goal is understood again (interpret: false keeps the words as written); interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal detaches the agent.
  */
 export const updateWatch = <ThrowOnError extends boolean = false>(options: Options<UpdateWatchData, ThrowOnError>): RequestResult<UpdateWatchResponses, UpdateWatchErrors, ThrowOnError> => (options.client ?? client).patch<UpdateWatchResponses, UpdateWatchErrors, ThrowOnError>({
     security: [{
@@ -1340,6 +1591,154 @@ export const updateWatch = <ThrowOnError extends boolean = false>(options: Optio
 });
 
 /**
+ * The typed recommendations (ActionEvent) the engine made for an advanced watch, newest first
+ *
+ * The typed recommendations (pause, stop, inspect, adjust, resume_ok) the engine made for a watch made with `advanced`. Percia recommends, you decide. Webhook watches also receive each one as `percia.action`.
+ */
+export const listWatchActions = <ThrowOnError extends boolean = false>(options: Options<ListWatchActionsData, ThrowOnError>): RequestResult<ListWatchActionsResponses, ListWatchActionsErrors, ThrowOnError> => (options.client ?? client).get<ListWatchActionsResponses, ListWatchActionsErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/watches/{id}/actions',
+    ...options
+});
+
+/**
+ * The watch's dataset: clips labelled should_match, should_not or counterfactual. They are the ground truth tests score against.
+ */
+export const listDatasetClips = <ThrowOnError extends boolean = false>(options: Options<ListDatasetClipsData, ThrowOnError>): RequestResult<ListDatasetClipsResponses, ListDatasetClipsErrors, ThrowOnError> => (options.client ?? client).get<ListDatasetClipsResponses, ListDatasetClipsErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/watches/{id}/dataset',
+    ...options
+});
+
+/**
+ * Upload one clip to the dataset: multipart/form-data with `file` (MP4 or MOV, up to 32 MB and 120 s), `label` (should_match, should_not, counterfactual) and an optional `note` (up to 120 characters).
+ */
+export const uploadDatasetClip = <ThrowOnError extends boolean = false>(options: Options<UploadDatasetClipData, ThrowOnError>): RequestResult<UploadDatasetClipResponses, UploadDatasetClipErrors, ThrowOnError> => (options.client ?? client).post<UploadDatasetClipResponses, UploadDatasetClipErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/watches/{id}/dataset',
+    ...options
+});
+
+/**
+ * Keep an event's clip in the dataset with a label. An event already in the dataset only has its label changed. Marking an event Correct or False alarm does this by itself (should_match / should_not).
+ */
+export const addDatasetClipFromEvent = <ThrowOnError extends boolean = false>(options: Options<AddDatasetClipFromEventData, ThrowOnError>): RequestResult<AddDatasetClipFromEventResponses, AddDatasetClipFromEventErrors, ThrowOnError> => (options.client ?? client).post<AddDatasetClipFromEventResponses, AddDatasetClipFromEventErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/watches/{id}/dataset/from-event',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Keep a video from a pasted link as a dataset clip: {url, label, note?}. Percia fetches the link once (a public https link straight to an MP4 or MOV, up to 32 MB and 120 s; no address numbers, no password in the link, at most three redirects, each checked again), stores the video sealed and does not keep the link. 20 links an hour per user.
+ */
+export const addDatasetClipFromLink = <ThrowOnError extends boolean = false>(options: Options<AddDatasetClipFromLinkData, ThrowOnError>): RequestResult<AddDatasetClipFromLinkResponses, AddDatasetClipFromLinkErrors, ThrowOnError> => (options.client ?? client).post<AddDatasetClipFromLinkResponses, AddDatasetClipFromLinkErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/watches/{id}/dataset/from-link',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Keep a miss you reported (POST /watches/{id}/misses) as a dataset clip with a label: the footage of the first 100 seconds of the window you reported is cut from the camera's recording (the last 14 days) and stored sealed. The moment's start inside the clip is unknown, so a clip from a miss has no delay. A miss already in the dataset only has its label changed.
+ */
+export const addDatasetClipFromMiss = <ThrowOnError extends boolean = false>(options: Options<AddDatasetClipFromMissData, ThrowOnError>): RequestResult<AddDatasetClipFromMissResponses, AddDatasetClipFromMissErrors, ThrowOnError> => (options.client ?? client).post<AddDatasetClipFromMissResponses, AddDatasetClipFromMissErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/watches/{id}/dataset/from-miss',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Moments worth labelling: close calls (alerts the judge was barely sure of), false alarms you marked (events with a stored clip) and the misses you reported (windows, cut from the recording when you keep them), none of them in the dataset yet. Offered, never added by themselves: label an event with POST .../dataset/from-event and a reported miss with POST .../dataset/from-miss.
+ */
+export const listNearMisses = <ThrowOnError extends boolean = false>(options: Options<ListNearMissesData, ThrowOnError>): RequestResult<ListNearMissesResponses, ListNearMissesErrors, ThrowOnError> => (options.client ?? client).get<ListNearMissesResponses, ListNearMissesErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/watches/{id}/dataset/near-misses',
+    ...options
+});
+
+/**
+ * Delete a clip and its stored video. The dataset also goes with the watch and with the account.
+ */
+export const deleteDatasetClip = <ThrowOnError extends boolean = false>(options: Options<DeleteDatasetClipData, ThrowOnError>): RequestResult<DeleteDatasetClipResponses, DeleteDatasetClipErrors, ThrowOnError> => (options.client ?? client).delete<DeleteDatasetClipResponses, DeleteDatasetClipErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/watches/{id}/dataset/{clipId}',
+    ...options
+});
+
+/**
+ * Change a clip's label or note.
+ */
+export const updateDatasetClip = <ThrowOnError extends boolean = false>(options: Options<UpdateDatasetClipData, ThrowOnError>): RequestResult<UpdateDatasetClipResponses, UpdateDatasetClipErrors, ThrowOnError> => (options.client ?? client).patch<UpdateDatasetClipResponses, UpdateDatasetClipErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/watches/{id}/dataset/{clipId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * A clip's thumbnail (the event's keyframe), decrypted for the owner. 404 for an uploaded clip (it has none).
+ */
+export const getDatasetClipThumb = <ThrowOnError extends boolean = false>(options: Options<GetDatasetClipThumbData, ThrowOnError>): RequestResult<GetDatasetClipThumbResponses, GetDatasetClipThumbErrors, ThrowOnError> => (options.client ?? client).get<GetDatasetClipThumbResponses, GetDatasetClipThumbErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/watches/{id}/dataset/{clipId}/thumb',
+    ...options
+});
+
+/**
  * Page through a watch's events, newest first
  */
 export const listWatchEvents = <ThrowOnError extends boolean = false>(options: Options<ListWatchEventsData, ThrowOnError>): RequestResult<ListWatchEventsResponses, ListWatchEventsErrors, ThrowOnError> => (options.client ?? client).get<ListWatchEventsResponses, ListWatchEventsErrors, ThrowOnError>({
@@ -1353,7 +1752,33 @@ export const listWatchEvents = <ThrowOnError extends boolean = false>(options: O
 });
 
 /**
- * Mark an event correct or a false alarm. With a keyframe it becomes (or updates) a test case with the image pinned. Leave `note` out to keep the note already stored; send an empty string to clear it.
+ * The event's clip (video/mp4, H.264, no audio): from about 10 seconds before the event to 6 seconds after it, cut from the camera's recording. Supports `Range` requests. Needs events:read with an API key.
+ */
+export const getEventClip = <ThrowOnError extends boolean = false>(options: Options<GetEventClipData, ThrowOnError>): RequestResult<GetEventClipResponses, GetEventClipErrors, ThrowOnError> => (options.client ?? client).get<GetEventClipResponses, GetEventClipErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/watches/{id}/events/{eventId}/clip',
+    ...options
+});
+
+/**
+ * A 10 minute link to the event's clip (or its keyframe with `?kind=keyframe`) that needs no credential: hand it to a person or a viewer that can only load a URL. Needs events:read with an API key.
+ */
+export const getEventClipLink = <ThrowOnError extends boolean = false>(options: Options<GetEventClipLinkData, ThrowOnError>): RequestResult<GetEventClipLinkResponses, GetEventClipLinkErrors, ThrowOnError> => (options.client ?? client).get<GetEventClipLinkResponses, GetEventClipLinkErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/watches/{id}/events/{eventId}/clip/link',
+    ...options
+});
+
+/**
+ * Mark an event correct, a false alarm, or partly right (`partly` needs the correction in `note`). With a keyframe a correct or false alarm becomes (or updates) a test case with the image pinned. Leave `note` out to keep the note already stored; send an empty string to clear it. On a Percia event the mark also goes to the watch's running engine: `engine` says whether it was applied or only recorded, and why.
  */
 export const sendEventFeedback = <ThrowOnError extends boolean = false>(options: Options<SendEventFeedbackData, ThrowOnError>): RequestResult<SendEventFeedbackResponses, SendEventFeedbackErrors, ThrowOnError> => (options.client ?? client).post<SendEventFeedbackResponses, SendEventFeedbackErrors, ThrowOnError>({
     security: [{
@@ -1439,15 +1864,45 @@ export const startLiveView = <ThrowOnError extends boolean = false>(options: Opt
 });
 
 /**
- * Understand the watch's current goal again and store it as the next interpretation version (the job restarts with it). Replaces any conditions edited by hand. 503 interpret_unavailable keeps the previous interpretation.
+ * The misses reported on a watch, newest first, with what the engine did with each
  */
-export const reinterpretWatch = <ThrowOnError extends boolean = false>(options: Options<ReinterpretWatchData, ThrowOnError>): RequestResult<ReinterpretWatchResponses, ReinterpretWatchErrors, ThrowOnError> => (options.client ?? client).post<ReinterpretWatchResponses, ReinterpretWatchErrors, ThrowOnError>({
+export const listWatchMisses = <ThrowOnError extends boolean = false>(options: Options<ListWatchMissesData, ThrowOnError>): RequestResult<ListWatchMissesResponses, ListWatchMissesErrors, ThrowOnError> => (options.client ?? client).get<ListWatchMissesResponses, ListWatchMissesErrors, ThrowOnError>({
     security: [{
             key: 'bearerAuth',
             scheme: 'bearer',
             type: 'http'
         }],
-    url: '/watches/{id}/reinterpret',
+    url: '/watches/{id}/misses',
+    ...options
+});
+
+/**
+ * Report a miss: the watch should have alerted in this window and did not. The window is at most 600 seconds, not in the future, not older than 30 days. On a running Percia watch it goes to the engine as a `missed` report (recall evidence); otherwise it is only recorded. `concernId` is needed only when the watch has several conditions.
+ */
+export const reportMiss = <ThrowOnError extends boolean = false>(options: Options<ReportMissData, ThrowOnError>): RequestResult<ReportMissResponses, ReportMissErrors, ThrowOnError> => (options.client ?? client).post<ReportMissResponses, ReportMissErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/watches/{id}/misses',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * How right one watch is. `marks` are exact counts of your own Correct / False alarm / Partly / Missed marks (`rightShare` is null until 3 events are rated). `engine` is the running engine's own estimate (precision and recall of its champion and floor with 90% intervals and n, or the reason when there is nothing to estimate), as last reported; null for other engines. Estimates, never ground truth.
+ */
+export const getWatchQuality = <ThrowOnError extends boolean = false>(options: Options<GetWatchQualityData, ThrowOnError>): RequestResult<GetWatchQualityResponses, GetWatchQualityErrors, ThrowOnError> => (options.client ?? client).get<GetWatchQualityResponses, GetWatchQualityErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/watches/{id}/quality',
     ...options
 });
 
@@ -1474,5 +1929,48 @@ export const testWatchDelivery = <ThrowOnError extends boolean = false>(options:
             type: 'http'
         }],
     url: '/watches/{id}/test-delivery',
+    ...options
+});
+
+/**
+ * The watch's test runs, newest first, and the latest finished one with its scores. A test replays the watch on recorded video and scores it; nothing is delivered.
+ */
+export const listTestRuns = <ThrowOnError extends boolean = false>(options: Options<ListTestRunsData, ThrowOnError>): RequestResult<ListTestRunsResponses, ListTestRunsErrors, ThrowOnError> => (options.client ?? client).get<ListTestRunsResponses, ListTestRunsErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/watches/{id}/tests',
+    ...options
+});
+
+/**
+ * Start a test. JSON {source: "recent", minutes?: 1..10} replays the camera's last minutes, {source: "window", from, minutes?: 1..10} an earlier time (up to 14 days back, ending at least a minute ago; the host's recording for about two hours, the sealed archive beyond that), {source: "dataset"} replays the dataset clips (the newest 40) and scores them: Caught = should_match clips the judge said yes on, False alarms = should_not and counterfactual clips it said yes on. Or multipart/form-data with `file` tests one uploaded clip (deleted afterwards; no labels, so no scores, only what it would alert on). Uses the pool's judge at half the camera's hourly cap. 10 tests an hour per user, one at a time per watch.
+ */
+export const startTestRun = <ThrowOnError extends boolean = false>(options: Options<StartTestRunData, ThrowOnError>): RequestResult<StartTestRunResponses, StartTestRunErrors, ThrowOnError> => (options.client ?? client).post<StartTestRunResponses, StartTestRunErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/watches/{id}/tests',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * One test run. While it runs, `status` is running and there are no scores; when it ends, `scores` has Caught, False alarms, Avg delay and Verdict (each a figure with its total, or null with a note saying why it is unmeasured), the clips' outcomes, the alerts a window test found, coverage and the per-condition capability report.
+ */
+export const getTestRun = <ThrowOnError extends boolean = false>(options: Options<GetTestRunData, ThrowOnError>): RequestResult<GetTestRunResponses, GetTestRunErrors, ThrowOnError> => (options.client ?? client).get<GetTestRunResponses, GetTestRunErrors, ThrowOnError>({
+    security: [{
+            key: 'bearerAuth',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/watches/{id}/tests/{testId}',
     ...options
 });

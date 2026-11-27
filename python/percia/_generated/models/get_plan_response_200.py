@@ -46,8 +46,8 @@ class GetPlanResponse200:
         credit_minutes (Union[Unset, int]): Redeemed or granted camera-minutes left (used first).
         enforced (Union[Unset, bool]):
         free_minutes (Union[Unset, int]):
-        free_minutes_left (Union[Unset, int]): Free minutes left: this month's 10 plus any one-time card bonus not yet
-            used.
+        free_minutes_left (Union[Unset, int]): The monthly free minutes left (at most freeMinutes). The one-time card
+            bonus is bonusMinutesLeft: never add them.
         free_minutes_resets_at (Union[Unset, str]): When the monthly free minutes come back (the 1st of the next UTC
             month).
         has_card (Union[Unset, bool]):

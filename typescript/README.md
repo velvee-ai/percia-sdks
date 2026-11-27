@@ -2,7 +2,7 @@
 
 TypeScript SDK for the [Percia](https://percia.ai) API. Typed, fetch-only (Node 20+, Cloudflare Workers, Deno, Bun, browsers), ESM and CJS.
 
-> Not published yet. Until the owner publishes it, build it from this repository (`pnpm --filter @percia/sdk build`).
+> Not on npm yet. Until it is published, build it from this repository (`pnpm --filter @percia/sdk build`).
 
 ```bash
 npm install @percia/sdk
@@ -47,17 +47,9 @@ const plan = await percia.account.plan();        // the raw GET /api/plan answer
 
 Every billing field is additive and optional: an older server leaves some out (`billingOf(plan)` gives `null`, never a guess). `describeBilling(billing)` returns plain lines for a person.
 
-## Goal understanding and device kind
-
-Percia reads a new goal into conditions (`event` fires when it starts, `state` while it stays true) and says what a camera cannot see:
+## Camera device kind
 
 ```ts
-const w = await percia.watches.create({ sourceUrl, goal: "Tell me when a car pulls in", notify });
-w.interpretation;                                // { concerns, gaps, untestable, needsLook, degraded? } or null on older watches: ask the person the gaps
-await percia.watches.create({ sourceUrl, goal: "A car pulls in", interpret: false, kind: "event", notify }); // keep your words
-await percia.watches.create({ sourceUrl, goal: "Front door", concerns: [{ text: "A person stands at the door", kind: "state", ignore: ["the cat"] }], notify });
-await percia.watches.interpret("Keep my shop safe"); // preview, creates nothing (`deferred: true` = read at creation)
-await percia.watches.reinterpret(w.id!);
 await percia.cameras.create("Desk laptop", { deviceKind: "computer" }); // cameras carry deviceKind: phone | tablet | computer | null
 ```
 

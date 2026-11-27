@@ -180,39 +180,6 @@ def test_billing_of_old_plan_and_blocked():
     assert "blocked (needs_billing)" in "\n".join(describe_billing(blocked))
 
 
-def test_create_watch_interpretation_options(client, server):  # type: ignore[no-untyped-def]
-    import json
-
-    client.watches.create(
-        {
-            "sourceUrl": "rtsp://cam.example.com/s",
-            "goal": "A car pulls in",
-            "interpret": False,
-            "kind": "event",
-            "notify": {"type": "email", "target": "a@b.co"},
-        }
-    )
-    assert json.loads(server.requests[-1].read())["interpret"] is False
-    client.watches.create(
-        {
-            "sourceUrl": "rtsp://cam.example.com/s",
-            "goal": "Front door",
-            "concerns": [{"text": "A person stands at the door", "kind": "state", "ignore": ["the cat"]}],
-            "notify": {"type": "email", "target": "a@b.co"},
-        }
-    )
-    assert json.loads(server.requests[-1].read())["concerns"][0]["kind"] == "state"
-
-
-def test_interpret_and_reinterpret(client, server):  # type: ignore[no-untyped-def]
-    import json
-
-    assert client.watches.interpret("Tell me when a car pulls in") is not None
-    assert json.loads(server.requests[-1].read()) == {"goal": "Tell me when a car pulls in"}
-    client.watches.reinterpret("w_1")
-    assert server.requests[-1].url.path.endswith("/watches/w_1/reinterpret")
-
-
 def test_camera_device_kind(client, server):  # type: ignore[no-untyped-def]
     import json
 

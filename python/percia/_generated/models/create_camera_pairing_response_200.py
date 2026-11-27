@@ -20,11 +20,11 @@ class CreateCameraPairingResponse200:
     """
     Attributes:
         pair_expires_at (Union[Unset, datetime.datetime]):
-        pair_url (Union[Unset, str]): Single-use link (10 minutes) for the person to open on the phone that will be the
-            camera; you cannot open it for them. On an iPhone with the Percia Camera app it pairs in the app, otherwise the
-            page can pair the browser. Tell them to keep the app or page open on screen while it watches: the camera stops
-            when they switch apps or lock the phone, so they should keep talking to you from another device. With MCP, show
-            it with the show_link tool.
+        pair_url (Union[Unset, str]): Single-use link (10 minutes) for the person to open on the phone, tablet or
+            computer that will be the camera (also for "use my laptop/webcam as a camera"); you cannot open it for them. On
+            an iPhone with the Percia Camera app it pairs in the app, otherwise the page can pair the browser. Tell them to
+            keep the app or page open on screen while it watches: the camera stops when they switch apps or lock the device,
+            so they should keep talking to you from another device. With MCP, show it with the show_link tool.
     """
 
     pair_expires_at: Union[Unset, datetime.datetime] = UNSET

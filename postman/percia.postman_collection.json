@@ -42,12 +42,22 @@
       "type": "string"
     },
     {
+      "key": "clipId",
+      "value": "",
+      "type": "string"
+    },
+    {
       "key": "connectionId",
       "value": "",
       "type": "string"
     },
     {
       "key": "cursor",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "draftId",
       "value": "",
       "type": "string"
     },
@@ -72,7 +82,22 @@
       "type": "string"
     },
     {
+      "key": "n",
+      "value": "",
+      "type": "string"
+    },
+    {
       "key": "siteId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "testId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "uploadId",
       "value": "",
       "type": "string"
     },
@@ -164,7 +189,7 @@
                 "owned"
               ]
             },
-            "description": "The response is the only time you see `webhookSecret`. The test saves it as the `webhookSecret` variable (never logged). Set `webhookUrl` first: a public https address of your receiver.\n\noperationId: createWatch\n\nCreate a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge) to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read `interpretation.gaps` and `untestable` and ask the person those questions. Send `interpret: false` to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent.\n\nScopes: watches:write."
+            "description": "The response is the only time you see `webhookSecret`. The test saves it as the `webhookSecret` variable (never logged). Set `webhookUrl` first: a public https address of your receiver.\n\noperationId: createWatch\n\nCreate a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge) to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read `interpretation.gaps` and `untestable` and ask the person those questions. Send `draftId` (a ready draft from POST /watches/draft, with `acknowledgeUnsupported: true` when it left parts out) instead of `goal`; the draft has the conditions. Send `interpret: false` to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent. With clarifying (when Percia has it on; see GET /config): a create with a `goal` is read by Percia's layer first. A clear goal creates the watch as before. An unclear one creates nothing and answers 422 `clarification_needed` with `draftId`, `question` and `options` (and `guidance`): ask the person, answer with POST /watches/draft/{draftId}/answer {text}, then create with {sourceUrl, draftId}; or send a clearer goal. Parts that cannot be watched answer 409 `unsupported_not_acknowledged` (tell the person, then repeat with `acknowledgeUnsupported: true`). The old per-watch knobs are refused with 422 naming the field in `error.field`, from the first call: cooldownS, kind, rearmS, recheckS, minConfidence, notWhen, zones, concerns, judgeKey, interpret, and runtime: core.\n\nScopes: watches:write."
           },
           "response": []
         },
@@ -497,7 +522,7 @@
           "response": []
         },
         {
-          "name": "Update a watch. A new goal is understood again (interpret: false keeps the words as written); interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal detaches the agent.",
+          "name": "Update a watch. `status: \"active\"` with `testRun: true` starts a 30-minute live test run (events are marked test events); `status: \"active\"` alone goes live, also from a running test, with no restart. A new goal is understood again (interpret: false keeps the words as written); interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal detaches the agent.",
           "event": [
             {
               "listen": "test",
@@ -555,7 +580,7 @@
                 "{{watchId}}"
               ]
             },
-            "description": "operationId: updateWatch\n\nUpdate a watch. A new goal is understood again (interpret: false keeps the words as written); interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal detaches the agent.\n\nScopes: watches:write."
+            "description": "operationId: updateWatch\n\nUpdate a watch. `status: \"active\"` with `testRun: true` starts a 30-minute live test run (events are marked test events); `status: \"active\"` alone goes live, also from a running test, with no restart. A new goal is understood again (interpret: false keeps the words as written); interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal detaches the agent.\n\nScopes: watches:write."
           },
           "response": []
         },
@@ -628,57 +653,6 @@
               ]
             },
             "description": "operationId: listWatchEvents\n\nPage through a watch's events, newest first\n\nScopes: events:read."
-          },
-          "response": []
-        },
-        {
-          "name": "Understand the watch's current goal again and store it as the next interpretation version (the job restarts with it). Replaces any conditions edited by hand. 503 interpret_unavailable keeps the previous interpretation.",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "var okCodes = [200];",
-                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
-                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
-                  "});",
-                  "var body = null;",
-                  "try { body = pm.response.json(); } catch (e) { body = null; }",
-                  "pm.test(\"body is JSON\", function () {",
-                  "  if (body === null) throw new Error(\"response body is not JSON\");",
-                  "});",
-                  "pm.test(\"errors use the shared envelope\", function () {",
-                  "  if (pm.response.code < 400) return;",
-                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
-                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
-                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/watches/{{watchId}}/reinterpret",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "watches",
-                "{{watchId}}",
-                "reinterpret"
-              ]
-            },
-            "description": "operationId: reinterpretWatch\n\nUnderstand the watch's current goal again and store it as the next interpretation version (the job restarts with it). Replaces any conditions edited by hand. 503 interpret_unavailable keeps the previous interpretation.\n\nScopes: watches:write."
           },
           "response": []
         },
@@ -786,14 +760,14 @@
           "response": []
         },
         {
-          "name": "What Percia understands of a goal, without creating anything: the kind of each condition (something happens / something stays true), what it ignores, what a camera cannot see (with questions to ask the person), and how clear the goal is. Use it before POST /watches/owned to check a goal; creating a watch does the same understanding by itself. Cached for 7 days; limited per person per hour (429 rate_limited with Retry-After).",
+          "name": "Start a watch the clarifying way (Percia; 404 unless Percia has it on). Send the plain ask and the camera (`cameraId` of one of your cameras, or a public `sourceUrl`). Percia's intelligence layer reads it and answers with a draft: `status` clarifying (ask the person `question`; `options` are numbered meanings they may pick by number or replace with their own words), ready (conditions understood: create the watch with POST /watches/owned {draftId, sourceUrl}), or refused (nothing visible is left to watch). `unsupported` lists parts that cannot be watched (audio, several cameras, who someone is: `refused` true); when `needsAcknowledgement` is true tell the person, then create with `acknowledgeUnsupported: true`. Nothing is created yet.",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "var okCodes = [200];",
+                  "var okCodes = [201];",
                   "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
                   "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
                   "});",
@@ -834,17 +808,133 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/watches/interpret",
+              "raw": "{{baseUrl}}/api/watches/draft",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "watches",
-                "interpret"
+                "draft"
               ]
             },
-            "description": "operationId: interpretGoal\n\nWhat Percia understands of a goal, without creating anything: the kind of each condition (something happens / something stays true), what it ignores, what a camera cannot see (with questions to ask the person), and how clear the goal is. Use it before POST /watches/owned to check a goal; creating a watch does the same understanding by itself. Cached for 7 days; limited per person per hour (429 rate_limited with Retry-After).\n\nScopes: watches:write."
+            "description": "operationId: createWatchDraft\n\nStart a watch the clarifying way (Percia; 404 unless Percia has it on). Send the plain ask and the camera (`cameraId` of one of your cameras, or a public `sourceUrl`). Percia's intelligence layer reads it and answers with a draft: `status` clarifying (ask the person `question`; `options` are numbered meanings they may pick by number or replace with their own words), ready (conditions understood: create the watch with POST /watches/owned {draftId, sourceUrl}), or refused (nothing visible is left to watch). `unsupported` lists parts that cannot be watched (audio, several cameras, who someone is: `refused` true); when `needsAcknowledgement` is true tell the person, then create with `acknowledgeUnsupported: true`. Nothing is created yet.\n\nScopes: watches:write."
+          },
+          "response": []
+        },
+        {
+          "name": "Read a clarify draft (your own): its status, question, options, conditions and the conversation so far.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/draft/{{draftId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "watches",
+                "draft",
+                "{{draftId}}"
+              ]
+            },
+            "description": "operationId: getWatchDraft\n\nRead a clarify draft (your own): its status, question, options, conditions and the conversation so far.\n\nScopes: watches:read."
+          },
+          "response": []
+        },
+        {
+          "name": "Answer the draft's question: `text` is the number of one of the options (\"2\") or the person's own words. Only a draft that is still clarifying takes an answer; a draft that became a watch is closed (a running watch is never questioned). Returns the updated draft (a new question, or ready). When the layer cannot use the words, they are joined to the first ask and read again as one new ask (`restated: true`).",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"x\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/draft/{{draftId}}/answer",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "watches",
+                "draft",
+                "{{draftId}}",
+                "answer"
+              ]
+            },
+            "description": "operationId: answerWatchDraft\n\nAnswer the draft's question: `text` is the number of one of the options (\"2\") or the person's own words. Only a draft that is still clarifying takes an answer; a draft that became a watch is closed (a running watch is never questioned). Returns the updated draft (a new question, or ready). When the layer cannot use the words, they are joined to the first ask and read again as one new ask (`restated: true`).\n\nScopes: watches:write."
           },
           "response": []
         },
@@ -899,7 +989,7 @@
           "response": []
         },
         {
-          "name": "Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge) to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read `interpretation.gaps` and `untestable` and ask the person those questions. Send `interpret: false` to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent.",
+          "name": "Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge) to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read `interpretation.gaps` and `untestable` and ask the person those questions. Send `draftId` (a ready draft from POST /watches/draft, with `acknowledgeUnsupported: true` when it left parts out) instead of `goal`; the draft has the conditions. Send `interpret: false` to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent. With clarifying (when Percia has it on; see GET /config): a create with a `goal` is read by Percia's layer first. A clear goal creates the watch as before. An unclear one creates nothing and answers 422 `clarification_needed` with `draftId`, `question` and `options` (and `guidance`): ask the person, answer with POST /watches/draft/{draftId}/answer {text}, then create with {sourceUrl, draftId}; or send a clearer goal. Parts that cannot be watched answer 409 `unsupported_not_acknowledged` (tell the person, then repeat with `acknowledgeUnsupported: true`). The old per-watch knobs are refused with 422 naming the field in `error.field`, from the first call: cooldownS, kind, rearmS, recheckS, minConfidence, notWhen, zones, concerns, judgeKey, interpret, and runtime: core.",
           "event": [
             {
               "listen": "test",
@@ -966,7 +1056,7 @@
                 "owned"
               ]
             },
-            "description": "operationId: createWatch\n\nCreate a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge) to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read `interpretation.gaps` and `untestable` and ask the person those questions. Send `interpret: false` to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent.\n\nScopes: watches:write."
+            "description": "operationId: createWatch\n\nCreate a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge) to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read `interpretation.gaps` and `untestable` and ask the person those questions. Send `draftId` (a ready draft from POST /watches/draft, with `acknowledgeUnsupported: true` when it left parts out) instead of `goal`; the draft has the conditions. Send `interpret: false` to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent. With clarifying (when Percia has it on; see GET /config): a create with a `goal` is read by Percia's layer first. A clear goal creates the watch as before. An unclear one creates nothing and answers 422 `clarification_needed` with `draftId`, `question` and `options` (and `guidance`): ask the person, answer with POST /watches/draft/{draftId}/answer {text}, then create with {sourceUrl, draftId}; or send a clearer goal. Parts that cannot be watched answer 409 `unsupported_not_acknowledged` (tell the person, then repeat with `acknowledgeUnsupported: true`). The old per-watch knobs are refused with 422 naming the field in `error.field`, from the first call: cooldownS, kind, rearmS, recheckS, minConfidence, notWhen, zones, concerns, judgeKey, interpret, and runtime: core.\n\nScopes: watches:write."
           },
           "response": []
         }
@@ -1020,7 +1110,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/events?limit=50&cursor=&watchId=&type=&since=2026-11-01T00:00:00Z",
+              "raw": "{{baseUrl}}/api/events?limit=50&cursor=&watchId=&type=&since=2026-11-01T00:00:00Z&review=",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1057,6 +1147,12 @@
                   "value": "2026-11-01T00:00:00Z",
                   "disabled": true,
                   "description": "Only events after this time: ISO 8601 or unix seconds."
+                },
+                {
+                  "key": "review",
+                  "value": "",
+                  "disabled": true,
+                  "description": "`1`: only alerts you have not marked yet (met events of the last 14 days)."
                 }
               ]
             },
@@ -1403,7 +1499,7 @@
           "response": []
         },
         {
-          "name": "Create a camera. For a camera on a private network (ONVIF, RTSP, Frigate, Home Assistant, NVR) the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge), which registers the cameras itself. Default (phone): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.",
+          "name": "Create a camera. For a camera on a private network (ONVIF, RTSP, Frigate, Home Assistant, NVR) the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge), which registers the cameras itself. Default (a paired phone, tablet or computer; its deviceKind is set when it opens the link): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.",
           "event": [
             {
               "listen": "test",
@@ -1469,7 +1565,7 @@
                 "cameras"
               ]
             },
-            "description": "operationId: createCamera\n\nCreate a camera. For a camera on a private network (ONVIF, RTSP, Frigate, Home Assistant, NVR) the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge), which registers the cameras itself. Default (phone): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.\n\nScopes: cameras:write."
+            "description": "operationId: createCamera\n\nCreate a camera. For a camera on a private network (ONVIF, RTSP, Frigate, Home Assistant, NVR) the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge), which registers the cameras itself. Default (a paired phone, tablet or computer; its deviceKind is set when it opens the link): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.\n\nScopes: cameras:write."
           },
           "response": []
         },
@@ -1541,7 +1637,7 @@
                 "cameras"
               ]
             },
-            "description": "For a camera on a LAN: a connector there pulls it once and pushes WHIP to Percia. Idempotent by `externalId` (or an `Idempotency-Key` header): a second call returns 200 with `token: null` and `existing: true` (the token is never shown twice; use Rotate token). The test saves `cameraId`, `whipUrl` and `cameraToken` (never logged). Publish with: ffmpeg -rtsp_transport tcp -i RTSP -an -c:v copy -f whip -authorization \"{{cameraToken}}\" {{whipUrl}}\n\noperationId: createCamera\n\nCreate a camera. For a camera on a private network (ONVIF, RTSP, Frigate, Home Assistant, NVR) the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge), which registers the cameras itself. Default (phone): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.\n\nScopes: cameras:write."
+            "description": "For a camera on a LAN: a connector there pulls it once and pushes WHIP to Percia. Idempotent by `externalId` (or an `Idempotency-Key` header): a second call returns 200 with `token: null` and `existing: true` (the token is never shown twice; use Rotate token). The test saves `cameraId`, `whipUrl` and `cameraToken` (never logged). Publish with: ffmpeg -rtsp_transport tcp -i RTSP -an -c:v copy -f whip -authorization \"{{cameraToken}}\" {{whipUrl}}\n\noperationId: createCamera\n\nCreate a camera. For a camera on a private network (ONVIF, RTSP, Frigate, Home Assistant, NVR) the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge), which registers the cameras itself. Default (a paired phone, tablet or computer; its deviceKind is set when it opens the link): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera back (200, token null, existing true). 404 while phone cameras are off.\n\nScopes: cameras:write."
           },
           "response": []
         },
@@ -1876,6 +1972,69 @@
               ]
             },
             "description": "operationId: createCameras\n\nRegister up to 10 push cameras at once (an NVR connector). Each needs name and externalId and is idempotent by externalId (existing ones come back with token null). All or nothing against the 10-camera limit (429 camera_limit, nothing created).\n\nScopes: cameras:write."
+          },
+          "response": []
+        },
+        {
+          "name": "Make a camera from a public video link (rtsp, rtsps, http or https). Percia pulls it on its media host while a watch on it is active, so the camera then works like any other: use percia-cam://<id> as a watch's sourceUrl. The same link returns the same camera (200, existing true). A watch created with the link itself as sourceUrl does this for you. A private address (192.168.x.x, 10.x.x.x, localhost, an ONVIF/RTSP/Frigate/Home Assistant camera on a home network) is refused with 400 and a pointer to the Percia bridge. 404 unless link cameras are on.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200,201];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceUrl\": \"x\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cameras/link",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cameras",
+                "link"
+              ]
+            },
+            "description": "operationId: createLinkCamera\n\nMake a camera from a public video link (rtsp, rtsps, http or https). Percia pulls it on its media host while a watch on it is active, so the camera then works like any other: use percia-cam://<id> as a watch's sourceUrl. The same link returns the same camera (200, existing true). A watch created with the link itself as sourceUrl does this for you. A private address (192.168.x.x, 10.x.x.x, localhost, an ONVIF/RTSP/Frigate/Home Assistant camera on a home network) is refused with 400 and a pointer to the Percia bridge. 404 unless link cameras are on.\n\nScopes: cameras:write."
           },
           "response": []
         },
@@ -3793,6 +3952,53 @@
           "response": []
         },
         {
+          "name": "The latest snapshot (JPEG) of one of your cameras, cut from its recording: the picture on watch cards and camera tiles. 404 when the camera never sent video. Needs cameras:read and events:read with an API key.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cameras/{{cameraId}}/thumbnail",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cameras",
+                "{{cameraId}}",
+                "thumbnail"
+              ]
+            },
+            "description": "operationId: getCameraThumbnail\n\nThe latest snapshot (JPEG) of one of your cameras, cut from its recording: the picture on watch cards and camera tiles. 404 when the camera never sent video. Needs cameras:read and events:read with an API key.\n\nScopes: cameras:read, events:read."
+          },
+          "response": []
+        },
+        {
           "name": "Per watch and per agent: events per day, feedback counts, false-alarm rate and the last test pass rate",
           "event": [
             {
@@ -3846,6 +4052,55 @@
               ]
             },
             "description": "operationId: getMetrics\n\nPer watch and per agent: events per day, feedback counts, false-alarm rate and the last test pass rate\n\nScopes: watches:read."
+          },
+          "response": []
+        },
+        {
+          "name": "How right all your watches are: totals from your marks, events still to review (unmarked alerts of the last 14 days), one row per watch, and a coaching tip when your marks give a real basis",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/quality",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "quality"
+              ]
+            },
+            "description": "operationId: getQuality\n\nHow right all your watches are: totals from your marks, events still to review (unmarked alerts of the last 14 days), one row per watch, and a coaching tip when your marks give a real basis\n\nScopes: watches:read."
           },
           "response": []
         },
@@ -3999,7 +4254,110 @@
           "response": []
         },
         {
-          "name": "Mark an event correct or a false alarm. With a keyframe it becomes (or updates) a test case with the image pinned. Leave `note` out to keep the note already stored; send an empty string to clear it.",
+          "name": "The event's clip (video/mp4, H.264, no audio): from about 10 seconds before the event to 6 seconds after it, cut from the camera's recording. Supports `Range` requests. Needs events:read with an API key.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/{{watchId}}/events/{{eventId}}/clip",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "watches",
+                "{{watchId}}",
+                "events",
+                "{{eventId}}",
+                "clip"
+              ]
+            },
+            "description": "operationId: getEventClip\n\nThe event's clip (video/mp4, H.264, no audio): from about 10 seconds before the event to 6 seconds after it, cut from the camera's recording. Supports `Range` requests. Needs events:read with an API key.\n\nScopes: events:read."
+          },
+          "response": []
+        },
+        {
+          "name": "A 10 minute link to the event's clip (or its keyframe with `?kind=keyframe`) that needs no credential: hand it to a person or a viewer that can only load a URL. Needs events:read with an API key.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/{{watchId}}/events/{{eventId}}/clip/link",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "watches",
+                "{{watchId}}",
+                "events",
+                "{{eventId}}",
+                "clip",
+                "link"
+              ]
+            },
+            "description": "operationId: getEventClipLink\n\nA 10 minute link to the event's clip (or its keyframe with `?kind=keyframe`) that needs no credential: hand it to a person or a viewer that can only load a URL. Needs events:read with an API key.\n\nScopes: events:read."
+          },
+          "response": []
+        },
+        {
+          "name": "Mark an event correct, a false alarm, or partly right (`partly` needs the correction in `note`). With a keyframe a correct or false alarm becomes (or updates) a test case with the image pinned. Leave `note` out to keep the note already stored; send an empty string to clear it. On a Percia event the mark also goes to the watch's running engine: `engine` says whether it was applied or only recorded, and why.",
           "event": [
             {
               "listen": "test",
@@ -4060,7 +4418,7 @@
                 "feedback"
               ]
             },
-            "description": "operationId: sendEventFeedback\n\nMark an event correct or a false alarm. With a keyframe it becomes (or updates) a test case with the image pinned. Leave `note` out to keep the note already stored; send an empty string to clear it.\n\nScopes: watches:write."
+            "description": "operationId: sendEventFeedback\n\nMark an event correct, a false alarm, or partly right (`partly` needs the correction in `note`). With a keyframe a correct or false alarm becomes (or updates) a test case with the image pinned. Leave `note` out to keep the note already stored; send an empty string to clear it. On a Percia event the mark also goes to the watch's running engine: `engine` says whether it was applied or only recorded, and why.\n\nScopes: watches:write."
           },
           "response": []
         },
@@ -4215,6 +4573,172 @@
               ]
             },
             "description": "operationId: startLiveView\n\nLive view of a watch. Phone cameras get a WHEP address and a 10 minute viewer token; other sources get the latest keyframe.\n\nScopes: watches:write."
+          },
+          "response": []
+        },
+        {
+          "name": "The misses reported on a watch, newest first, with what the engine did with each",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/{{watchId}}/misses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "watches",
+                "{{watchId}}",
+                "misses"
+              ]
+            },
+            "description": "operationId: listWatchMisses\n\nThe misses reported on a watch, newest first, with what the engine did with each\n\nScopes: watches:read."
+          },
+          "response": []
+        },
+        {
+          "name": "Report a miss: the watch should have alerted in this window and did not. The window is at most 600 seconds, not in the future, not older than 30 days. On a running Percia watch it goes to the engine as a `missed` report (recall evidence); otherwise it is only recorded. `concernId` is needed only when the watch has several conditions.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [201];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": \"2026-11-01T09:30:00Z\",\n  \"to\": \"2026-11-01T09:30:00Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/{{watchId}}/misses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "watches",
+                "{{watchId}}",
+                "misses"
+              ]
+            },
+            "description": "operationId: reportMiss\n\nReport a miss: the watch should have alerted in this window and did not. The window is at most 600 seconds, not in the future, not older than 30 days. On a running Percia watch it goes to the engine as a `missed` report (recall evidence); otherwise it is only recorded. `concernId` is needed only when the watch has several conditions.\n\nScopes: watches:write."
+          },
+          "response": []
+        },
+        {
+          "name": "How right one watch is. `marks` are exact counts of your own Correct / False alarm / Partly / Missed marks (`rightShare` is null until 3 events are rated). `engine` is the running engine's own estimate (precision and recall of its champion and floor with 90% intervals and n, or the reason when there is nothing to estimate), as last reported; null for other engines. Estimates, never ground truth.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/{{watchId}}/quality",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "watches",
+                "{{watchId}}",
+                "quality"
+              ]
+            },
+            "description": "operationId: getWatchQuality\n\nHow right one watch is. `marks` are exact counts of your own Correct / False alarm / Partly / Missed marks (`rightShare` is null until 3 events are rated). `engine` is the running engine's own estimate (precision and recall of its champion and floor with 90% intervals and n, or the reason when there is nothing to estimate), as last reported; null for other engines. Estimates, never ground truth.\n\nScopes: watches:read."
           },
           "response": []
         }
@@ -4499,7 +5023,7 @@
           "response": []
         },
         {
-          "name": "Redeem a credit code for camera-minutes (credits are minutes of watching, used before the free minutes and before the card). A code is shown to its owner once: pass it in the body, never in a URL. Unknown, disabled, expired and used-up codes all answer 404 code_invalid; the same person redeeming twice is 409 code_already_redeemed; too many tries is 429 rate_limited with Retry-After.",
+          "name": "Redeem a credit code for camera-minutes (credits are minutes of watching, used before the free minutes and before the card). A code is shown to its owner once: pass it in the body, never in a URL. Needs a card on file while billing is on sale: without one it answers 402 card_required with addCardUrl (the Billing page; only a person can add a card) and the code is not checked or used. Unknown, disabled, expired and used-up codes all answer 404 code_invalid; the same person redeeming twice is 409 code_already_redeemed; too many tries is 429 rate_limited with Retry-After.",
           "event": [
             {
               "listen": "test",
@@ -4557,7 +5081,7 @@
                 "redeem"
               ]
             },
-            "description": "operationId: redeemCreditCode\n\nRedeem a credit code for camera-minutes (credits are minutes of watching, used before the free minutes and before the card). A code is shown to its owner once: pass it in the body, never in a URL. Unknown, disabled, expired and used-up codes all answer 404 code_invalid; the same person redeeming twice is 409 code_already_redeemed; too many tries is 429 rate_limited with Retry-After.\n\nScopes: watches:write."
+            "description": "operationId: redeemCreditCode\n\nRedeem a credit code for camera-minutes (credits are minutes of watching, used before the free minutes and before the card). A code is shown to its owner once: pass it in the body, never in a URL. Needs a card on file while billing is on sale: without one it answers 402 card_required with addCardUrl (the Billing page; only a person can add a card) and the code is not checked or used. Unknown, disabled, expired and used-up codes all answer 404 code_invalid; the same person redeeming twice is 409 code_already_redeemed; too many tries is 429 rate_limited with Retry-After.\n\nScopes: watches:write."
           },
           "response": []
         },
@@ -4875,6 +5399,1481 @@
               ]
             },
             "description": "operationId: getStatus\n\nPublic status of each alert destination\n\nAuth: none."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "tests",
+      "item": [
+        {
+          "name": "The test side of Quality: ground-truth clips (total and across how many watches), tests started in the last 7 days, and per watch its clip count and the scores of its last finished test (`caught`, `falseAlarms` as value/of, or null when unmeasured).",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/quality/tests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "quality",
+                "tests"
+              ]
+            },
+            "description": "operationId: getQualityTests\n\nThe test side of Quality: ground-truth clips (total and across how many watches), tests started in the last 7 days, and per watch its clip count and the scores of its last finished test (`caught`, `falseAlarms` as value/of, or null when unmeasured).\n\nScopes: watches:read."
+          },
+          "response": []
+        },
+        {
+          "name": "The watch's dataset: clips labelled should_match, should_not or counterfactual. They are the ground truth tests score against.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/{{watchId}}/dataset",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "watches",
+                "{{watchId}}",
+                "dataset"
+              ]
+            },
+            "description": "operationId: listDatasetClips\n\nThe watch's dataset: clips labelled should_match, should_not or counterfactual. They are the ground truth tests score against.\n\nScopes: watches:read."
+          },
+          "response": []
+        },
+        {
+          "name": "Upload one clip to the dataset: multipart/form-data with `file` (MP4 or MOV, up to 32 MB and 120 s), `label` (should_match, should_not, counterfactual) and an optional `note` (up to 120 characters).",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [201];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/{{watchId}}/dataset",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "watches",
+                "{{watchId}}",
+                "dataset"
+              ]
+            },
+            "description": "operationId: uploadDatasetClip\n\nUpload one clip to the dataset: multipart/form-data with `file` (MP4 or MOV, up to 32 MB and 120 s), `label` (should_match, should_not, counterfactual) and an optional `note` (up to 120 characters).\n\nScopes: watches:write."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete a clip and its stored video. The dataset also goes with the watch and with the account.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/{{watchId}}/dataset/{{clipId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "watches",
+                "{{watchId}}",
+                "dataset",
+                "{{clipId}}"
+              ]
+            },
+            "description": "operationId: deleteDatasetClip\n\nDelete a clip and its stored video. The dataset also goes with the watch and with the account.\n\nScopes: watches:write, watches:delete.\n\nDestructive: also needs watches:delete (unless noted in the API description)."
+          },
+          "response": []
+        },
+        {
+          "name": "Change a clip's label or note.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/{{watchId}}/dataset/{{clipId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "watches",
+                "{{watchId}}",
+                "dataset",
+                "{{clipId}}"
+              ]
+            },
+            "description": "operationId: updateDatasetClip\n\nChange a clip's label or note.\n\nScopes: watches:write."
+          },
+          "response": []
+        },
+        {
+          "name": "A clip's thumbnail (the event's keyframe), decrypted for the owner. 404 for an uploaded clip (it has none).",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/{{watchId}}/dataset/{{clipId}}/thumb",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "watches",
+                "{{watchId}}",
+                "dataset",
+                "{{clipId}}",
+                "thumb"
+              ]
+            },
+            "description": "operationId: getDatasetClipThumb\n\nA clip's thumbnail (the event's keyframe), decrypted for the owner. 404 for an uploaded clip (it has none).\n\nScopes: events:read."
+          },
+          "response": []
+        },
+        {
+          "name": "Keep an event's clip in the dataset with a label. An event already in the dataset only has its label changed. Marking an event Correct or False alarm does this by itself (should_match / should_not).",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200,201];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": \"x\",\n  \"label\": \"should_match\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/{{watchId}}/dataset/from-event",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "watches",
+                "{{watchId}}",
+                "dataset",
+                "from-event"
+              ]
+            },
+            "description": "operationId: addDatasetClipFromEvent\n\nKeep an event's clip in the dataset with a label. An event already in the dataset only has its label changed. Marking an event Correct or False alarm does this by itself (should_match / should_not).\n\nScopes: watches:write."
+          },
+          "response": []
+        },
+        {
+          "name": "Keep a video from a pasted link as a dataset clip: {url, label, note?}. Percia fetches the link once (a public https link straight to an MP4 or MOV, up to 32 MB and 120 s; no address numbers, no password in the link, at most three redirects, each checked again), stores the video sealed and does not keep the link. 20 links an hour per user.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [201];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"url\": \"xxxxxxxx\",\n  \"label\": \"should_match\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/{{watchId}}/dataset/from-link",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "watches",
+                "{{watchId}}",
+                "dataset",
+                "from-link"
+              ]
+            },
+            "description": "operationId: addDatasetClipFromLink\n\nKeep a video from a pasted link as a dataset clip: {url, label, note?}. Percia fetches the link once (a public https link straight to an MP4 or MOV, up to 32 MB and 120 s; no address numbers, no password in the link, at most three redirects, each checked again), stores the video sealed and does not keep the link. 20 links an hour per user.\n\nScopes: watches:write."
+          },
+          "response": []
+        },
+        {
+          "name": "Keep a miss you reported (POST /watches/{id}/misses) as a dataset clip with a label: the footage of the first 100 seconds of the window you reported is cut from the camera's recording (the last 14 days) and stored sealed. The moment's start inside the clip is unknown, so a clip from a miss has no delay. A miss already in the dataset only has its label changed.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200,201];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"missId\": \"x\",\n  \"label\": \"should_match\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/{{watchId}}/dataset/from-miss",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "watches",
+                "{{watchId}}",
+                "dataset",
+                "from-miss"
+              ]
+            },
+            "description": "operationId: addDatasetClipFromMiss\n\nKeep a miss you reported (POST /watches/{id}/misses) as a dataset clip with a label: the footage of the first 100 seconds of the window you reported is cut from the camera's recording (the last 14 days) and stored sealed. The moment's start inside the clip is unknown, so a clip from a miss has no delay. A miss already in the dataset only has its label changed.\n\nScopes: watches:write."
+          },
+          "response": []
+        },
+        {
+          "name": "Moments worth labelling: close calls (alerts the judge was barely sure of), false alarms you marked (events with a stored clip) and the misses you reported (windows, cut from the recording when you keep them), none of them in the dataset yet. Offered, never added by themselves: label an event with POST .../dataset/from-event and a reported miss with POST .../dataset/from-miss.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/{{watchId}}/dataset/near-misses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "watches",
+                "{{watchId}}",
+                "dataset",
+                "near-misses"
+              ]
+            },
+            "description": "operationId: listNearMisses\n\nMoments worth labelling: close calls (alerts the judge was barely sure of), false alarms you marked (events with a stored clip) and the misses you reported (windows, cut from the recording when you keep them), none of them in the dataset yet. Offered, never added by themselves: label an event with POST .../dataset/from-event and a reported miss with POST .../dataset/from-miss.\n\nScopes: watches:read."
+          },
+          "response": []
+        },
+        {
+          "name": "The watch's test runs, newest first, and the latest finished one with its scores. A test replays the watch on recorded video and scores it; nothing is delivered.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/{{watchId}}/tests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "watches",
+                "{{watchId}}",
+                "tests"
+              ]
+            },
+            "description": "operationId: listTestRuns\n\nThe watch's test runs, newest first, and the latest finished one with its scores. A test replays the watch on recorded video and scores it; nothing is delivered.\n\nScopes: watches:read."
+          },
+          "response": []
+        },
+        {
+          "name": "Start a test. JSON {source: \"recent\", minutes?: 1..10} replays the camera's last minutes, {source: \"window\", from, minutes?: 1..10} an earlier time (up to 14 days back, ending at least a minute ago; the host's recording for about two hours, the sealed archive beyond that), {source: \"dataset\"} replays the dataset clips (the newest 40) and scores them: Caught = should_match clips the judge said yes on, False alarms = should_not and counterfactual clips it said yes on. Or multipart/form-data with `file` tests one uploaded clip (deleted afterwards; no labels, so no scores, only what it would alert on). Uses the pool's judge at half the camera's hourly cap. 10 tests an hour per user, one at a time per watch.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [201];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"source\": \"recent\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/{{watchId}}/tests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "watches",
+                "{{watchId}}",
+                "tests"
+              ]
+            },
+            "description": "operationId: startTestRun\n\nStart a test. JSON {source: \"recent\", minutes?: 1..10} replays the camera's last minutes, {source: \"window\", from, minutes?: 1..10} an earlier time (up to 14 days back, ending at least a minute ago; the host's recording for about two hours, the sealed archive beyond that), {source: \"dataset\"} replays the dataset clips (the newest 40) and scores them: Caught = should_match clips the judge said yes on, False alarms = should_not and counterfactual clips it said yes on. Or multipart/form-data with `file` tests one uploaded clip (deleted afterwards; no labels, so no scores, only what it would alert on). Uses the pool's judge at half the camera's hourly cap. 10 tests an hour per user, one at a time per watch.\n\nScopes: watches:write."
+          },
+          "response": []
+        },
+        {
+          "name": "One test run. While it runs, `status` is running and there are no scores; when it ends, `scores` has Caught, False alarms, Avg delay and Verdict (each a figure with its total, or null with a note saying why it is unmeasured), the clips' outcomes, the alerts a window test found, coverage and the per-condition capability report.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/{{watchId}}/tests/{{testId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "watches",
+                "{{watchId}}",
+                "tests",
+                "{{testId}}"
+              ]
+            },
+            "description": "operationId: getTestRun\n\nOne test run. While it runs, `status` is running and there are no scores; when it ends, `scores` has Caught, False alarms, Avg delay and Verdict (each a figure with its total, or null with a note saying why it is unmeasured), the clips' outcomes, the alerts a window test found, coverage and the per-condition capability report.\n\nScopes: watches:read."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "advanced",
+      "item": [
+        {
+          "name": "Send timed machine signals (Signal) for a camera or site (advanced)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [202];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cameraId\": \"0f8fad5b-d9cb-469f-a165-70867728950e\",\n  \"signals\": [\n    {\n      \"channel\": \"motor_running\",\n      \"seq\": 1204,\n      \"t_utc\": \"2026-11-22T10:00:01.250Z\",\n      \"value\": true\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/signals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "signals"
+              ]
+            },
+            "description": "operationId: postSignals\n\nSend timed machine signals (Signal) for a camera or site (advanced)\n\nwhere recording is on only. Send timed samples from a machine: `{cameraId?, siteId?, signals: [{channel, t_utc, value, seq?, camera_id?, site_id?}]}` (Signal; leave out tenant_id). `t_utc` is the machine's clock in UTC: declare its offset, lag and latency in the site context (`signals[]`); the engine corrects time with them. A repeat of the same channel and `seq` is idempotent. At most 200 signals and 64 KiB per request, 100 signals per second per camera (burst 500), nothing older than 6 hours. Declare a channel in the site context before a watch reads it. Needs scope signals:write.\n\nScopes: signals:write."
+          },
+          "response": []
+        },
+        {
+          "name": "Read the site's context and its open context requests (advanced)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/sites/{{siteId}}/context",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "sites",
+                "{{siteId}}",
+                "context"
+              ]
+            },
+            "description": "operationId: getSiteContext\n\nRead the site's context and its open context requests (advanced)\n\nThe stored SiteContext, its revision, and `openRequests`: what the engine asked for in the watches of this site (each with `how_to_supply`, the SiteContext path to PUT).\n\nScopes: watches:read."
+          },
+          "response": []
+        },
+        {
+          "name": "Replace the site's context (SiteContext): calibration, facts, zones, signal declarations (advanced)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"context\": {\n    \"scene\": \"A packaging line; the belt runs left to right under the camera.\",\n    \"subjects\": [\n      \"belt\",\n      \"boxes\"\n    ]\n  },\n  \"facts\": [\n    {\n      \"name\": \"belt_width\",\n      \"uncertainty\": 2,\n      \"unit\": \"mm\",\n      \"value\": 400\n    }\n  ],\n  \"signals\": [\n    {\n      \"clock_offset_s\": 0,\n      \"clock_offset_uncertainty_s\": 0.5,\n      \"kind\": \"boolean\",\n      \"lag_s\": 1.5,\n      \"lag_uncertainty_s\": 0.5,\n      \"latency_s\": 0.2,\n      \"latency_uncertainty_s\": 0.1,\n      \"name\": \"motor_running\",\n      \"nominal_rate_hz\": 1,\n      \"worst_case_rate_hz\": 0.2\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sites/{{siteId}}/context",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "sites",
+                "{{siteId}}",
+                "context"
+              ]
+            },
+            "description": "operationId: putSiteContext\n\nReplace the site's context (SiteContext): calibration, facts, zones, signal declarations (advanced)\n\nwhere recording is on only. Replace the SiteContext of a site you own : `context` (scene, subjects, notes), `facts`, `cameras[]` (mount, calibration, registration), `zones`, `reference_images`, and `signals[]`, the declarations of the machine channels you will POST to /signals (name, kind, unit, nominal and worst_case_rate_hz, clock_offset_s, lag_s, latency_s, each timing with its uncertainty). Leave out tenant_id, site_id, revision and updated_at: the server sets them. Send `If-Match: <revision>` to avoid overwriting a newer write. A changed document bumps `revision`, and the site's running advanced watches re-plan on it without a restart. Free text in a context is customer data and is shown to models as background, never as instructions. Needs scope context:write.\n\nScopes: context:write."
+          },
+          "response": []
+        },
+        {
+          "name": "The typed recommendations (ActionEvent) the engine made for an advanced watch, newest first",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/{{watchId}}/actions?limit=50&cursor=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "watches",
+                "{{watchId}}",
+                "actions"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "description": "Page size (1-100, default 50)."
+                },
+                {
+                  "key": "cursor",
+                  "value": "",
+                  "disabled": true,
+                  "description": "nextCursor from the previous page."
+                }
+              ]
+            },
+            "description": "operationId: listWatchActions\n\nThe typed recommendations (ActionEvent) the engine made for an advanced watch, newest first\n\nThe typed recommendations (pause, stop, inspect, adjust, resume_ok) the engine made for a watch made with `advanced`. Percia recommends, you decide. Webhook watches also receive each one as `percia.action`.\n\nScopes: events:read."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "uploads",
+      "item": [
+        {
+          "name": "List your video files, newest first",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/uploads",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "uploads"
+              ]
+            },
+            "description": "operationId: listUploads\n\nList your video files, newest first\n\nScopes: cameras:read."
+          },
+          "response": []
+        },
+        {
+          "name": "Start uploading a video file (mp4, mov, webm, mkv) as a watch source. Declare name and size; refused here (400 unsupported_type, 413 too_large, 429 upload_limit) before any byte moves. Returns the id, `partSize` and `parts`: send each part with PUT /uploads/{id}/parts/{n}, then POST /uploads/{id}/complete. 404 while video files are off.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [201];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"x\",\n  \"size\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/uploads",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "uploads"
+              ]
+            },
+            "description": "operationId: startUpload\n\nStart uploading a video file (mp4, mov, webm, mkv) as a watch source. Declare name and size; refused here (400 unsupported_type, 413 too_large, 429 upload_limit) before any byte moves. Returns the id, `partSize` and `parts`: send each part with PUT /uploads/{id}/parts/{n}, then POST /uploads/{id}/complete. 404 while video files are off.\n\nScopes: cameras:write."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete a video file (or stop an upload). The file also goes with the last watch that uses it, with the account, and after its retention period.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [204];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/uploads/{{uploadId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "uploads",
+                "{{uploadId}}"
+              ]
+            },
+            "description": "operationId: deleteUpload\n\nDelete a video file (or stop an upload). The file also goes with the last watch that uses it, with the account, and after its retention period.\n\nScopes: cameras:write, watches:delete.\n\nDestructive: also needs watches:delete (unless noted in the API description)."
+          },
+          "response": []
+        },
+        {
+          "name": "One video file",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/uploads/{{uploadId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "uploads",
+                "{{uploadId}}"
+              ]
+            },
+            "description": "operationId: getUpload\n\nOne video file\n\nScopes: cameras:read."
+          },
+          "response": []
+        },
+        {
+          "name": "Finish the upload with the part etags. The file is read back and checked: container, codec (H.264, H.265, VP8, VP9, AV1) and length (over the limit = too_long). A refused file is deleted at once (400 bad_container, bad_codec, too_long). Returns the upload; `source` is its watch source.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"parts\": [\n    {\n      \"partNumber\": 1,\n      \"etag\": \"x\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/uploads/{{uploadId}}/complete",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "uploads",
+                "{{uploadId}}",
+                "complete"
+              ]
+            },
+            "description": "operationId: completeUpload\n\nFinish the upload with the part etags. The file is read back and checked: container, codec (H.264, H.265, VP8, VP9, AV1) and length (over the limit = too_long). A refused file is deleted at once (400 bad_container, bad_codec, too_long). Returns the upload; `source` is its watch source.\n\nScopes: cameras:write."
+          },
+          "response": []
+        },
+        {
+          "name": "Send part n (1-based) as the raw request body (application/octet-stream). Every part but the last is exactly `partSize` bytes. Returns the etag to give to /complete. A part may be sent again. Needs a client that can send bytes: MCP agents cannot, a person uses the app.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/uploads/{{uploadId}}/parts/{{n}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "uploads",
+                "{{uploadId}}",
+                "parts",
+                "{{n}}"
+              ]
+            },
+            "description": "operationId: uploadPart\n\nSend part n (1-based) as the raw request body (application/octet-stream). Every part but the last is exactly `partSize` bytes. Returns the etag to give to /complete. A part may be sent again. Needs a client that can send bytes: MCP agents cannot, a person uses the app.\n\nScopes: cameras:write."
+          },
+          "response": []
+        },
+        {
+          "name": "A short-lived (15 minutes) signed address for playing the file in a video element. A credential: do not store or share it.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/uploads/{{uploadId}}/play",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "uploads",
+                "{{uploadId}}",
+                "play"
+              ]
+            },
+            "description": "operationId: getUploadPlayUrl\n\nA short-lived (15 minutes) signed address for playing the file in a video element. A credential: do not store or share it.\n\nScopes: cameras:read."
+          },
+          "response": []
+        },
+        {
+          "name": "Make a video file from a public https URL (for MCP agents, which cannot send bytes). Percia fetches it itself, one request: public https only (no IP addresses, private or internal names, user names or odd ports; each redirect is checked again), content type must be a video (mp4, mov, webm, mkv) or a generic binary with a video file name, and the same size and length limits as an upload apply (400 invalid_url, 400 unsupported_type, 400 fetch_failed, 413 too_large, 400 too_long, bad_container, bad_codec, 429 upload_limit). Returns the ready upload: `uploadId` (= `id`) and `source` (`percia-file://<uploadId>`), which you pass as `sourceUrl` to POST /watches/owned. 404 while video files are off.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [201];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"url\": \"x\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/uploads/from-url",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "uploads",
+                "from-url"
+              ]
+            },
+            "description": "operationId: uploadFromUrl\n\nMake a video file from a public https URL (for MCP agents, which cannot send bytes). Percia fetches it itself, one request: public https only (no IP addresses, private or internal names, user names or odd ports; each redirect is checked again), content type must be a video (mp4, mov, webm, mkv) or a generic binary with a video file name, and the same size and length limits as an upload apply (400 invalid_url, 400 unsupported_type, 400 fetch_failed, 413 too_large, 400 too_long, bad_container, bad_codec, 429 upload_limit). Returns the ready upload: `uploadId` (= `id`) and `source` (`percia-file://<uploadId>`), which you pass as `sourceUrl` to POST /watches/owned. 404 while video files are off.\n\nScopes: cameras:write."
+          },
+          "response": []
+        },
+        {
+          "name": "Make a short-lived upload page for a video file on the person's own device (for MCP agents, which cannot send bytes). No body. Returns `uploadUrl` (valid 30 minutes, no sign-in needed on it): show it to the person with show_link, never as plain text. They pick the file on that page and it uploads and is checked. When they say it is done, GET /uploads and take the newest file with `status: ready` and `createdAt` after the link's `createdAt`: its `source` (`percia-file://<id>`) is the `sourceUrl` for POST /watches/owned. 404 while video files are off.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [201];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/uploads/link",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "uploads",
+                "link"
+              ]
+            },
+            "description": "operationId: createUploadLink\n\nMake a short-lived upload page for a video file on the person's own device (for MCP agents, which cannot send bytes). No body. Returns `uploadUrl` (valid 30 minutes, no sign-in needed on it): show it to the person with show_link, never as plain text. They pick the file on that page and it uploads and is checked. When they say it is done, GET /uploads and take the newest file with `status: ready` and `createdAt` after the link's `createdAt`: its `source` (`percia-file://<id>`) is the `sourceUrl` for POST /watches/owned. 404 while video files are off.\n\nScopes: cameras:write."
           },
           "response": []
         }

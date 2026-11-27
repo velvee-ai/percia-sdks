@@ -2,7 +2,7 @@
 
 Almost every home or office RTSP camera sits on a private LAN. Percia never pulls from private hosts, and port-forwarding is not a good answer. A small connector on the LAN pulls the camera **once** and pushes it to Percia over WHIP (WebRTC). The camera serves a single RTSP session however many things use the stream.
 
-Server contract: `percia-cf/docs/specs/cameras/camera-push-api.md` and ADR 0042 (deployed; the pinned `spec/openapi.json` is the live document). Recorded for the tests in [`spec/camera-push-contract.json`](../spec/camera-push-contract.json). See [assumptions](#assumptions-to-re-check) for what is still unverified.
+Server contract: the pinned `spec/openapi.json` (the live document at https://playground.percia.ai/api/openapi.json). Recorded for the tests in [`spec/camera-push-contract.json`](../spec/camera-push-contract.json). See [assumptions](#assumptions-to-re-check) for what is still unverified.
 
 ## The flow
 
@@ -89,10 +89,10 @@ for r in percia.cameras.bulk([{"name": "Door", "external_id": "nvr1-ch1"}, {"nam
 
 ## Assumptions to re-check
 
-- The shapes above are the deployed contract (percia-cf master `bb95c92`, Worker versions `d7aff9a6` then `5a591ed8`) and the pinned live OpenAPI document. The tests run against a mock built from that document and the recorded `spec/camera-push-contract.json`; **no camera has been created on the live host from the SDKs** (use a test account, see [owner steps](owner-steps.md) 4b).
+- The shapes above are the deployed contract and the pinned live OpenAPI document. The tests run against a mock built from that document and the recorded `spec/camera-push-contract.json`; **no camera has been created on the live host from the SDKs** (try it with a test account).
 - OpenAPI gaps (server side): the 200 response of `POST /cameras/bulk` (every camera already existed) has no body schema, although the body is the same `{cameras:[...]}` as the 201. The SDKs read the JSON anyway (the Python SDK parses the raw body for bulk instead of the generated model, which would return `None` for a 200). `Idempotency-Key` is documented in prose only, not as a header parameter, so the SDKs send `externalId` in the body.
 - `ffmpeg -f whip -authorization <token>` is the documented publish path (the server's `publish.ffmpegCopy` example uses it). The GStreamer line (`whipclientsink`, `signaller::auth-token`) and the OBS note follow the upstream docs and are **not** verified against a live Percia host.
 - Heartbeat: `POST /api/cam/heartbeat` with the camera token, every 20 s; a successful publish also marks the camera seen (so `state` turns `online` without a heartbeat, for a minute).
-- A watch whose camera sends no video for 60 minutes is paused (`pausedReason` `no_video`) and the owner is emailed, as for phone cameras (server doc, not an SDK concern). Reconnect WHIP with backoff 1 s doubling to 30 s and keep the same token (the CLI and the templates restart ffmpeg this way).
+- A watch whose camera sends no video for 60 minutes is paused (`pausedReason` `no_video`) and the account owner is emailed, as for phone cameras (server doc, not an SDK concern). Reconnect WHIP with backoff 1 s doubling to 30 s and keep the same token (the CLI and the templates restart ffmpeg this way).
 - 402 `payment_required` and 404 (phone cameras switched off) pass through as typed errors. A 404 on `status` or `bulk` is read as "older server" and triggers the fallback, which then reports the 404 again if the real cause was the phone-camera switch.
 - `percia listen` (a live dev feed for webhook receivers) is a separate command; see [local-development.md](local-development.md).

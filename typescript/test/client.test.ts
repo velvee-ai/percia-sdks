@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { billingOf, describeBilling, type Interpretation } from "../src/index.js";
+import { billingOf, describeBilling } from "../src/index.js";
 import { AuthenticationError, ConflictError, NotFoundError, PerciaApiError, PerciaConnectionError, PerciaError, PermissionError, RateLimitError, ServerError, ValidationError, createClient, normalizeBaseUrl, toArray } from "../src/index.js";
 import { MockPercia } from "./mock-server.js";
 
@@ -256,7 +256,7 @@ const PLAN = {
 	nextStep: "Add a card for 50 more free minutes.", bonusAvailable: true, bonusMinutes: 50, payment: { state: "active", billingUrl: "https://percia.test/billing" },
 };
 
-describe("billing, interpretation and device kind (additive)", () => {
+describe("billing and device kind (additive)", () => {
 	it("account.billing() maps a plan to the whoami billing block and describeBilling prints it", async () => {
 		mock.handlers.set("getPlan", () => ({ status: 200, body: PLAN }));
 		const b = await make().account.billing();
@@ -272,22 +272,6 @@ describe("billing, interpretation and device kind (additive)", () => {
 		const blocked = billingOf({ ...PLAN, canStartWatches: false, blockReason: "needs_billing", payment: { state: "blocked" } } as never);
 		expect(blocked.canStartWatches).toBe(false);
 		expect(describeBilling(blocked).join("\n")).toContain("blocked (needs_billing)");
-	});
-	it("watches.create sends interpret:false and concerns untouched", async () => {
-		const c = make();
-		await c.watches.create({ sourceUrl: "rtsp://cam.example.com/s", goal: "A car pulls in", interpret: false, kind: "event", notify: { type: "email", target: "a@b.co" } });
-		expect(mock.requests.at(-1)!.body).toMatchObject({ interpret: false, kind: "event" });
-		await c.watches.create({ sourceUrl: "rtsp://cam.example.com/s", goal: "Front door", concerns: [{ text: "A person stands at the door", kind: "state", ignore: ["the cat"] }], notify: { type: "email", target: "a@b.co" } });
-		expect((mock.requests.at(-1)!.body as { concerns: unknown[] }).concerns).toHaveLength(1);
-	});
-	it("watches.interpret and reinterpret call their routes; a watch carries interpretation", async () => {
-		mock.handlers.set("interpretGoal", () => ({ status: 200, body: { cached: false, deferred: false, interpretation: { concerns: [{ text: "A car pulls in", kind: "event" }], gaps: [], needsLook: false } } }));
-		const c = make();
-		const r = (await c.watches.interpret("Tell me when a car pulls in")) as { interpretation: Interpretation };
-		expect(r.interpretation.concerns?.[0]?.kind).toBe("event");
-		expect(mock.requests.at(-1)!.body).toEqual({ goal: "Tell me when a car pulls in" });
-		await c.watches.reinterpret("w_1");
-		expect(mock.requests.at(-1)!.url.pathname).toBe("/api/watches/w_1/reinterpret");
 	});
 	it("cameras.create passes deviceKind only when given, and list keeps old cameras (deviceKind null) working", async () => {
 		const c = make();

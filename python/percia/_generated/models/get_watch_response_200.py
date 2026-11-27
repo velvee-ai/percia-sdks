@@ -12,7 +12,6 @@ from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 from dateutil.parser import isoparse
 
-from ..models.get_watch_response_200_core_state import GetWatchResponse200CoreState
 from ..models.get_watch_response_200_display_status import (
     GetWatchResponse200DisplayStatus,
 )
@@ -25,20 +24,24 @@ from ..models.get_watch_response_200_status import GetWatchResponse200Status
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
+    from ..models.get_watch_response_200_advanced import GetWatchResponse200Advanced
     from ..models.get_watch_response_200_agent_type_0 import (
         GetWatchResponse200AgentType0,
     )
     from ..models.get_watch_response_200_camera_type_0 import (
         GetWatchResponse200CameraType0,
     )
-    from ..models.get_watch_response_200_engine_type_0 import (
-        GetWatchResponse200EngineType0,
+    from ..models.get_watch_response_200_destinations_item import (
+        GetWatchResponse200DestinationsItem,
     )
     from ..models.get_watch_response_200_judging import GetWatchResponse200Judging
     from ..models.get_watch_response_200_last_event_type_0 import (
         GetWatchResponse200LastEventType0,
     )
     from ..models.get_watch_response_200_notify import GetWatchResponse200Notify
+    from ..models.get_watch_response_200_pending_question_type_0 import (
+        GetWatchResponse200PendingQuestionType0,
+    )
     from ..models.get_watch_response_200_site_type_0 import GetWatchResponse200SiteType0
 
 
@@ -49,21 +52,23 @@ T = TypeVar("T", bound="GetWatchResponse200")
 class GetWatchResponse200:
     """
     Attributes:
+        advanced (Union[Unset, GetWatchResponse200Advanced]): Only on a watch made with `advanced` (Percia engine).
+            `conditions` and `actions` as you sent them; `contextRequests` are what the engine asked you to supply (each has
+            `how_to_supply`, a SiteContext path to PUT), `[]` when none or not yet known; `state` is `pending` until the
+            engine reported them; `siteRev` is the revision of the site's context it runs on.
         agent (Union['GetWatchResponse200AgentType0', None, Unset]): Only on watches deployed with an agent. version is
             the one it runs; followsLatest is true when it was not pinned.
         camera (Union['GetWatchResponse200CameraType0', None, Unset]): Only on phone-camera watches.
-        core_state (Union[Unset, GetWatchResponse200CoreState]): Only on core watches. running is judging; absent is
-            paused (nothing runs on Percia core); off means the core switch was off when it was created; error: see
-            syncError.
         created_at (Union[Unset, datetime.datetime]):
+        delivery_problem (Union[None, Unset, str]): One plain sentence for a watch whose newest settled delivery failed
+            ("Slack answered 500."), else null.
+        destinations (Union[Unset, list['GetWatchResponse200DestinationsItem']]): Connected destinations (Slack, Discord
+            ...) this watch alerts, from its integration rules. Empty while integrations are off.
         display_status (Union[Unset, GetWatchResponse200DisplayStatus]): Needs attention when syncError is set, the last
             delivery failed, a rule of the watch points at a broken integration, or an active watch gets no video
             (noVideoSince set).
-        engine (Union['GetWatchResponse200EngineType0', None, Unset]): The engine release (Percept version plus Percia's
-            runner revision) that judges this watch, or would when it is active. pinned is true when support fixed it for
-            this watch; otherwise it follows Percia's staged rollout. Null while none is assigned. Informational: there is
-            nothing to set.
         event_count (Union[Unset, int]):
+        events24h (Union[Unset, int]): Events in the last 24 hours.
         goal (Union[Unset, str]): For a deployed watch, the agent's name.
         id (Union[Unset, str]):
         judging (Union[Unset, GetWatchResponse200Judging]): Whether the pool is judging this watch (read-only,
@@ -76,6 +81,8 @@ class GetWatchResponse200:
         last_delivery (Union[GetWatchResponse200LastDeliveryType1, None, Unset]): Status of the newest event that is not
             pending. displayStatus comes from this, so a pending event does not hide a failed one.
         last_event (Union['GetWatchResponse200LastEventType0', None, Unset]):
+        minutes_this_month (Union[Unset, int]): Camera-minutes this UTC month on the stream this watch uses (watches on
+            one camera share its minutes).
         no_video_since (Union[None, Unset, datetime.datetime]): When the camera stopped sending video, else null. An
             active watch is paused automatically 60 minutes after this time (pausedReason no_video). Kept on a no_video
             pause; cleared on resume.
@@ -83,36 +90,49 @@ class GetWatchResponse200:
         paused_reason (Union[None, Unset, str]): Why a paused watch is paused: user (paused by the owner or an agent, or
             an older pause with no recorded reason), no_video (paused automatically after 60 minutes without video from the
             camera), needs_billing (free minutes and credits used, no card), spend_cap (the monthly cap was reached),
-            payment_failed (a payment failed and the 48-hour grace is over; resumes by itself when the payment succeeds) or
-            ended (a short-term watch reached its end). Resume with PATCH status active.
-        runtime (Union[Unset, GetWatchResponse200Runtime]): Where the watch is judged: pool (default) or core (Percia
-            core, Percept Cloud). Fixed when the watch is created.
+            payment_failed (a payment failed and the 48-hour grace is over; resumes by itself when the payment succeeds)
+            ended (a short-term watch reached its end) testing (made with `startPaused` to be tested before going live;
+            PATCH status active goes live) or test_ended (a 30-minute test run ended; PATCH status active goes live). Resume
+            with PATCH status active.
+        pending_question (Union['GetWatchResponse200PendingQuestionType0', None, Unset]): Detail only. A converted watch
+            that waits for an answer: the question, its options (may be empty), when it was asked and the draft to answer
+            through POST /watches/draft/{draftId}/answer. Null otherwise.
+        runtime (Union[Unset, GetWatchResponse200Runtime]): Always pool (kept for older clients): every watch is judged
+            on the Percia engine.
         secret_hint (Union[None, Unset, str]):
         site (Union['GetWatchResponse200SiteType0', None, Unset]): The site this watch belongs to (shared memory), else
             null.
-        source_type (Union[Unset, GetWatchResponse200SourceType]): phone = a paired phone or laptop camera; sourceUrl is
-            then percia-cam://<cameraId>.
-        source_url (Union[Unset, str]): Credentials are redacted.
+        source_type (Union[Unset, GetWatchResponse200SourceType]): phone = a paired phone, tablet or computer camera;
+            sourceUrl is then percia-cam://<cameraId>.
+        source_url (Union[Unset, str]): Credentials are redacted. A video file is percia-file://<uploadId>.
         status (Union[Unset, GetWatchResponse200Status]):
         sync_error (Union[None, Unset, str]):
         synced_at (Union[None, Unset, datetime.datetime]):
+        test_until (Union[None, Unset, datetime.datetime]): Set while the watch is in a live test run: when it ends (30
+            minutes after PATCH {status: "active", testRun: true}). Its events are marked `test: true`, its webhooks carry
+            `test: true`, and the watch is paused by itself at this time (pausedReason test_ended). PATCH {status: "active"}
+            goes live with no restart; null otherwise.
     """
 
+    advanced: Union[Unset, "GetWatchResponse200Advanced"] = UNSET
     agent: Union["GetWatchResponse200AgentType0", None, Unset] = UNSET
     camera: Union["GetWatchResponse200CameraType0", None, Unset] = UNSET
-    core_state: Union[Unset, GetWatchResponse200CoreState] = UNSET
     created_at: Union[Unset, datetime.datetime] = UNSET
+    delivery_problem: Union[None, Unset, str] = UNSET
+    destinations: Union[Unset, list["GetWatchResponse200DestinationsItem"]] = UNSET
     display_status: Union[Unset, GetWatchResponse200DisplayStatus] = UNSET
-    engine: Union["GetWatchResponse200EngineType0", None, Unset] = UNSET
     event_count: Union[Unset, int] = UNSET
+    events24h: Union[Unset, int] = UNSET
     goal: Union[Unset, str] = UNSET
     id: Union[Unset, str] = UNSET
     judging: Union[Unset, "GetWatchResponse200Judging"] = UNSET
     last_delivery: Union[GetWatchResponse200LastDeliveryType1, None, Unset] = UNSET
     last_event: Union["GetWatchResponse200LastEventType0", None, Unset] = UNSET
+    minutes_this_month: Union[Unset, int] = UNSET
     no_video_since: Union[None, Unset, datetime.datetime] = UNSET
     notify: Union[Unset, "GetWatchResponse200Notify"] = UNSET
     paused_reason: Union[None, Unset, str] = UNSET
+    pending_question: Union["GetWatchResponse200PendingQuestionType0", None, Unset] = UNSET
     runtime: Union[Unset, GetWatchResponse200Runtime] = UNSET
     secret_hint: Union[None, Unset, str] = UNSET
     site: Union["GetWatchResponse200SiteType0", None, Unset] = UNSET
@@ -121,6 +141,7 @@ class GetWatchResponse200:
     status: Union[Unset, GetWatchResponse200Status] = UNSET
     sync_error: Union[None, Unset, str] = UNSET
     synced_at: Union[None, Unset, datetime.datetime] = UNSET
+    test_until: Union[None, Unset, datetime.datetime] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -130,15 +151,19 @@ class GetWatchResponse200:
         from ..models.get_watch_response_200_camera_type_0 import (
             GetWatchResponse200CameraType0,
         )
-        from ..models.get_watch_response_200_engine_type_0 import (
-            GetWatchResponse200EngineType0,
-        )
         from ..models.get_watch_response_200_last_event_type_0 import (
             GetWatchResponse200LastEventType0,
+        )
+        from ..models.get_watch_response_200_pending_question_type_0 import (
+            GetWatchResponse200PendingQuestionType0,
         )
         from ..models.get_watch_response_200_site_type_0 import (
             GetWatchResponse200SiteType0,
         )
+
+        advanced: Union[Unset, dict[str, Any]] = UNSET
+        if not isinstance(self.advanced, Unset):
+            advanced = self.advanced.to_dict()
 
         agent: Union[None, Unset, dict[str, Any]]
         if isinstance(self.agent, Unset):
@@ -156,27 +181,30 @@ class GetWatchResponse200:
         else:
             camera = self.camera
 
-        core_state: Union[Unset, str] = UNSET
-        if not isinstance(self.core_state, Unset):
-            core_state = self.core_state.value
-
         created_at: Union[Unset, str] = UNSET
         if not isinstance(self.created_at, Unset):
             created_at = self.created_at.isoformat()
+
+        delivery_problem: Union[None, Unset, str]
+        if isinstance(self.delivery_problem, Unset):
+            delivery_problem = UNSET
+        else:
+            delivery_problem = self.delivery_problem
+
+        destinations: Union[Unset, list[dict[str, Any]]] = UNSET
+        if not isinstance(self.destinations, Unset):
+            destinations = []
+            for destinations_item_data in self.destinations:
+                destinations_item = destinations_item_data.to_dict()
+                destinations.append(destinations_item)
 
         display_status: Union[Unset, str] = UNSET
         if not isinstance(self.display_status, Unset):
             display_status = self.display_status.value
 
-        engine: Union[None, Unset, dict[str, Any]]
-        if isinstance(self.engine, Unset):
-            engine = UNSET
-        elif isinstance(self.engine, GetWatchResponse200EngineType0):
-            engine = self.engine.to_dict()
-        else:
-            engine = self.engine
-
         event_count = self.event_count
+
+        events24h = self.events24h
 
         goal = self.goal
 
@@ -202,6 +230,8 @@ class GetWatchResponse200:
         else:
             last_event = self.last_event
 
+        minutes_this_month = self.minutes_this_month
+
         no_video_since: Union[None, Unset, str]
         if isinstance(self.no_video_since, Unset):
             no_video_since = UNSET
@@ -219,6 +249,14 @@ class GetWatchResponse200:
             paused_reason = UNSET
         else:
             paused_reason = self.paused_reason
+
+        pending_question: Union[None, Unset, dict[str, Any]]
+        if isinstance(self.pending_question, Unset):
+            pending_question = UNSET
+        elif isinstance(self.pending_question, GetWatchResponse200PendingQuestionType0):
+            pending_question = self.pending_question.to_dict()
+        else:
+            pending_question = self.pending_question
 
         runtime: Union[Unset, str] = UNSET
         if not isinstance(self.runtime, Unset):
@@ -262,23 +300,35 @@ class GetWatchResponse200:
         else:
             synced_at = self.synced_at
 
+        test_until: Union[None, Unset, str]
+        if isinstance(self.test_until, Unset):
+            test_until = UNSET
+        elif isinstance(self.test_until, datetime.datetime):
+            test_until = self.test_until.isoformat()
+        else:
+            test_until = self.test_until
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update({})
+        if advanced is not UNSET:
+            field_dict["advanced"] = advanced
         if agent is not UNSET:
             field_dict["agent"] = agent
         if camera is not UNSET:
             field_dict["camera"] = camera
-        if core_state is not UNSET:
-            field_dict["coreState"] = core_state
         if created_at is not UNSET:
             field_dict["createdAt"] = created_at
+        if delivery_problem is not UNSET:
+            field_dict["deliveryProblem"] = delivery_problem
+        if destinations is not UNSET:
+            field_dict["destinations"] = destinations
         if display_status is not UNSET:
             field_dict["displayStatus"] = display_status
-        if engine is not UNSET:
-            field_dict["engine"] = engine
         if event_count is not UNSET:
             field_dict["eventCount"] = event_count
+        if events24h is not UNSET:
+            field_dict["events24h"] = events24h
         if goal is not UNSET:
             field_dict["goal"] = goal
         if id is not UNSET:
@@ -289,12 +339,16 @@ class GetWatchResponse200:
             field_dict["lastDelivery"] = last_delivery
         if last_event is not UNSET:
             field_dict["lastEvent"] = last_event
+        if minutes_this_month is not UNSET:
+            field_dict["minutesThisMonth"] = minutes_this_month
         if no_video_since is not UNSET:
             field_dict["noVideoSince"] = no_video_since
         if notify is not UNSET:
             field_dict["notify"] = notify
         if paused_reason is not UNSET:
             field_dict["pausedReason"] = paused_reason
+        if pending_question is not UNSET:
+            field_dict["pendingQuestion"] = pending_question
         if runtime is not UNSET:
             field_dict["runtime"] = runtime
         if secret_hint is not UNSET:
@@ -311,30 +365,42 @@ class GetWatchResponse200:
             field_dict["syncError"] = sync_error
         if synced_at is not UNSET:
             field_dict["syncedAt"] = synced_at
+        if test_until is not UNSET:
+            field_dict["testUntil"] = test_until
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.get_watch_response_200_advanced import GetWatchResponse200Advanced
         from ..models.get_watch_response_200_agent_type_0 import (
             GetWatchResponse200AgentType0,
         )
         from ..models.get_watch_response_200_camera_type_0 import (
             GetWatchResponse200CameraType0,
         )
-        from ..models.get_watch_response_200_engine_type_0 import (
-            GetWatchResponse200EngineType0,
+        from ..models.get_watch_response_200_destinations_item import (
+            GetWatchResponse200DestinationsItem,
         )
         from ..models.get_watch_response_200_judging import GetWatchResponse200Judging
         from ..models.get_watch_response_200_last_event_type_0 import (
             GetWatchResponse200LastEventType0,
         )
         from ..models.get_watch_response_200_notify import GetWatchResponse200Notify
+        from ..models.get_watch_response_200_pending_question_type_0 import (
+            GetWatchResponse200PendingQuestionType0,
+        )
         from ..models.get_watch_response_200_site_type_0 import (
             GetWatchResponse200SiteType0,
         )
 
         d = dict(src_dict)
+        _advanced = d.pop("advanced", UNSET)
+        advanced: Union[Unset, GetWatchResponse200Advanced]
+        if isinstance(_advanced, Unset):
+            advanced = UNSET
+        else:
+            advanced = GetWatchResponse200Advanced.from_dict(_advanced)
 
         def _parse_agent(
             data: object,
@@ -374,19 +440,28 @@ class GetWatchResponse200:
 
         camera = _parse_camera(d.pop("camera", UNSET))
 
-        _core_state = d.pop("coreState", UNSET)
-        core_state: Union[Unset, GetWatchResponse200CoreState]
-        if isinstance(_core_state, Unset):
-            core_state = UNSET
-        else:
-            core_state = GetWatchResponse200CoreState(_core_state)
-
         _created_at = d.pop("createdAt", UNSET)
         created_at: Union[Unset, datetime.datetime]
         if isinstance(_created_at, Unset):
             created_at = UNSET
         else:
             created_at = isoparse(_created_at)
+
+        def _parse_delivery_problem(data: object) -> Union[None, Unset, str]:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(Union[None, Unset, str], data)
+
+        delivery_problem = _parse_delivery_problem(d.pop("deliveryProblem", UNSET))
+
+        destinations = []
+        _destinations = d.pop("destinations", UNSET)
+        for destinations_item_data in _destinations or []:
+            destinations_item = GetWatchResponse200DestinationsItem.from_dict(destinations_item_data)
+
+            destinations.append(destinations_item)
 
         _display_status = d.pop("displayStatus", UNSET)
         display_status: Union[Unset, GetWatchResponse200DisplayStatus]
@@ -395,26 +470,9 @@ class GetWatchResponse200:
         else:
             display_status = GetWatchResponse200DisplayStatus(_display_status)
 
-        def _parse_engine(
-            data: object,
-        ) -> Union["GetWatchResponse200EngineType0", None, Unset]:
-            if data is None:
-                return data
-            if isinstance(data, Unset):
-                return data
-            try:
-                if not isinstance(data, dict):
-                    raise TypeError()
-                engine_type_0 = GetWatchResponse200EngineType0.from_dict(data)
-
-                return engine_type_0
-            except:  # noqa: E722
-                pass
-            return cast(Union["GetWatchResponse200EngineType0", None, Unset], data)
-
-        engine = _parse_engine(d.pop("engine", UNSET))
-
         event_count = d.pop("eventCount", UNSET)
+
+        events24h = d.pop("events24h", UNSET)
 
         goal = d.pop("goal", UNSET)
 
@@ -465,6 +523,8 @@ class GetWatchResponse200:
 
         last_event = _parse_last_event(d.pop("lastEvent", UNSET))
 
+        minutes_this_month = d.pop("minutesThisMonth", UNSET)
+
         def _parse_no_video_since(
             data: object,
         ) -> Union[None, Unset, datetime.datetime]:
@@ -499,6 +559,25 @@ class GetWatchResponse200:
             return cast(Union[None, Unset, str], data)
 
         paused_reason = _parse_paused_reason(d.pop("pausedReason", UNSET))
+
+        def _parse_pending_question(
+            data: object,
+        ) -> Union["GetWatchResponse200PendingQuestionType0", None, Unset]:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                pending_question_type_0 = GetWatchResponse200PendingQuestionType0.from_dict(data)
+
+                return pending_question_type_0
+            except:  # noqa: E722
+                pass
+            return cast(Union["GetWatchResponse200PendingQuestionType0", None, Unset], data)
+
+        pending_question = _parse_pending_question(d.pop("pendingQuestion", UNSET))
 
         _runtime = d.pop("runtime", UNSET)
         runtime: Union[Unset, GetWatchResponse200Runtime]
@@ -577,22 +656,43 @@ class GetWatchResponse200:
 
         synced_at = _parse_synced_at(d.pop("syncedAt", UNSET))
 
+        def _parse_test_until(data: object) -> Union[None, Unset, datetime.datetime]:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                test_until_type_0 = isoparse(data)
+
+                return test_until_type_0
+            except:  # noqa: E722
+                pass
+            return cast(Union[None, Unset, datetime.datetime], data)
+
+        test_until = _parse_test_until(d.pop("testUntil", UNSET))
+
         get_watch_response_200 = cls(
+            advanced=advanced,
             agent=agent,
             camera=camera,
-            core_state=core_state,
             created_at=created_at,
+            delivery_problem=delivery_problem,
+            destinations=destinations,
             display_status=display_status,
-            engine=engine,
             event_count=event_count,
+            events24h=events24h,
             goal=goal,
             id=id,
             judging=judging,
             last_delivery=last_delivery,
             last_event=last_event,
+            minutes_this_month=minutes_this_month,
             no_video_since=no_video_since,
             notify=notify,
             paused_reason=paused_reason,
+            pending_question=pending_question,
             runtime=runtime,
             secret_hint=secret_hint,
             site=site,
@@ -601,6 +701,7 @@ class GetWatchResponse200:
             status=status,
             sync_error=sync_error,
             synced_at=synced_at,
+            test_until=test_until,
         )
 
         get_watch_response_200.additional_properties = d

@@ -48,6 +48,11 @@ def _parse_response(
 
         return response_401
 
+    if response.status_code == 402:
+        response_402 = Error.from_dict(response.json())
+
+        return response_402
+
     if response.status_code == 404:
         response_404 = Error.from_dict(response.json())
 
@@ -87,8 +92,10 @@ def sync_detailed(
 ) -> Response[Union[Error, RedeemCreditCodeResponse200]]:
     """Redeem a credit code for camera-minutes (credits are minutes of watching, used before the free
     minutes and before the card). A code is shown to its owner once: pass it in the body, never in a
-    URL. Unknown, disabled, expired and used-up codes all answer 404 code_invalid; the same person
-    redeeming twice is 409 code_already_redeemed; too many tries is 429 rate_limited with Retry-After.
+    URL. Needs a card on file while billing is on sale: without one it answers 402 card_required with
+    addCardUrl (the Billing page; only a person can add a card) and the code is not checked or used.
+    Unknown, disabled, expired and used-up codes all answer 404 code_invalid; the same person redeeming
+    twice is 409 code_already_redeemed; too many tries is 429 rate_limited with Retry-After.
 
     Args:
         body (RedeemCreditCodeBody):
@@ -119,8 +126,10 @@ def sync(
 ) -> Optional[Union[Error, RedeemCreditCodeResponse200]]:
     """Redeem a credit code for camera-minutes (credits are minutes of watching, used before the free
     minutes and before the card). A code is shown to its owner once: pass it in the body, never in a
-    URL. Unknown, disabled, expired and used-up codes all answer 404 code_invalid; the same person
-    redeeming twice is 409 code_already_redeemed; too many tries is 429 rate_limited with Retry-After.
+    URL. Needs a card on file while billing is on sale: without one it answers 402 card_required with
+    addCardUrl (the Billing page; only a person can add a card) and the code is not checked or used.
+    Unknown, disabled, expired and used-up codes all answer 404 code_invalid; the same person redeeming
+    twice is 409 code_already_redeemed; too many tries is 429 rate_limited with Retry-After.
 
     Args:
         body (RedeemCreditCodeBody):
@@ -146,8 +155,10 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, RedeemCreditCodeResponse200]]:
     """Redeem a credit code for camera-minutes (credits are minutes of watching, used before the free
     minutes and before the card). A code is shown to its owner once: pass it in the body, never in a
-    URL. Unknown, disabled, expired and used-up codes all answer 404 code_invalid; the same person
-    redeeming twice is 409 code_already_redeemed; too many tries is 429 rate_limited with Retry-After.
+    URL. Needs a card on file while billing is on sale: without one it answers 402 card_required with
+    addCardUrl (the Billing page; only a person can add a card) and the code is not checked or used.
+    Unknown, disabled, expired and used-up codes all answer 404 code_invalid; the same person redeeming
+    twice is 409 code_already_redeemed; too many tries is 429 rate_limited with Retry-After.
 
     Args:
         body (RedeemCreditCodeBody):
@@ -176,8 +187,10 @@ async def asyncio(
 ) -> Optional[Union[Error, RedeemCreditCodeResponse200]]:
     """Redeem a credit code for camera-minutes (credits are minutes of watching, used before the free
     minutes and before the card). A code is shown to its owner once: pass it in the body, never in a
-    URL. Unknown, disabled, expired and used-up codes all answer 404 code_invalid; the same person
-    redeeming twice is 409 code_already_redeemed; too many tries is 429 rate_limited with Retry-After.
+    URL. Needs a card on file while billing is on sale: without one it answers 402 card_required with
+    addCardUrl (the Billing page; only a person can add a card) and the code is not checked or used.
+    Unknown, disabled, expired and used-up codes all answer 404 code_invalid; the same person redeeming
+    twice is 409 code_already_redeemed; too many tries is 429 rate_limited with Retry-After.
 
     Args:
         body (RedeemCreditCodeBody):

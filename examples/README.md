@@ -15,6 +15,6 @@ Runnable templates. Each directory is standalone (copy it out); every test runs 
 | `vapi-voice-alert/` | Documentation: webhook to a Vapi outbound phone call, with guardrails (placeholders, not run) | none |
 | `github-actions/` | Scheduled smoke check and an ephemeral-watch PR check | YAML parse only |
 
-The five verifiers pass the same 20 cases in `spec/webhook-vectors.json` (valid, 299 s skew, unicode and empty bodies, spaces in the header, stale, wrong secret, tampered body, trailing newline, altered timestamp, uppercase hex, missing/garbage header). The rule they implement: `HMAC-SHA256(secret, "<t>.<raw body>")` as lowercase hex, `|now - t| <= 300`, constant-time compare, then parse. Contract: `percia-cf/docs/integrators/webhooks.md`.
+The five verifiers pass the same 20 cases in `spec/webhook-vectors.json` (valid, 299 s skew, unicode and empty bodies, spaces in the header, stale, wrong secret, tampered body, trailing newline, altered timestamp, uppercase hex, missing/garbage header). The rule they implement: `HMAC-SHA256(secret, "<t>.<raw body>")` as lowercase hex, `|now - t| <= 300`, constant-time compare, then parse. Docs: https://playground.percia.ai/docs/.
 
 Never put a real `pk_live_...` key or `whsec_...` secret in these files; `.env.example` files hold placeholders only.

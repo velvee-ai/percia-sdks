@@ -84,7 +84,9 @@ def sync_detailed(
     client: AuthenticatedClient,
     body: UpdateWatchBody,
 ) -> Response[Union[Error, Watch]]:
-    """Update a watch. A new goal is understood again (interpret: false keeps the words as written);
+    r"""Update a watch. `status: \"active\"` with `testRun: true` starts a 30-minute live test run (events
+    are marked test events); `status: \"active\"` alone goes live, also from a running test, with no
+    restart. A new goal is understood again (interpret: false keeps the words as written);
     interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as
     reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch;
     agentVersion alone re-pins; goal detaches the agent.
@@ -119,7 +121,9 @@ def sync(
     client: AuthenticatedClient,
     body: UpdateWatchBody,
 ) -> Optional[Union[Error, Watch]]:
-    """Update a watch. A new goal is understood again (interpret: false keeps the words as written);
+    r"""Update a watch. `status: \"active\"` with `testRun: true` starts a 30-minute live test run (events
+    are marked test events); `status: \"active\"` alone goes live, also from a running test, with no
+    restart. A new goal is understood again (interpret: false keeps the words as written);
     interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as
     reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch;
     agentVersion alone re-pins; goal detaches the agent.
@@ -149,7 +153,9 @@ async def asyncio_detailed(
     client: AuthenticatedClient,
     body: UpdateWatchBody,
 ) -> Response[Union[Error, Watch]]:
-    """Update a watch. A new goal is understood again (interpret: false keeps the words as written);
+    r"""Update a watch. `status: \"active\"` with `testRun: true` starts a 30-minute live test run (events
+    are marked test events); `status: \"active\"` alone goes live, also from a running test, with no
+    restart. A new goal is understood again (interpret: false keeps the words as written);
     interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as
     reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch;
     agentVersion alone re-pins; goal detaches the agent.
@@ -182,7 +188,9 @@ async def asyncio(
     client: AuthenticatedClient,
     body: UpdateWatchBody,
 ) -> Optional[Union[Error, Watch]]:
-    """Update a watch. A new goal is understood again (interpret: false keeps the words as written);
+    r"""Update a watch. `status: \"active\"` with `testRun: true` starts a 30-minute live test run (events
+    are marked test events); `status: \"active\"` alone goes live, also from a running test, with no
+    restart. A new goal is understood again (interpret: false keeps the words as written);
     interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as
     reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch;
     agentVersion alone re-pins; goal detaches the agent.

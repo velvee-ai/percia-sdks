@@ -78,23 +78,3 @@ export function describeBilling(b: Billing): string[] {
 	if (b.billingUrl) lines.push(`Billing:       ${b.billingUrl}`);
 	return lines;
 }
-
-/** One condition of a watch's goal. `kind: "event"` fires when it starts (a car pulls in); `"state"` while it stays true. */
-export interface Concern {
-	id?: string;
-	text: string;
-	kind: "state" | "event";
-	/** Harmless look-alikes this condition must not fire on. */
-	ignore?: string[];
-}
-
-/** What Percia understood of a goal (`watch.interpretation`, `watches.interpret`). Null on watches made before goal understanding or with `interpret: false`. Read `gaps`/`untestable` and ask the person. */
-export interface Interpretation {
-	concerns?: Concern[];
-	gaps?: string[];
-	untestable?: string[];
-	needsLook?: boolean;
-	/** Why the understanding is partial: `review_skipped` or another reason; absent when complete. */
-	degraded?: string;
-	[k: string]: unknown;
-}

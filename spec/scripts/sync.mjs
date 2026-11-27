@@ -3,7 +3,7 @@
 //
 //   node spec/scripts/sync.mjs                 fetch the live document, write spec/openapi.json + spec/spec.lock.json
 //   node spec/scripts/sync.mjs --url <url>     fetch from another host (a staging or local worker)
-//   node spec/scripts/sync.mjs --file <path>   pin a document from disk (used when the live host is behind master)
+//   node spec/scripts/sync.mjs --file <path>   pin a document from disk (for a document you saved locally)
 //   node spec/scripts/sync.mjs --check         fetch the live document and exit 1 when its hash differs from the lock (CI drift check)
 //   node spec/scripts/sync.mjs --verify-lock   offline: exit 1 when spec/openapi.json does not match spec/spec.lock.json
 //

@@ -576,7 +576,7 @@ const PLAN_BODY = {
 	nextStep: "Add a card for 50 more free minutes.", bonusAvailable: true, bonusMinutes: 50, payment: { state: "active", billingUrl: "https://percia.test/billing" },
 };
 
-describe("billing, interpretation and device kind", () => {
+describe("billing and device kind", () => {
 	it("plan shows free minutes, credit, how charged and the next step", async () => {
 		e.mock.handlers.set("getPlan", () => ({ status: 200, body: PLAN_BODY }));
 		const r = await e.run("plan");
@@ -598,27 +598,6 @@ describe("billing, interpretation and device kind", () => {
 		const bad = await e.run("whoami", "--json");
 		expect(bad.code, bad.err).toBe(0);
 		expect(JSON.parse(bad.out).billing).toBeNull();
-	});
-	it("watches create --no-interpret --kind and --concern are sent; the interpretation is printed", async () => {
-		e.mock.handlers.set("createWatch", () => ({ status: 201, body: { id: "w_1", displayStatus: "active", interpretation: { concerns: [{ text: "A car pulls in", kind: "event", ignore: ["a passing car"] }], gaps: ["Which driveway?"] } } }));
-		const r = await e.run("watches", "create", "--source", "rtsp://x/s", "--goal", "A car pulls in", "--no-interpret", "--kind", "event");
-		expect(r.code, r.err).toBe(0);
-		expect(e.mock.requests.at(-1)!.body).toMatchObject({ interpret: false, kind: "event" });
-		expect(r.out).toContain("when it happens: A car pulls in (ignores: a passing car)");
-		expect(r.out).toContain("ask: Which driveway?");
-		await e.run("watches", "create", "--source", "rtsp://x/s", "--goal", "Watch the driveway", "--concern", "event:A car pulls in", "--concern", "state:The gate is open");
-		expect((e.mock.requests.at(-1)!.body as { concerns: unknown[] }).concerns).toEqual([{ kind: "event", text: "A car pulls in" }, { kind: "state", text: "The gate is open" }]);
-		expect((await e.run("watches", "create", "--source", "rtsp://x/s", "--goal", "A car pulls in", "--kind", "event")).code).toBe(2);
-		expect((await e.run("watches", "create", "--source", "rtsp://x/s", "--concern", "bad")).code).toBe(2);
-		// an old server that sends no interpretation prints nothing extra
-		e.mock.handlers.set("createWatch", () => ({ status: 201, body: { id: "w_2", displayStatus: "active" } }));
-		expect((await e.run("watches", "create", "--source", "rtsp://x/s", "--goal", "A person at the door")).out).not.toContain("understood");
-	});
-	it("watches interpret prints conditions; deferred says it takes longer", async () => {
-		e.mock.handlers.set("interpretGoal", () => ({ status: 200, body: { interpretation: { concerns: [{ text: "A car pulls in", kind: "event" }] } } }));
-		expect((await e.run("watches", "interpret", "Tell me when a car pulls in")).out).toContain("when it happens: A car pulls in");
-		e.mock.handlers.set("interpretGoal", () => ({ status: 200, body: { deferred: true } }));
-		expect((await e.run("watches", "interpret", "Keep my shop safe")).out).toContain("takes longer");
 	});
 	it("cameras add --device-kind is sent; cameras list shows the device and tolerates null", async () => {
 		await e.run("cameras", "add", "Desk", "--device-kind", "computer", "--no-qr");

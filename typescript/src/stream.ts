@@ -1,4 +1,4 @@
-// Developer event feed: GET /api/events/stream (Server-Sent Events). Contract: percia-cf docs/specs/platform/dev-feed.md.
+// Developer event feed: GET /api/events/stream (Server-Sent Events).
 // A development and test tool, not a delivery path: webhooks stay the production path. Uses fetch streaming (no EventSource), so it
 // can send the Authorization header and runs on Node 20+, Deno, Bun and Workers.
 import { PerciaApiError, PerciaConnectionError, errorFromResponse, parseRetryAfter } from "./errors.js";

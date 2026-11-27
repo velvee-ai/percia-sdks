@@ -7,6 +7,7 @@ from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.create_watch_body import CreateWatchBody
 from ...models.create_watch_response_201 import CreateWatchResponse201
+from ...models.create_watch_response_422 import CreateWatchResponse422
 from ...models.error import Error
 from ...types import Response
 
@@ -32,7 +33,7 @@ def _get_kwargs(
 
 def _parse_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[CreateWatchResponse201, Error]]:
+) -> Optional[Union[CreateWatchResponse201, CreateWatchResponse422, Error]]:
     if response.status_code == 201:
         response_201 = CreateWatchResponse201.from_dict(response.json())
 
@@ -53,15 +54,25 @@ def _parse_response(
 
         return response_402
 
-    if response.status_code == 403:
-        response_403 = Error.from_dict(response.json())
+    if response.status_code == 409:
+        response_409 = Error.from_dict(response.json())
 
-        return response_403
+        return response_409
+
+    if response.status_code == 422:
+        response_422 = CreateWatchResponse422.from_dict(response.json())
+
+        return response_422
 
     if response.status_code == 429:
         response_429 = Error.from_dict(response.json())
 
         return response_429
+
+    if response.status_code == 503:
+        response_503 = Error.from_dict(response.json())
+
+        return response_503
 
     if client.raise_on_unexpected_status:
         raise errors.UnexpectedStatus(response.status_code, response.content)
@@ -71,7 +82,7 @@ def _parse_response(
 
 def _build_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[CreateWatchResponse201, Error]]:
+) -> Response[Union[CreateWatchResponse201, CreateWatchResponse422, Error]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -84,7 +95,7 @@ def sync_detailed(
     *,
     client: AuthenticatedClient,
     body: CreateWatchBody,
-) -> Response[Union[CreateWatchResponse201, Error]]:
+) -> Response[Union[CreateWatchResponse201, CreateWatchResponse422, Error]]:
     r"""Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-
     cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an
     NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge)
@@ -93,9 +104,19 @@ def sync_detailed(
     Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for
     phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the
     goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read
-    `interpretation.gaps` and `untestable` and ask the person those questions. Send `interpret: false`
-    to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text,
-    kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent.
+    `interpretation.gaps` and `untestable` and ask the person those questions. Send `draftId` (a ready
+    draft from POST /watches/draft, with `acknowledgeUnsupported: true` when it left parts out) instead
+    of `goal`; the draft has the conditions. Send `interpret: false` to keep the words exactly as
+    written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10)
+    to give the conditions yourself; not with an agent. With clarifying (when Percia has it on; see GET
+    /config): a create with a `goal` is read by Percia's layer first. A clear goal creates the watch as
+    before. An unclear one creates nothing and answers 422 `clarification_needed` with `draftId`,
+    `question` and `options` (and `guidance`): ask the person, answer with POST
+    /watches/draft/{draftId}/answer {text}, then create with {sourceUrl, draftId}; or send a clearer
+    goal. Parts that cannot be watched answer 409 `unsupported_not_acknowledged` (tell the person, then
+    repeat with `acknowledgeUnsupported: true`). The old per-watch knobs are refused with 422 naming the
+    field in `error.field`, from the first call: cooldownS, kind, rearmS, recheckS, minConfidence,
+    notWhen, zones, concerns, judgeKey, interpret, and runtime: core.
 
     Args:
         body (CreateWatchBody):
@@ -105,7 +126,7 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[CreateWatchResponse201, Error]]
+        Response[Union[CreateWatchResponse201, CreateWatchResponse422, Error]]
     """
 
     kwargs = _get_kwargs(
@@ -123,7 +144,7 @@ def sync(
     *,
     client: AuthenticatedClient,
     body: CreateWatchBody,
-) -> Optional[Union[CreateWatchResponse201, Error]]:
+) -> Optional[Union[CreateWatchResponse201, CreateWatchResponse422, Error]]:
     r"""Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-
     cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an
     NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge)
@@ -132,9 +153,19 @@ def sync(
     Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for
     phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the
     goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read
-    `interpretation.gaps` and `untestable` and ask the person those questions. Send `interpret: false`
-    to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text,
-    kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent.
+    `interpretation.gaps` and `untestable` and ask the person those questions. Send `draftId` (a ready
+    draft from POST /watches/draft, with `acknowledgeUnsupported: true` when it left parts out) instead
+    of `goal`; the draft has the conditions. Send `interpret: false` to keep the words exactly as
+    written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10)
+    to give the conditions yourself; not with an agent. With clarifying (when Percia has it on; see GET
+    /config): a create with a `goal` is read by Percia's layer first. A clear goal creates the watch as
+    before. An unclear one creates nothing and answers 422 `clarification_needed` with `draftId`,
+    `question` and `options` (and `guidance`): ask the person, answer with POST
+    /watches/draft/{draftId}/answer {text}, then create with {sourceUrl, draftId}; or send a clearer
+    goal. Parts that cannot be watched answer 409 `unsupported_not_acknowledged` (tell the person, then
+    repeat with `acknowledgeUnsupported: true`). The old per-watch knobs are refused with 422 naming the
+    field in `error.field`, from the first call: cooldownS, kind, rearmS, recheckS, minConfidence,
+    notWhen, zones, concerns, judgeKey, interpret, and runtime: core.
 
     Args:
         body (CreateWatchBody):
@@ -144,7 +175,7 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[CreateWatchResponse201, Error]
+        Union[CreateWatchResponse201, CreateWatchResponse422, Error]
     """
 
     return sync_detailed(
@@ -157,7 +188,7 @@ async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
     body: CreateWatchBody,
-) -> Response[Union[CreateWatchResponse201, Error]]:
+) -> Response[Union[CreateWatchResponse201, CreateWatchResponse422, Error]]:
     r"""Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-
     cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an
     NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge)
@@ -166,9 +197,19 @@ async def asyncio_detailed(
     Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for
     phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the
     goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read
-    `interpretation.gaps` and `untestable` and ask the person those questions. Send `interpret: false`
-    to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text,
-    kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent.
+    `interpretation.gaps` and `untestable` and ask the person those questions. Send `draftId` (a ready
+    draft from POST /watches/draft, with `acknowledgeUnsupported: true` when it left parts out) instead
+    of `goal`; the draft has the conditions. Send `interpret: false` to keep the words exactly as
+    written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10)
+    to give the conditions yourself; not with an agent. With clarifying (when Percia has it on; see GET
+    /config): a create with a `goal` is read by Percia's layer first. A clear goal creates the watch as
+    before. An unclear one creates nothing and answers 422 `clarification_needed` with `draftId`,
+    `question` and `options` (and `guidance`): ask the person, answer with POST
+    /watches/draft/{draftId}/answer {text}, then create with {sourceUrl, draftId}; or send a clearer
+    goal. Parts that cannot be watched answer 409 `unsupported_not_acknowledged` (tell the person, then
+    repeat with `acknowledgeUnsupported: true`). The old per-watch knobs are refused with 422 naming the
+    field in `error.field`, from the first call: cooldownS, kind, rearmS, recheckS, minConfidence,
+    notWhen, zones, concerns, judgeKey, interpret, and runtime: core.
 
     Args:
         body (CreateWatchBody):
@@ -178,7 +219,7 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[CreateWatchResponse201, Error]]
+        Response[Union[CreateWatchResponse201, CreateWatchResponse422, Error]]
     """
 
     kwargs = _get_kwargs(
@@ -194,7 +235,7 @@ async def asyncio(
     *,
     client: AuthenticatedClient,
     body: CreateWatchBody,
-) -> Optional[Union[CreateWatchResponse201, Error]]:
+) -> Optional[Union[CreateWatchResponse201, CreateWatchResponse422, Error]]:
     r"""Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-
     cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an
     NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge)
@@ -203,9 +244,19 @@ async def asyncio(
     Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for
     phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the
     goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read
-    `interpretation.gaps` and `untestable` and ask the person those questions. Send `interpret: false`
-    to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text,
-    kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent.
+    `interpretation.gaps` and `untestable` and ask the person those questions. Send `draftId` (a ready
+    draft from POST /watches/draft, with `acknowledgeUnsupported: true` when it left parts out) instead
+    of `goal`; the draft has the conditions. Send `interpret: false` to keep the words exactly as
+    written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10)
+    to give the conditions yourself; not with an agent. With clarifying (when Percia has it on; see GET
+    /config): a create with a `goal` is read by Percia's layer first. A clear goal creates the watch as
+    before. An unclear one creates nothing and answers 422 `clarification_needed` with `draftId`,
+    `question` and `options` (and `guidance`): ask the person, answer with POST
+    /watches/draft/{draftId}/answer {text}, then create with {sourceUrl, draftId}; or send a clearer
+    goal. Parts that cannot be watched answer 409 `unsupported_not_acknowledged` (tell the person, then
+    repeat with `acknowledgeUnsupported: true`). The old per-watch knobs are refused with 422 naming the
+    field in `error.field`, from the first call: cooldownS, kind, rearmS, recheckS, minConfidence,
+    notWhen, zones, concerns, judgeKey, interpret, and runtime: core.
 
     Args:
         body (CreateWatchBody):
@@ -215,7 +266,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[CreateWatchResponse201, Error]
+        Union[CreateWatchResponse201, CreateWatchResponse422, Error]
     """
 
     return (

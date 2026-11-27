@@ -1,4 +1,4 @@
-// A scriptable SSE server that speaks the dev-feed contract (percia-cf docs/specs/platform/dev-feed.md) over real HTTP,
+// A scriptable SSE server that speaks the dev-feed contract over real HTTP,
 // so fetch streaming, framing and reconnects are exercised for real. Each connection consumes the next scripted step.
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import type { AddressInfo } from "node:net";

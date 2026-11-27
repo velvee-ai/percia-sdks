@@ -1,4 +1,4 @@
-// Webhook signature verification. Contract: percia-cf docs/integrators/webhooks.md.
+// Webhook signature verification.
 //   Percia-Signature: t=<unix seconds>,v1=<hex HMAC-SHA256 of "<t>.<raw body>" keyed by the whsec_ secret>
 // Uses Web Crypto only (crypto.subtle), so it runs on Node 20+, Workers, Deno, Bun and browsers.
 import { WebhookSignatureError } from "./errors.js";

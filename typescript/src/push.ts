@@ -101,7 +101,7 @@ export type BulkResult =
  */
 export type CameraStatus = {
 	id: string;
-	kind: "phone" | "push";
+	kind: "phone" | "push" | "link" | "file";
 	state: "waiting" | "online" | "offline" | "revoked";
 	status: "online" | "offline" | "never";
 	lastSeenAt: string | null;

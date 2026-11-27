@@ -10,13 +10,11 @@ from typing import (
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
-from ..models.create_watch_body_kind import CreateWatchBodyKind
 from ..models.create_watch_body_media import CreateWatchBodyMedia
-from ..models.create_watch_body_runtime import CreateWatchBodyRuntime
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
-    from ..models.create_watch_body_concerns_item import CreateWatchBodyConcernsItem
+    from ..models.create_watch_body_advanced import CreateWatchBodyAdvanced
     from ..models.create_watch_body_notify_type_0 import CreateWatchBodyNotifyType0
     from ..models.create_watch_body_notify_type_1 import CreateWatchBodyNotifyType1
 
@@ -29,61 +27,62 @@ class CreateWatchBody:
     """
     Attributes:
         source_url (str):
+        acknowledge_unsupported (Union[Unset, bool]):
+        advanced (Union[Unset, CreateWatchBodyAdvanced]): Beta, only where recording is on (422 advanced_unavailable
+            elsewhere): your own conditions. `conditions[]` are Condition objects {condition_id, kind
+            (event|state|measurement), observable, role?: helper, while?/and_not?: {condition_id} or {signal: {signal, op,
+            value}}, window_by?, window?, window_signal?, thresholds?: {..., trend, trend_window_s, trend_min_samples,
+            trend_noise_floor, trend_slope}}. Example, alert if the belt stops while the motor is on:
+            [{condition_id:"belt_stopped", kind:"state", observable:"the belt is not moving",
+            while:{signal:{signal:"motor_running", op:"==", value:true}}}] (declare motor_running in the site's context
+            first, and join the watch to that site with siteId). The source must be a Percia camera. See /docs/advanced.md.
         agent_id (Union[Unset, str]):
         agent_version (Union[Unset, int]):
-        concerns (Union[Unset, list['CreateWatchBodyConcernsItem']]):
         destinations (Union[Unset, list[str]]):
+        draft_id (Union[Unset, str]):
         goal (Union[Unset, str]):
-        interpret (Union[Unset, bool]):
-        kind (Union[Unset, CreateWatchBodyKind]):
         media (Union[Unset, CreateWatchBodyMedia]):
         notify (Union['CreateWatchBodyNotifyType0', 'CreateWatchBodyNotifyType1', Unset]):
-        runtime (Union[Unset, CreateWatchBodyRuntime]):
         site_id (Union[Unset, str]):
+        start_paused (Union[Unset, bool]):
     """
 
     source_url: str
+    acknowledge_unsupported: Union[Unset, bool] = UNSET
+    advanced: Union[Unset, "CreateWatchBodyAdvanced"] = UNSET
     agent_id: Union[Unset, str] = UNSET
     agent_version: Union[Unset, int] = UNSET
-    concerns: Union[Unset, list["CreateWatchBodyConcernsItem"]] = UNSET
     destinations: Union[Unset, list[str]] = UNSET
+    draft_id: Union[Unset, str] = UNSET
     goal: Union[Unset, str] = UNSET
-    interpret: Union[Unset, bool] = UNSET
-    kind: Union[Unset, CreateWatchBodyKind] = UNSET
     media: Union[Unset, CreateWatchBodyMedia] = UNSET
     notify: Union["CreateWatchBodyNotifyType0", "CreateWatchBodyNotifyType1", Unset] = UNSET
-    runtime: Union[Unset, CreateWatchBodyRuntime] = UNSET
     site_id: Union[Unset, str] = UNSET
+    start_paused: Union[Unset, bool] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.create_watch_body_notify_type_0 import CreateWatchBodyNotifyType0
 
-        source_url: str
         source_url = self.source_url
+
+        acknowledge_unsupported = self.acknowledge_unsupported
+
+        advanced: Union[Unset, dict[str, Any]] = UNSET
+        if not isinstance(self.advanced, Unset):
+            advanced = self.advanced.to_dict()
 
         agent_id = self.agent_id
 
         agent_version = self.agent_version
 
-        concerns: Union[Unset, list[dict[str, Any]]] = UNSET
-        if not isinstance(self.concerns, Unset):
-            concerns = []
-            for concerns_item_data in self.concerns:
-                concerns_item = concerns_item_data.to_dict()
-                concerns.append(concerns_item)
-
         destinations: Union[Unset, list[str]] = UNSET
         if not isinstance(self.destinations, Unset):
             destinations = self.destinations
 
+        draft_id = self.draft_id
+
         goal = self.goal
-
-        interpret = self.interpret
-
-        kind: Union[Unset, str] = UNSET
-        if not isinstance(self.kind, Unset):
-            kind = self.kind.value
 
         media: Union[Unset, str] = UNSET
         if not isinstance(self.media, Unset):
@@ -97,11 +96,9 @@ class CreateWatchBody:
         else:
             notify = self.notify.to_dict()
 
-        runtime: Union[Unset, str] = UNSET
-        if not isinstance(self.runtime, Unset):
-            runtime = self.runtime.value
-
         site_id = self.site_id
+
+        start_paused = self.start_paused
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -110,67 +107,58 @@ class CreateWatchBody:
                 "sourceUrl": source_url,
             }
         )
+        if acknowledge_unsupported is not UNSET:
+            field_dict["acknowledgeUnsupported"] = acknowledge_unsupported
+        if advanced is not UNSET:
+            field_dict["advanced"] = advanced
         if agent_id is not UNSET:
             field_dict["agentId"] = agent_id
         if agent_version is not UNSET:
             field_dict["agentVersion"] = agent_version
-        if concerns is not UNSET:
-            field_dict["concerns"] = concerns
         if destinations is not UNSET:
             field_dict["destinations"] = destinations
+        if draft_id is not UNSET:
+            field_dict["draftId"] = draft_id
         if goal is not UNSET:
             field_dict["goal"] = goal
-        if interpret is not UNSET:
-            field_dict["interpret"] = interpret
-        if kind is not UNSET:
-            field_dict["kind"] = kind
         if media is not UNSET:
             field_dict["media"] = media
         if notify is not UNSET:
             field_dict["notify"] = notify
-        if runtime is not UNSET:
-            field_dict["runtime"] = runtime
         if site_id is not UNSET:
             field_dict["siteId"] = site_id
+        if start_paused is not UNSET:
+            field_dict["startPaused"] = start_paused
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.create_watch_body_concerns_item import CreateWatchBodyConcernsItem
+        from ..models.create_watch_body_advanced import CreateWatchBodyAdvanced
         from ..models.create_watch_body_notify_type_0 import CreateWatchBodyNotifyType0
         from ..models.create_watch_body_notify_type_1 import CreateWatchBodyNotifyType1
 
         d = dict(src_dict)
+        source_url = d.pop("sourceUrl")
 
-        def _parse_source_url(data: object) -> str:
-            return cast(str, data)
+        acknowledge_unsupported = d.pop("acknowledgeUnsupported", UNSET)
 
-        source_url = _parse_source_url(d.pop("sourceUrl"))
+        _advanced = d.pop("advanced", UNSET)
+        advanced: Union[Unset, CreateWatchBodyAdvanced]
+        if isinstance(_advanced, Unset):
+            advanced = UNSET
+        else:
+            advanced = CreateWatchBodyAdvanced.from_dict(_advanced)
 
         agent_id = d.pop("agentId", UNSET)
 
         agent_version = d.pop("agentVersion", UNSET)
 
-        concerns = []
-        _concerns = d.pop("concerns", UNSET)
-        for concerns_item_data in _concerns or []:
-            concerns_item = CreateWatchBodyConcernsItem.from_dict(concerns_item_data)
-
-            concerns.append(concerns_item)
-
         destinations = cast(list[str], d.pop("destinations", UNSET))
 
+        draft_id = d.pop("draftId", UNSET)
+
         goal = d.pop("goal", UNSET)
-
-        interpret = d.pop("interpret", UNSET)
-
-        _kind = d.pop("kind", UNSET)
-        kind: Union[Unset, CreateWatchBodyKind]
-        if isinstance(_kind, Unset):
-            kind = UNSET
-        else:
-            kind = CreateWatchBodyKind(_kind)
 
         _media = d.pop("media", UNSET)
         media: Union[Unset, CreateWatchBodyMedia]
@@ -200,28 +188,23 @@ class CreateWatchBody:
 
         notify = _parse_notify(d.pop("notify", UNSET))
 
-        _runtime = d.pop("runtime", UNSET)
-        runtime: Union[Unset, CreateWatchBodyRuntime]
-        if isinstance(_runtime, Unset):
-            runtime = UNSET
-        else:
-            runtime = CreateWatchBodyRuntime(_runtime)
-
         site_id = d.pop("siteId", UNSET)
+
+        start_paused = d.pop("startPaused", UNSET)
 
         create_watch_body = cls(
             source_url=source_url,
+            acknowledge_unsupported=acknowledge_unsupported,
+            advanced=advanced,
             agent_id=agent_id,
             agent_version=agent_version,
-            concerns=concerns,
             destinations=destinations,
+            draft_id=draft_id,
             goal=goal,
-            interpret=interpret,
-            kind=kind,
             media=media,
             notify=notify,
-            runtime=runtime,
             site_id=site_id,
+            start_paused=start_paused,
         )
 
         create_watch_body.additional_properties = d

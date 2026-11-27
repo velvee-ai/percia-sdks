@@ -15,6 +15,8 @@ def _get_kwargs(
     concern_id: Union[Unset, str] = UNSET,
     type_: Union[Unset, str] = UNSET,
     since: Union[Unset, str] = UNSET,
+    client_query: Union[Unset, str] = UNSET,
+    interval: Union[Unset, str] = UNSET,
     backlog: Union[Unset, int] = UNSET,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
@@ -26,6 +28,10 @@ def _get_kwargs(
     params["type"] = type_
 
     params["since"] = since
+
+    params["client"] = client_query
+
+    params["interval"] = interval
 
     params["backlog"] = backlog
 
@@ -91,6 +97,8 @@ def sync_detailed(
     concern_id: Union[Unset, str] = UNSET,
     type_: Union[Unset, str] = UNSET,
     since: Union[Unset, str] = UNSET,
+    client_query: Union[Unset, str] = UNSET,
+    interval: Union[Unset, str] = UNSET,
     backlog: Union[Unset, int] = UNSET,
 ) -> Response[Union[Any, Error]]:
     """Developer event feed: server-sent events of your account, for local development
@@ -100,6 +108,8 @@ def sync_detailed(
         concern_id (Union[Unset, str]):
         type_ (Union[Unset, str]):
         since (Union[Unset, str]):
+        client_query (Union[Unset, str]):
+        interval (Union[Unset, str]):
         backlog (Union[Unset, int]):
 
     Raises:
@@ -115,6 +125,8 @@ def sync_detailed(
         concern_id=concern_id,
         type_=type_,
         since=since,
+        client_query=client_query,
+        interval=interval,
         backlog=backlog,
     )
 
@@ -132,6 +144,8 @@ def sync(
     concern_id: Union[Unset, str] = UNSET,
     type_: Union[Unset, str] = UNSET,
     since: Union[Unset, str] = UNSET,
+    client_query: Union[Unset, str] = UNSET,
+    interval: Union[Unset, str] = UNSET,
     backlog: Union[Unset, int] = UNSET,
 ) -> Optional[Union[Any, Error]]:
     """Developer event feed: server-sent events of your account, for local development
@@ -141,6 +155,8 @@ def sync(
         concern_id (Union[Unset, str]):
         type_ (Union[Unset, str]):
         since (Union[Unset, str]):
+        client_query (Union[Unset, str]):
+        interval (Union[Unset, str]):
         backlog (Union[Unset, int]):
 
     Raises:
@@ -157,6 +173,8 @@ def sync(
         concern_id=concern_id,
         type_=type_,
         since=since,
+        client_query=client_query,
+        interval=interval,
         backlog=backlog,
     ).parsed
 
@@ -168,6 +186,8 @@ async def asyncio_detailed(
     concern_id: Union[Unset, str] = UNSET,
     type_: Union[Unset, str] = UNSET,
     since: Union[Unset, str] = UNSET,
+    client_query: Union[Unset, str] = UNSET,
+    interval: Union[Unset, str] = UNSET,
     backlog: Union[Unset, int] = UNSET,
 ) -> Response[Union[Any, Error]]:
     """Developer event feed: server-sent events of your account, for local development
@@ -177,6 +197,8 @@ async def asyncio_detailed(
         concern_id (Union[Unset, str]):
         type_ (Union[Unset, str]):
         since (Union[Unset, str]):
+        client_query (Union[Unset, str]):
+        interval (Union[Unset, str]):
         backlog (Union[Unset, int]):
 
     Raises:
@@ -192,6 +214,8 @@ async def asyncio_detailed(
         concern_id=concern_id,
         type_=type_,
         since=since,
+        client_query=client_query,
+        interval=interval,
         backlog=backlog,
     )
 
@@ -207,6 +231,8 @@ async def asyncio(
     concern_id: Union[Unset, str] = UNSET,
     type_: Union[Unset, str] = UNSET,
     since: Union[Unset, str] = UNSET,
+    client_query: Union[Unset, str] = UNSET,
+    interval: Union[Unset, str] = UNSET,
     backlog: Union[Unset, int] = UNSET,
 ) -> Optional[Union[Any, Error]]:
     """Developer event feed: server-sent events of your account, for local development
@@ -216,6 +242,8 @@ async def asyncio(
         concern_id (Union[Unset, str]):
         type_ (Union[Unset, str]):
         since (Union[Unset, str]):
+        client_query (Union[Unset, str]):
+        interval (Union[Unset, str]):
         backlog (Union[Unset, int]):
 
     Raises:
@@ -233,6 +261,8 @@ async def asyncio(
             concern_id=concern_id,
             type_=type_,
             since=since,
+            client_query=client_query,
+            interval=interval,
             backlog=backlog,
         )
     ).parsed

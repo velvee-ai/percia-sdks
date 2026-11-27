@@ -3,10 +3,8 @@
 ## 0.3.0 (unreleased)
 
 - `percia listen` follows `GET /api/events/stream` (SSE with fetch streaming) instead of polling `GET /api/events`: `--forward-to <url>` (alias `--forward`), `--watch`, `--concern`, `--type`, `--secret-env NAME`, `--secret-file PATH` (default `PERCIA_WEBHOOK_SECRET`; no `--secret <value>` any more), `--backlog N`, `--print` (JSON lines on stdout), `--replay <eventId>` (replaces `--replay <n>`), `--allow-remote`. Each event is POSTed with the exact data string, `content-type`, `Percia-Signature` and `x-percia-event-id` / `x-percia-delivery-id`, and a compact line is printed (type, short ids, local status, latency). Reconnects with `Last-Event-ID` and backoff, honours `Retry-After`, dedupes on `eventId`, backfills once after `resync`, explains 401/403/429/connection refused, never prints the key or the secret, exits 0 on Ctrl-C. `--interval` is gone.
-- Needs a Percia host that has the dev feed (percia-cf `dev-feed.md`).
 
 - `percia plan` (alias `billing`): free minutes left this month and when they come back, credit minutes, minutes used, whether a new watch can start, how you are charged, the card bonus and the next step (`--json` adds a `billing` block to the raw plan). `percia whoami` shows the same block (and `billing` in `--json`; absent when the plan cannot be read).
-- `watches create --no-interpret [--kind state|event]` keeps the goal as written, `--concern <state|event>:<text>` (repeatable, with `--goal`) gives the conditions yourself, and the conditions Percia understood plus its questions are printed after create. New `watches interpret <goal>` and `watches reinterpret <id>`.
 - `cameras add --device-kind phone|tablet|computer`; `cameras list` has a device column.
 
 ## 0.2.0 (unreleased)

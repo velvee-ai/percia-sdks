@@ -21,8 +21,8 @@
   },
   "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
   "engines": { "node": ">=20" },
-  "repository": { "type": "git", "url": "git+https://github.com/percia-ai/percia-sdks.git", "directory": "typescript" },
-  "homepage": "https://github.com/percia-ai/percia-sdks/tree/main/typescript#readme",
+  "repository": { "type": "git", "url": "git+https://github.com/velvee-ai/percia-sdks.git", "directory": "typescript" },
+  "homepage": "https://github.com/velvee-ai/percia-sdks/tree/main/typescript#readme",
   "keywords": ["percia", "sdk", "api", "webhooks", "camera"],
   "publishConfig": { "access": "public", "provenance": true },
   "scripts": {

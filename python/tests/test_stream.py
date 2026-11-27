@@ -1,4 +1,4 @@
-"""The developer event feed iterator (GET /api/events/stream). The mock speaks the SSE contract of percia-cf docs/specs/platform/dev-feed.md."""
+"""The developer event feed iterator (GET /api/events/stream)."""
 
 from __future__ import annotations
 

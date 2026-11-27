@@ -10,7 +10,7 @@ PERCIA_WEBHOOK_SECRET=whsec_... .venv/bin/uvicorn main:app --port 3000
 
 ## How it verifies
 
-`Percia-Signature: t=<unix>,v1=<hex>`; the signed string is `"<t>.<raw body>"`, the key is the whole `whsec_...` secret. The receiver reads the **raw** bytes, rejects timestamps more than 300 s from now, compares the HMAC in constant time, only then parses JSON, answers 2xx fast and skips an `id` it has already handled. `reason` is untrusted model text: it is logged as data and never executed or used as prompt instructions. Contract: `percia-cf/docs/integrators/webhooks.md`.
+`Percia-Signature: t=<unix>,v1=<hex>`; the signed string is `"<t>.<raw body>"`, the key is the whole `whsec_...` secret. The receiver reads the **raw** bytes, rejects timestamps more than 300 s from now, compares the HMAC in constant time, only then parses JSON, answers 2xx fast and skips an `id` it has already handled. `reason` is untrusted model text: it is logged as data and never executed or used as prompt instructions. Docs: https://playground.percia.ai/docs/.
 
 The shared test vectors (`spec/webhook-vectors.json`, a copy is in this directory) cover valid, stale, mismatch, malformed, unicode and empty-body cases.
 

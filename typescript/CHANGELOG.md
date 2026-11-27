@@ -3,10 +3,9 @@
 ## 0.3.0 (unreleased)
 
 - `events.stream({ watchId, concernId, type, backlog, since, signal, maxReconnects, idleTimeoutMs })`: async iterator over the developer event feed (`GET /api/events/stream`, SSE, fetch streaming). Yields `open`, `event` (with `cursor`, the parsed `event` and the exact `data` string), `resync`, `end`, `reconnect`, `ping`. Reconnects with `Last-Event-ID`, exponential backoff with jitter, `Retry-After` on 429, an idle timeout, dedupe on `eventId`; throws typed errors for 401/403/404/400; ends without an error when `signal` aborts. Also exported: `streamEvents`, `parseSse` and the types `EventStreamOptions`, `StreamItem`, `StreamedEvent`. `verifyWebhookSignature` and `signWebhook` are unchanged.
-- Billing and goal understanding (additive, optional in types): `account.billing()` returns the `billing` block of MCP `whoami` from `GET /api/plan`; new `billingOf(plan)`, `describeBilling(billing)` and the types `Plan`, `Billing`, `Concern`, `Interpretation`. `account.plan()` now has every billing field in its type (`label`, `freeMinutesLeft`, `creditMinutes`, `howCharged`, `nextStep`, `canStartWatches`, `blockReason`, `bonusAvailable`, ...).
-- `watches.create` accepts `interpret: false`, `kind` and `concerns`; `watches.interpret(goal)` and `watches.reinterpret(id)`; a watch carries `interpretation`.
+- Billing (additive, optional in types): `account.billing()` returns the `billing` block of MCP `whoami` from `GET /api/plan`; new `billingOf(plan)`, `describeBilling(billing)` and the types `Plan`, `Billing`. `account.plan()` now has every billing field in its type (`label`, `freeMinutesLeft`, `creditMinutes`, `howCharged`, `nextStep`, `canStartWatches`, `blockReason`, `bonusAvailable`, ...).
 - `cameras.create(name, { deviceKind })`; `Camera.deviceKind` is `phone | tablet | computer | null`.
-- Regenerated from the spec pinned at percia-cf `ae63174` (110 operations).
+- Regenerated from the current Percia API spec (146 operations).
 - `SDK_VERSION` is 0.3.0.
 
 ## 0.2.0 (unreleased)

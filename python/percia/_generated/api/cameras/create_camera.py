@@ -93,10 +93,11 @@ def sync_detailed(
 ) -> Response[Union[CreateCameraResponse200, CreateCameraResponse201, Error]]:
     r"""Create a camera. For a camera on a private network (ONVIF, RTSP, Frigate, Home Assistant, NVR) the
     person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge), which registers the
-    cameras itself. Default (phone): returns a pairing link (single use, 10 minutes). With kind:\"push\"
-    (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown
-    once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets
-    the same camera back (200, token null, existing true). 404 while phone cameras are off.
+    cameras itself. Default (a paired phone, tablet or computer; its deviceKind is set when it opens the
+    link): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private
+    network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing;
+    send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera
+    back (200, token null, existing true). 404 while phone cameras are off.
 
     Args:
         body (CreateCameraBody):
@@ -127,10 +128,11 @@ def sync(
 ) -> Optional[Union[CreateCameraResponse200, CreateCameraResponse201, Error]]:
     r"""Create a camera. For a camera on a private network (ONVIF, RTSP, Frigate, Home Assistant, NVR) the
     person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge), which registers the
-    cameras itself. Default (phone): returns a pairing link (single use, 10 minutes). With kind:\"push\"
-    (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown
-    once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets
-    the same camera back (200, token null, existing true). 404 while phone cameras are off.
+    cameras itself. Default (a paired phone, tablet or computer; its deviceKind is set when it opens the
+    link): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private
+    network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing;
+    send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera
+    back (200, token null, existing true). 404 while phone cameras are off.
 
     Args:
         body (CreateCameraBody):
@@ -156,10 +158,11 @@ async def asyncio_detailed(
 ) -> Response[Union[CreateCameraResponse200, CreateCameraResponse201, Error]]:
     r"""Create a camera. For a camera on a private network (ONVIF, RTSP, Frigate, Home Assistant, NVR) the
     person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge), which registers the
-    cameras itself. Default (phone): returns a pairing link (single use, 10 minutes). With kind:\"push\"
-    (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown
-    once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets
-    the same camera back (200, token null, existing true). 404 while phone cameras are off.
+    cameras itself. Default (a paired phone, tablet or computer; its deviceKind is set when it opens the
+    link): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private
+    network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing;
+    send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera
+    back (200, token null, existing true). 404 while phone cameras are off.
 
     Args:
         body (CreateCameraBody):
@@ -188,10 +191,11 @@ async def asyncio(
 ) -> Optional[Union[CreateCameraResponse200, CreateCameraResponse201, Error]]:
     r"""Create a camera. For a camera on a private network (ONVIF, RTSP, Frigate, Home Assistant, NVR) the
     person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge), which registers the
-    cameras itself. Default (phone): returns a pairing link (single use, 10 minutes). With kind:\"push\"
-    (cameras on a private network, a connector pushes WHIP): returns whipUrl and a publish `token` shown
-    once, no pairing; send externalId (or an Idempotency-Key header) so a re-registering connector gets
-    the same camera back (200, token null, existing true). 404 while phone cameras are off.
+    cameras itself. Default (a paired phone, tablet or computer; its deviceKind is set when it opens the
+    link): returns a pairing link (single use, 10 minutes). With kind:\"push\" (cameras on a private
+    network, a connector pushes WHIP): returns whipUrl and a publish `token` shown once, no pairing;
+    send externalId (or an Idempotency-Key header) so a re-registering connector gets the same camera
+    back (200, token null, existing true). 404 while phone cameras are off.
 
     Args:
         body (CreateCameraBody):

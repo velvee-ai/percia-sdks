@@ -38,10 +38,8 @@ from ._generated.api.integrations import set_watch_integrations as _set_watch_in
 from ._generated.api.watches import create_watch as _create_watch
 from ._generated.api.watches import delete_watch as _delete_watch
 from ._generated.api.watches import get_watch as _get_watch
-from ._generated.api.watches import interpret_goal as _interpret_goal
 from ._generated.api.watches import list_watch_events as _list_watch_events
 from ._generated.api.watches import list_watches as _list_watches
-from ._generated.api.watches import reinterpret_watch as _reinterpret_watch
 from ._generated.api.watches import rotate_watch_secret as _rotate_watch_secret
 from ._generated.api.watches import test_watch_delivery as _test_watch_delivery
 from ._generated.api.watches import update_watch as _update_watch
@@ -50,7 +48,6 @@ from ._generated.models.create_cameras_body import CreateCamerasBody
 from ._generated.models.create_connect_link_body import CreateConnectLinkBody
 from ._generated.models.create_hook_body import CreateHookBody
 from ._generated.models.create_watch_body import CreateWatchBody
-from ._generated.models.interpret_goal_body import InterpretGoalBody
 from ._generated.models.set_watch_integrations_body import SetWatchIntegrationsBody
 from ._generated.models.update_watch_body import UpdateWatchBody
 from ._push import (
@@ -87,19 +84,10 @@ class Watches:
     def create(self, body: Union[CreateWatchBody, Body]) -> Any:
         """Create a watch. The response holds ``webhook_secret`` (webhook watches) once: save it.
 
-        Percia reads the goal into conditions (``interpretation`` in the answer: read ``gaps`` and ``untestable``). Send
-        ``{"interpret": False}`` to keep your words exactly (add ``"kind": "state"`` or ``"event"`` if you know it), or
-        ``{"concerns": [{"text": ..., "kind": ..., "ignore": [...]}]}`` to give the conditions yourself.
+        A clear goal creates the watch; an unclear one answers 422 ``clarification_needed``, and parts that cannot be
+        watched answer 409 ``unsupported_not_acknowledged`` (repeat with ``acknowledge_unsupported=True`` after telling the person).
         """
         return self._c._call(_create_watch, body=coerce_body(CreateWatchBody, body))
-
-    def interpret(self, goal: str) -> Any:
-        """What Percia understands of a goal, without creating anything (``deferred`` True: read at creation instead)."""
-        return self._c._call(_interpret_goal, body=InterpretGoalBody(goal=goal))
-
-    def reinterpret(self, id: str) -> Any:  # noqa: A002
-        """Understand the watch's current goal again (replaces conditions edited by hand)."""
-        return self._c._call(_reinterpret_watch, id=id)
 
     def update(self, id: str, body: Union[UpdateWatchBody, Body]) -> Any:  # noqa: A002
         return self._c._call(_update_watch, id=id, body=coerce_body(UpdateWatchBody, body))

@@ -87,8 +87,11 @@ def sync_detailed(
     client: AuthenticatedClient,
     body: SendEventFeedbackBody,
 ) -> Response[Union[Error, SendEventFeedbackResponse200]]:
-    """Mark an event correct or a false alarm. With a keyframe it becomes (or updates) a test case with the
-    image pinned. Leave `note` out to keep the note already stored; send an empty string to clear it.
+    """Mark an event correct, a false alarm, or partly right (`partly` needs the correction in `note`).
+    With a keyframe a correct or false alarm becomes (or updates) a test case with the image pinned.
+    Leave `note` out to keep the note already stored; send an empty string to clear it. On a Percia
+    event the mark also goes to the watch's running engine: `engine` says whether it was applied or only
+    recorded, and why.
 
     Args:
         id (str):
@@ -123,8 +126,11 @@ def sync(
     client: AuthenticatedClient,
     body: SendEventFeedbackBody,
 ) -> Optional[Union[Error, SendEventFeedbackResponse200]]:
-    """Mark an event correct or a false alarm. With a keyframe it becomes (or updates) a test case with the
-    image pinned. Leave `note` out to keep the note already stored; send an empty string to clear it.
+    """Mark an event correct, a false alarm, or partly right (`partly` needs the correction in `note`).
+    With a keyframe a correct or false alarm becomes (or updates) a test case with the image pinned.
+    Leave `note` out to keep the note already stored; send an empty string to clear it. On a Percia
+    event the mark also goes to the watch's running engine: `engine` says whether it was applied or only
+    recorded, and why.
 
     Args:
         id (str):
@@ -154,8 +160,11 @@ async def asyncio_detailed(
     client: AuthenticatedClient,
     body: SendEventFeedbackBody,
 ) -> Response[Union[Error, SendEventFeedbackResponse200]]:
-    """Mark an event correct or a false alarm. With a keyframe it becomes (or updates) a test case with the
-    image pinned. Leave `note` out to keep the note already stored; send an empty string to clear it.
+    """Mark an event correct, a false alarm, or partly right (`partly` needs the correction in `note`).
+    With a keyframe a correct or false alarm becomes (or updates) a test case with the image pinned.
+    Leave `note` out to keep the note already stored; send an empty string to clear it. On a Percia
+    event the mark also goes to the watch's running engine: `engine` says whether it was applied or only
+    recorded, and why.
 
     Args:
         id (str):
@@ -188,8 +197,11 @@ async def asyncio(
     client: AuthenticatedClient,
     body: SendEventFeedbackBody,
 ) -> Optional[Union[Error, SendEventFeedbackResponse200]]:
-    """Mark an event correct or a false alarm. With a keyframe it becomes (or updates) a test case with the
-    image pinned. Leave `note` out to keep the note already stored; send an empty string to clear it.
+    """Mark an event correct, a false alarm, or partly right (`partly` needs the correction in `note`).
+    With a keyframe a correct or false alarm becomes (or updates) a test case with the image pinned.
+    Leave `note` out to keep the note already stored; send an empty string to clear it. On a Percia
+    event the mark also goes to the watch's running engine: `engine` says whether it was applied or only
+    recorded, and why.
 
     Args:
         id (str):

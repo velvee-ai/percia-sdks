@@ -2,8 +2,7 @@
 
 ``client.events.stream(...)`` is an iterator (``async for`` on :class:`AsyncPercia`) that reconnects with the last cursor,
 honours ``Retry-After``, dedupes on ``eventId`` and yields :class:`Open`, :class:`Event`, :class:`Resync`, :class:`End`,
-:class:`Reconnect` and :class:`Ping` items. It is not a delivery path: webhooks stay the production path. Contract:
-percia-cf ``docs/specs/platform/dev-feed.md``.
+:class:`Reconnect` and :class:`Ping` items. It is not a delivery path: webhooks stay the production path.
 
 Stop it by leaving the loop (``break``) or by calling ``close()`` (``aclose()`` async) on the iterator.
 """

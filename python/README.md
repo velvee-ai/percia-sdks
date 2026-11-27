@@ -9,7 +9,7 @@ Python client for the [Percia](https://percia.ai) API: create watches on cameras
 * `verify_webhook_signature` / `verify_and_parse` for `Percia-Signature`.
 * `client.events.stream(...)`: follow the dev event feed (`GET /api/events/stream`, SSE) for local development and tests; reconnects with `Last-Event-ID`, honours `Retry-After`, dedupes on `eventId` (`async for` on `AsyncPercia`). Items: `Open`, `Event` (`.event` dict, `.data` the exact JSON string), `Resync`, `End`, `Reconnect`, `Ping`. Not a delivery path. See `docs/local-development.md`.
 
-Not published yet: install from this repository (`pip install ./python`) until the owner publishes `percia` to PyPI (see `docs/owner-steps.md`).
+Not on PyPI yet: install from this repository (`pip install ./python`).
 
 ## Quick start
 
@@ -46,14 +46,9 @@ plan = client.account.plan()             # the raw GET /api/plan model
 
 Billing fields are additive and optional (an older server leaves some out: ``None``, never a guess). ``describe_billing(billing)`` returns plain lines.
 
-Goal understanding and device kind:
+Device kind:
 
 ```python
-w = client.watches.create({"sourceUrl": url, "goal": "Tell me when a car pulls in", "notify": notify})
-w.interpretation                         # concerns, gaps, untestable, needsLook; None on older watches: ask the person the gaps
-client.watches.create({"sourceUrl": url, "goal": "A car pulls in", "interpret": False, "kind": "event", "notify": notify})  # keep your words
-client.watches.create({"sourceUrl": url, "goal": "Front door", "concerns": [{"text": "A person stands at the door", "kind": "state"}], "notify": notify})
-client.watches.interpret("Keep my shop safe")   # preview, creates nothing
 client.cameras.create("Desk laptop", device_kind="computer")   # cameras carry device_kind: phone | tablet | computer | None
 ```
 
@@ -122,7 +117,7 @@ except WebhookSignatureError as e:
     print(e.code)    # malformed | stale_timestamp | mismatch
 ```
 
-The scheme is exactly [docs/integrators/webhooks.md](https://github.com/percia/percia-cf): `Percia-Signature: t=<unix>,v1=<hex HMAC-SHA256 of "<t>.<raw body>">`, constant-time compare, 300 s replay window in both directions. It also verifies REST-hook deliveries (`client.hooks`) with the hook's `secret`. Deduplicate on the payload `id`: delivery is at least once.
+The scheme is exactly [Percia webhook docs](https://playground.percia.ai/docs/): `Percia-Signature: t=<unix>,v1=<hex HMAC-SHA256 of "<t>.<raw body>">`, constant-time compare, 300 s replay window in both directions. It also verifies REST-hook deliveries (`client.hooks`) with the hook's `secret`. Deduplicate on the payload `id`: delivery is at least once.
 
 ### Escape hatch
 

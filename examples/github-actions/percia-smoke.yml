@@ -52,7 +52,7 @@ jobs:
             exit 1
           fi
 
-  # The same check with the CLI. Not published yet (see docs/owner-steps.md): enable this job after `@percia/cli` is on npm.
+  # The same check with the CLI. Not on npm yet: enable this job once `@percia/cli` is published.
   # smoke-cli:
   #   if: false
   #   runs-on: ubuntu-latest

@@ -1,5 +1,5 @@
 {
-  "source": "percia-cf docs/specs/cameras/camera-push-api.md and ADR 0042 (master bb95c92, deployed as Worker versions d7aff9a6 then 5a591ed8), recorded 2026-11-14. Shared by the TypeScript, Python and CLI tests. Tokens here are fakes.",
+  "source": "The camera push contract as served by the Percia API, recorded 2026-11-14. Shared by the TypeScript, Python and CLI tests. Tokens here are fakes.",
   "register": {
     "request": {
       "name": "Hall camera",

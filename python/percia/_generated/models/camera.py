@@ -1,6 +1,7 @@
 import datetime
 from collections.abc import Mapping
 from typing import (
+    TYPE_CHECKING,
     Any,
     TypeVar,
     Union,
@@ -16,6 +17,10 @@ from ..models.camera_kind import CameraKind
 from ..models.camera_status import CameraStatus
 from ..types import UNSET, Unset
 
+if TYPE_CHECKING:
+    from ..models.camera_pull import CameraPull
+
+
 T = TypeVar("T", bound="Camera")
 
 
@@ -27,9 +32,12 @@ class Camera:
             made it said so; null for older cameras and for push cameras. Wording only.
         external_id (Union[None, Unset, str]): The connector's own id for a push camera.
         id (Union[Unset, str]):
-        kind (Union[Unset, CameraKind]): phone = paired by link; push = a connector on a LAN pushes WHIP with a token.
+        kind (Union[Unset, CameraKind]): phone = paired by link; push = a connector on a LAN pushes WHIP with a token;
+            link = a public RTSP/RTSPS/HTTP/HTTPS address Percia pulls itself; file = an uploaded video, played once. link
+            and file exist while PULL_CAMERAS is on.
         last_seen_at (Union[None, Unset, datetime.datetime]):
         name (Union[Unset, str]):
+        pull (Union[Unset, CameraPull]): link and file cameras only: the last report of the puller. Never an address.
         status (Union[Unset, CameraStatus]): online = heartbeat or an allowed publish under 60 s ago.
         watch_count (Union[Unset, int]):
     """
@@ -40,6 +48,7 @@ class Camera:
     kind: Union[Unset, CameraKind] = UNSET
     last_seen_at: Union[None, Unset, datetime.datetime] = UNSET
     name: Union[Unset, str] = UNSET
+    pull: Union[Unset, "CameraPull"] = UNSET
     status: Union[Unset, CameraStatus] = UNSET
     watch_count: Union[Unset, int] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
@@ -75,6 +84,10 @@ class Camera:
 
         name = self.name
 
+        pull: Union[Unset, dict[str, Any]] = UNSET
+        if not isinstance(self.pull, Unset):
+            pull = self.pull.to_dict()
+
         status: Union[Unset, str] = UNSET
         if not isinstance(self.status, Unset):
             status = self.status.value
@@ -96,6 +109,8 @@ class Camera:
             field_dict["lastSeenAt"] = last_seen_at
         if name is not UNSET:
             field_dict["name"] = name
+        if pull is not UNSET:
+            field_dict["pull"] = pull
         if status is not UNSET:
             field_dict["status"] = status
         if watch_count is not UNSET:
@@ -105,6 +120,8 @@ class Camera:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.camera_pull import CameraPull
+
         d = dict(src_dict)
 
         def _parse_device_kind(
@@ -163,6 +180,13 @@ class Camera:
 
         name = d.pop("name", UNSET)
 
+        _pull = d.pop("pull", UNSET)
+        pull: Union[Unset, CameraPull]
+        if isinstance(_pull, Unset):
+            pull = UNSET
+        else:
+            pull = CameraPull.from_dict(_pull)
+
         _status = d.pop("status", UNSET)
         status: Union[Unset, CameraStatus]
         if isinstance(_status, Unset):
@@ -179,6 +203,7 @@ class Camera:
             kind=kind,
             last_seen_at=last_seen_at,
             name=name,
+            pull=pull,
             status=status,
             watch_count=watch_count,
         )

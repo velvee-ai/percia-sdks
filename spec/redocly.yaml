@@ -1,7 +1,7 @@
 extends:
   - recommended
 rules:
-  # The document is produced by percia-cf; these are style rules we do not own.
+  # The document is produced by the Percia API; these are style rules we do not own.
   no-server-example.com: off
   operation-4xx-response: off
   security-defined: off

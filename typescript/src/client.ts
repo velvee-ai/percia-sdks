@@ -127,14 +127,10 @@ class Watches {
 	get(id: string) { return unwrap(this.c.api.getWatch({ path: { id } })); }
 	/**
 	 * Create a watch. The response is the only time `webhookSecret` is shown: store it.
-	 * Percia reads the goal into conditions (`interpretation` in the answer: read `gaps` and `untestable`). Pass `interpret: false`
-	 * to keep your words exactly (add `kind: "state" | "event"` if you know it), or `concerns: [{ text, kind, ignore? }]` to give the conditions yourself.
+	 * A clear goal creates the watch; an unclear one answers 422 `clarification_needed` (see the API docs). Parts that cannot be watched
+	 * answer 409 `unsupported_not_acknowledged`: tell the person, then repeat with `acknowledgeUnsupported: true`.
 	 */
 	create(body: Body<"createWatch">) { return unwrap(this.c.api.createWatch({ body })); }
-	/** What Percia understands of a goal, without creating anything (`deferred: true` means it takes longer and is read at creation). */
-	interpret(goal: string) { return unwrap(this.c.api.interpretGoal({ body: { goal } })); }
-	/** Understand the watch's current goal again (replaces conditions edited by hand). */
-	reinterpret(id: string) { return unwrap(this.c.api.reinterpretWatch({ path: { id } })); }
 	update(id: string, body: Body<"updateWatch">) { return unwrap(this.c.api.updateWatch({ path: { id }, body })); }
 	pause(id: string) { return this.update(id, { status: "paused" } as Body<"updateWatch">); }
 	resume(id: string) { return this.update(id, { status: "active" } as Body<"updateWatch">); }

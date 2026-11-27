@@ -17,6 +17,7 @@ def _get_kwargs(
     watch_id: Union[Unset, str] = UNSET,
     type_: Union[Unset, str] = UNSET,
     since: Union[Unset, str] = UNSET,
+    review: Union[Unset, str] = UNSET,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
@@ -29,6 +30,8 @@ def _get_kwargs(
     params["type"] = type_
 
     params["since"] = since
+
+    params["review"] = review
 
     params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
 
@@ -89,6 +92,7 @@ def sync_detailed(
     watch_id: Union[Unset, str] = UNSET,
     type_: Union[Unset, str] = UNSET,
     since: Union[Unset, str] = UNSET,
+    review: Union[Unset, str] = UNSET,
 ) -> Response[Union[Error, EventPage]]:
     """List events across all your watches, newest first
 
@@ -103,6 +107,7 @@ def sync_detailed(
         watch_id (Union[Unset, str]):
         type_ (Union[Unset, str]):
         since (Union[Unset, str]):
+        review (Union[Unset, str]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -118,6 +123,7 @@ def sync_detailed(
         watch_id=watch_id,
         type_=type_,
         since=since,
+        review=review,
     )
 
     response = client.get_httpx_client().request(
@@ -135,6 +141,7 @@ def sync(
     watch_id: Union[Unset, str] = UNSET,
     type_: Union[Unset, str] = UNSET,
     since: Union[Unset, str] = UNSET,
+    review: Union[Unset, str] = UNSET,
 ) -> Optional[Union[Error, EventPage]]:
     """List events across all your watches, newest first
 
@@ -149,6 +156,7 @@ def sync(
         watch_id (Union[Unset, str]):
         type_ (Union[Unset, str]):
         since (Union[Unset, str]):
+        review (Union[Unset, str]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -165,6 +173,7 @@ def sync(
         watch_id=watch_id,
         type_=type_,
         since=since,
+        review=review,
     ).parsed
 
 
@@ -176,6 +185,7 @@ async def asyncio_detailed(
     watch_id: Union[Unset, str] = UNSET,
     type_: Union[Unset, str] = UNSET,
     since: Union[Unset, str] = UNSET,
+    review: Union[Unset, str] = UNSET,
 ) -> Response[Union[Error, EventPage]]:
     """List events across all your watches, newest first
 
@@ -190,6 +200,7 @@ async def asyncio_detailed(
         watch_id (Union[Unset, str]):
         type_ (Union[Unset, str]):
         since (Union[Unset, str]):
+        review (Union[Unset, str]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -205,6 +216,7 @@ async def asyncio_detailed(
         watch_id=watch_id,
         type_=type_,
         since=since,
+        review=review,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -220,6 +232,7 @@ async def asyncio(
     watch_id: Union[Unset, str] = UNSET,
     type_: Union[Unset, str] = UNSET,
     since: Union[Unset, str] = UNSET,
+    review: Union[Unset, str] = UNSET,
 ) -> Optional[Union[Error, EventPage]]:
     """List events across all your watches, newest first
 
@@ -234,6 +247,7 @@ async def asyncio(
         watch_id (Union[Unset, str]):
         type_ (Union[Unset, str]):
         since (Union[Unset, str]):
+        review (Union[Unset, str]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -251,5 +265,6 @@ async def asyncio(
             watch_id=watch_id,
             type_=type_,
             since=since,
+            review=review,
         )
     ).parsed
