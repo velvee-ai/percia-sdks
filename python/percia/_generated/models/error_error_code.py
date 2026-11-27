@@ -6,6 +6,7 @@ class ErrorErrorCode(str, Enum):
     ADVANCED_REQUIRED = "advanced_required"
     ADVANCED_SIGNAL_UNDECLARED = "advanced_signal_undeclared"
     ADVANCED_UNAVAILABLE = "advanced_unavailable"
+    AGENT_DEPLOY_UNAVAILABLE = "agent_deploy_unavailable"
     AGENT_IN_USE = "agent_in_use"
     AGENT_LIMIT = "agent_limit"
     AGENT_NOT_PUBLISHED = "agent_not_published"

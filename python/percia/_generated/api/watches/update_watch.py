@@ -61,6 +61,26 @@ def _parse_response(
 
         return response_404
 
+    if response.status_code == 409:
+        response_409 = Error.from_dict(response.json())
+
+        return response_409
+
+    if response.status_code == 422:
+        response_422 = Error.from_dict(response.json())
+
+        return response_422
+
+    if response.status_code == 429:
+        response_429 = Error.from_dict(response.json())
+
+        return response_429
+
+    if response.status_code == 503:
+        response_503 = Error.from_dict(response.json())
+
+        return response_503
+
     if client.raise_on_unexpected_status:
         raise errors.UnexpectedStatus(response.status_code, response.content)
     else:
@@ -86,9 +106,16 @@ def sync_detailed(
 ) -> Response[Union[Error, Watch]]:
     r"""Update a watch. `status: \"active\"` with `testRun: true` starts a 30-minute live test run (events
     are marked test events); `status: \"active\"` alone goes live, also from a running test, with no
-    restart. A new `goal` is read again by Percia and the watch restarts on it. agentId (+ agentVersion,
-    null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal
-    detaches the agent.
+    restart. A new `goal` is read by Percia as on create, before anything changes: a running watch
+    judges the new conditions within seconds, a paused one stays paused, and the answer carries
+    `understanding`. If the goal cannot be accepted, nothing in the request is applied and the watch
+    keeps its earlier goal: 422 `clarification_needed` (`question`, `options`; send the PATCH again with
+    the answer in `goal`), 409 `unsupported_not_acknowledged` (leave that part out, or add
+    `acknowledgeUnsupported: true`), 422 `draft_refused` or `draft_multi_watch`, 503
+    `layer_unavailable`, `layer_unconfigured` or `layer_budget`, 429 `rate_limited`. Earlier events are
+    not rewritten. On a watch made with `advanced` conditions the goal only renames it. Deploying or re-
+    pinning an agent (`agentId`, `agentVersion`) is not available: 422 `agent_deploy_unavailable`,
+    nothing changes.
 
     Args:
         id (str):
@@ -122,9 +149,16 @@ def sync(
 ) -> Optional[Union[Error, Watch]]:
     r"""Update a watch. `status: \"active\"` with `testRun: true` starts a 30-minute live test run (events
     are marked test events); `status: \"active\"` alone goes live, also from a running test, with no
-    restart. A new `goal` is read again by Percia and the watch restarts on it. agentId (+ agentVersion,
-    null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal
-    detaches the agent.
+    restart. A new `goal` is read by Percia as on create, before anything changes: a running watch
+    judges the new conditions within seconds, a paused one stays paused, and the answer carries
+    `understanding`. If the goal cannot be accepted, nothing in the request is applied and the watch
+    keeps its earlier goal: 422 `clarification_needed` (`question`, `options`; send the PATCH again with
+    the answer in `goal`), 409 `unsupported_not_acknowledged` (leave that part out, or add
+    `acknowledgeUnsupported: true`), 422 `draft_refused` or `draft_multi_watch`, 503
+    `layer_unavailable`, `layer_unconfigured` or `layer_budget`, 429 `rate_limited`. Earlier events are
+    not rewritten. On a watch made with `advanced` conditions the goal only renames it. Deploying or re-
+    pinning an agent (`agentId`, `agentVersion`) is not available: 422 `agent_deploy_unavailable`,
+    nothing changes.
 
     Args:
         id (str):
@@ -153,9 +187,16 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, Watch]]:
     r"""Update a watch. `status: \"active\"` with `testRun: true` starts a 30-minute live test run (events
     are marked test events); `status: \"active\"` alone goes live, also from a running test, with no
-    restart. A new `goal` is read again by Percia and the watch restarts on it. agentId (+ agentVersion,
-    null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal
-    detaches the agent.
+    restart. A new `goal` is read by Percia as on create, before anything changes: a running watch
+    judges the new conditions within seconds, a paused one stays paused, and the answer carries
+    `understanding`. If the goal cannot be accepted, nothing in the request is applied and the watch
+    keeps its earlier goal: 422 `clarification_needed` (`question`, `options`; send the PATCH again with
+    the answer in `goal`), 409 `unsupported_not_acknowledged` (leave that part out, or add
+    `acknowledgeUnsupported: true`), 422 `draft_refused` or `draft_multi_watch`, 503
+    `layer_unavailable`, `layer_unconfigured` or `layer_budget`, 429 `rate_limited`. Earlier events are
+    not rewritten. On a watch made with `advanced` conditions the goal only renames it. Deploying or re-
+    pinning an agent (`agentId`, `agentVersion`) is not available: 422 `agent_deploy_unavailable`,
+    nothing changes.
 
     Args:
         id (str):
@@ -187,9 +228,16 @@ async def asyncio(
 ) -> Optional[Union[Error, Watch]]:
     r"""Update a watch. `status: \"active\"` with `testRun: true` starts a 30-minute live test run (events
     are marked test events); `status: \"active\"` alone goes live, also from a running test, with no
-    restart. A new `goal` is read again by Percia and the watch restarts on it. agentId (+ agentVersion,
-    null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal
-    detaches the agent.
+    restart. A new `goal` is read by Percia as on create, before anything changes: a running watch
+    judges the new conditions within seconds, a paused one stays paused, and the answer carries
+    `understanding`. If the goal cannot be accepted, nothing in the request is applied and the watch
+    keeps its earlier goal: 422 `clarification_needed` (`question`, `options`; send the PATCH again with
+    the answer in `goal`), 409 `unsupported_not_acknowledged` (leave that part out, or add
+    `acknowledgeUnsupported: true`), 422 `draft_refused` or `draft_multi_watch`, 503
+    `layer_unavailable`, `layer_unconfigured` or `layer_budget`, 429 `rate_limited`. Earlier events are
+    not rewritten. On a watch made with `advanced` conditions the goal only renames it. Deploying or re-
+    pinning an agent (`agentId`, `agentVersion`) is not available: 422 `agent_deploy_unavailable`,
+    nothing changes.
 
     Args:
         id (str):

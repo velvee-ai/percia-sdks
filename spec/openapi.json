@@ -734,6 +734,7 @@
                   "nothing_to_publish",
                   "agent_in_use",
                   "agent_not_published",
+                  "agent_deploy_unavailable",
                   "builder_unavailable",
                   "gone",
                   "site_limit",
@@ -13293,7 +13294,7 @@
                 }
               }
             },
-            "description": "Invalid field, or agent_not_published: the agent has no published version."
+            "description": "Invalid field."
           },
           "401": {
             "content": {
@@ -13372,7 +13373,7 @@
                 }
               }
             },
-            "description": "where recording is on. `clarification_needed`: nothing was created; the body has `draftId`, `question`, `options` [{label, definition}] and `guidance`. Also `draft_refused` (nothing visible to watch; `unsupported` lists why), `draft_multi_watch`, and `invalid_request` with `error.field` naming a refused retired input (cooldownS, kind, rearmS, recheckS, minConfidence, notWhen, zones, concerns, judgeKey, interpret, runtime)."
+            "description": "`agent_deploy_unavailable` (the body has `agentId` or `agentVersion`; nothing was created). Where recording is on: `clarification_needed`: nothing was created; the body has `draftId`, `question`, `options` [{label, definition}] and `guidance`. Also `draft_refused` (nothing visible to watch; `unsupported` lists why), `draft_multi_watch`, and `invalid_request` with `error.field` naming a refused retired input (cooldownS, kind, rearmS, recheckS, minConfidence, notWhen, zones, concerns, judgeKey, interpret, runtime)."
           },
           "429": {
             "content": {
@@ -13402,7 +13403,7 @@
             ]
           }
         ],
-        "summary": "Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge) to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Percia reads the goal through its intelligence layer (see POST /watches/draft). Send `draftId` (a ready draft from POST /watches/draft, with `acknowledgeUnsupported: true` when it left parts out) instead of `goal`; the draft holds the conditions. A create with a `goal` is read by Percia's layer first. A clear goal creates the watch as before. An unclear one creates nothing and answers 422 `clarification_needed` with `draftId`, `question` and `options` (and `guidance`): ask the person, answer with POST /watches/draft/{draftId}/answer {text}, then create with {sourceUrl, draftId}; or send a clearer goal. Parts that cannot be watched answer 409 `unsupported_not_acknowledged` (tell the person, then repeat with `acknowledgeUnsupported: true`). Per-watch tuning knobs from older versions are refused with 422 `invalid_request` naming the field in `error.field` (cooldownS, kind, rearmS, recheckS, minConfidence, notWhen, zones, concerns, judgeKey, interpret, runtime): the goal and the draft say everything.",
+        "summary": "Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge) to push that camera. Send `goal`. Deploying an agent (`agentId`, `agentVersion`) is not available: it answers 422 `agent_deploy_unavailable` and creates nothing. Percia reads the goal through its intelligence layer (see POST /watches/draft). Send `draftId` (a ready draft from POST /watches/draft, with `acknowledgeUnsupported: true` when it left parts out) instead of `goal`; the draft holds the conditions. A create with a `goal` is read by Percia's layer first. A clear goal creates the watch as before. An unclear one creates nothing and answers 422 `clarification_needed` with `draftId`, `question` and `options` (and `guidance`): ask the person, answer with POST /watches/draft/{draftId}/answer {text}, then create with {sourceUrl, draftId}; or send a clearer goal. Parts that cannot be watched answer 409 `unsupported_not_acknowledged` (tell the person, then repeat with `acknowledgeUnsupported: true`). Per-watch tuning knobs from older versions are refused with 422 `invalid_request` naming the field in `error.field` (cooldownS, kind, rearmS, recheckS, minConfidence, notWhen, zones, concerns, judgeKey, interpret, runtime): the goal and the draft say everything.",
         "tags": [
           "watches"
         ],
@@ -13937,6 +13938,9 @@
             "application/json": {
               "schema": {
                 "properties": {
+                  "acknowledgeUnsupported": {
+                    "type": "boolean"
+                  },
                   "advanced": {
                     "additionalProperties": false,
                     "description": "Beta, only where recording is on (422 advanced_unavailable elsewhere): your own conditions. `conditions[]` are Condition objects {condition_id, kind (event|state|measurement), observable, role?: helper, while?/and_not?: {condition_id} or {signal: {signal, op, value}}, window_by?, window?, window_signal?, thresholds?: {..., trend, trend_window_s, trend_min_samples, trend_noise_floor, trend_slope}}. Example, alert if the belt stops while the motor is on: [{condition_id:\"belt_stopped\", kind:\"state\", observable:\"the belt is not moving\", while:{signal:{signal:\"motor_running\", op:\"==\", value:true}}}] (declare motor_running in the site's context first, and join the watch to that site with siteId). The source must be a Percia camera. See /docs/advanced.md.",
@@ -14144,6 +14148,46 @@
               }
             },
             "description": "Not found."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "unsupported_not_acknowledged (part of a new goal cannot be watched), or draft_not_ready (a resume while Percia still has a question about the watch)."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "agent_deploy_unavailable (the body has agentId or agentVersion), clarification_needed, draft_refused or draft_multi_watch about a new goal, or a change this watch cannot take (`error.field`). Nothing changed."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "rate_limited (too many goal changes), or plan_limit on a resume."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The new goal could not be read just now (layer_unavailable, layer_unconfigured, layer_budget). Nothing changed."
           }
         },
         "security": [
@@ -14153,7 +14197,7 @@
             ]
           }
         ],
-        "summary": "Update a watch. `status: \"active\"` with `testRun: true` starts a 30-minute live test run (events are marked test events); `status: \"active\"` alone goes live, also from a running test, with no restart. A new `goal` is read again by Percia and the watch restarts on it. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal detaches the agent.",
+        "summary": "Update a watch. `status: \"active\"` with `testRun: true` starts a 30-minute live test run (events are marked test events); `status: \"active\"` alone goes live, also from a running test, with no restart. A new `goal` is read by Percia as on create, before anything changes: a running watch judges the new conditions within seconds, a paused one stays paused, and the answer carries `understanding`. If the goal cannot be accepted, nothing in the request is applied and the watch keeps its earlier goal: 422 `clarification_needed` (`question`, `options`; send the PATCH again with the answer in `goal`), 409 `unsupported_not_acknowledged` (leave that part out, or add `acknowledgeUnsupported: true`), 422 `draft_refused` or `draft_multi_watch`, 503 `layer_unavailable`, `layer_unconfigured` or `layer_budget`, 429 `rate_limited`. Earlier events are not rewritten. On a watch made with `advanced` conditions the goal only renames it. Deploying or re-pinning an agent (`agentId`, `agentVersion`) is not available: 422 `agent_deploy_unavailable`, nothing changes.",
         "tags": [
           "watches"
         ],

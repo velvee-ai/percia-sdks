@@ -27,6 +27,7 @@ T = TypeVar("T", bound="UpdateWatchBody")
 class UpdateWatchBody:
     """
     Attributes:
+        acknowledge_unsupported (Union[Unset, bool]):
         advanced (Union[Unset, UpdateWatchBodyAdvanced]): Beta, only where recording is on (422 advanced_unavailable
             elsewhere): your own conditions. `conditions[]` are Condition objects {condition_id, kind
             (event|state|measurement), observable, role?: helper, while?/and_not?: {condition_id} or {signal: {signal, op,
@@ -46,6 +47,7 @@ class UpdateWatchBody:
         test_run (Union[Unset, bool]):
     """
 
+    acknowledge_unsupported: Union[Unset, bool] = UNSET
     advanced: Union[Unset, "UpdateWatchBodyAdvanced"] = UNSET
     agent_id: Union[Unset, str] = UNSET
     agent_version: Union[None, Unset, int] = UNSET
@@ -60,6 +62,8 @@ class UpdateWatchBody:
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.update_watch_body_notify_type_0 import UpdateWatchBodyNotifyType0
+
+        acknowledge_unsupported = self.acknowledge_unsupported
 
         advanced: Union[Unset, dict[str, Any]] = UNSET
         if not isinstance(self.advanced, Unset):
@@ -104,6 +108,8 @@ class UpdateWatchBody:
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update({})
+        if acknowledge_unsupported is not UNSET:
+            field_dict["acknowledgeUnsupported"] = acknowledge_unsupported
         if advanced is not UNSET:
             field_dict["advanced"] = advanced
         if agent_id is not UNSET:
@@ -134,6 +140,8 @@ class UpdateWatchBody:
         from ..models.update_watch_body_notify_type_1 import UpdateWatchBodyNotifyType1
 
         d = dict(src_dict)
+        acknowledge_unsupported = d.pop("acknowledgeUnsupported", UNSET)
+
         _advanced = d.pop("advanced", UNSET)
         advanced: Union[Unset, UpdateWatchBodyAdvanced]
         if isinstance(_advanced, Unset):
@@ -203,6 +211,7 @@ class UpdateWatchBody:
         test_run = d.pop("testRun", UNSET)
 
         update_watch_body = cls(
+            acknowledge_unsupported=acknowledge_unsupported,
             advanced=advanced,
             agent_id=agent_id,
             agent_version=agent_version,

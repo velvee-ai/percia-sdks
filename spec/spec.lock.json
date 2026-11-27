@@ -1,7 +1,7 @@
 {
   "source": "https://playground.percia.ai/api/openapi.json",
   "checkUrl": "https://playground.percia.ai/api/openapi.json",
-  "sha256": "b08b4433f5d807391023d801fd4a4f8222f012676c4cc0c1cce8c17d21258013",
+  "sha256": "2b05fe5cb05e79774b8f5f4ce7cc2418414428223c2ec59b5bbb29aebd16bb53",
   "openapi": "3.1.0",
   "title": "Percia API",
   "version": "1.0.0",

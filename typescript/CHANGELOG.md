@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.4 (2026-11-27)
+
+- Synced with the Percia API (146 operations). `PATCH /api/watches/{id}` takes `acknowledgeUnsupported`; a new `goal` is read by Percia before anything changes, so the update can fail with 409 `unsupported_not_acknowledged`, 422 `clarification_needed` / `draft_refused` / `draft_multi_watch`, 429 `rate_limited` or 503 `layer_*`, and then nothing changes. Deploying an agent to a watch (`agentId`, `agentVersion`) is switched off: 422 `agent_deploy_unavailable` (new error code). `SDK_VERSION` is 0.3.4.
+
 ## 0.3.3 (2026-11-27)
 
 - Synced with the Percia API (146 operations): new `GET /api/whoami` (`getWhoami`), which any valid API key, OAuth access token or session passes; OAuth descriptions and the `judging` state text updated. New `client.account.whoami()` and the type `Whoami`. `SDK_VERSION` is 0.3.3.

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.4 (2026-11-27)
+
+- `percia watches create --help` says that `--agent` / `--agent-version` are not available (the API answers 422 `agent_deploy_unavailable`). Built against `@percia/sdk` 0.3.4.
+
 ## 0.3.3 (2026-11-27)
 
 - `percia whoami` reads `GET /api/whoami`: account (masked for OAuth), key or app name and granted scopes; `--json` adds `identity`, and `account` is now filled for API keys too (`id`). A rejected credential exits 3. Hosts without the route fall back to the previous behaviour.

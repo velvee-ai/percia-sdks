@@ -31,8 +31,8 @@ export function registerWatches(program: Command, { ctx, globals }: Deps) {
 		.description("Create a watch. The webhook secret is printed once: save it.")
 		.requiredOption("--source <url>", "camera: rtsp://, rtsps://, http(s):// video URL, or percia-cam://<cameraId>")
 		.option("--goal <text>", "what to watch for, in plain words (5 to 500 characters)")
-		.option("--agent <id>", "deploy a published agent instead of a goal")
-		.option("--agent-version <n>", "pin an agent version", (v) => Number(v))
+		.option("--agent <id>", "deploy a published agent (not available: the API answers agent_deploy_unavailable)")
+		.option("--agent-version <n>", "pin an agent version (not available, see --agent)", (v) => Number(v))
 		.option("--webhook <url>", "send a signed webhook to this public https address")
 		.option("--email <address>", "email this address (default: the account owner)")
 		.action(async (o: { source: string; goal?: string; agent?: string; agentVersion?: number; webhook?: string; email?: string}) => {

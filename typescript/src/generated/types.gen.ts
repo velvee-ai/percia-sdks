@@ -261,7 +261,7 @@ export type Entity = {
  */
 export type Error = {
     error: {
-        code: 'unauthenticated' | 'invalid_api_key' | 'insufficient_scope' | 'not_found' | 'invalid_request' | 'rate_limited' | 'bot_check_failed' | 'conflict' | 'forbidden' | 'internal' | 'instant_disabled' | 'daily_cap' | 'ip_cap' | 'pairing_invalid' | 'camera_in_use' | 'unsupported_type' | 'too_large' | 'too_long' | 'bad_container' | 'bad_codec' | 'bad_part' | 'upload_limit' | 'invalid_url' | 'fetch_failed' | 'in_use' | 'draft_closed' | 'draft_ready' | 'draft_refused' | 'draft_too_long' | 'draft_not_ready' | 'draft_changed' | 'draft_multi_watch' | 'draft_unreadable' | 'clarification_needed' | 'unsupported_not_acknowledged' | 'layer_unconfigured' | 'layer_budget' | 'layer_unavailable' | 'wrong_kind' | 'demo_unavailable' | 'demo_capped' | 'session_frames' | 'session_over' | 'bad_token' | 'judge_failed' | 'camera_limit' | 'goal_not_allowed' | 'agent_limit' | 'nothing_to_publish' | 'agent_in_use' | 'agent_not_published' | 'builder_unavailable' | 'gone' | 'site_limit' | 'ask_unavailable' | 'judge_unavailable' | 'live_unavailable' | 'plan_limit' | 'key_invalid' | 'keys_unavailable' | 'selling_disabled' | 'payment_required' | 'integration_unavailable' | 'reauth_required' | 'deletion_incomplete' | 'code_invalid' | 'code_already_redeemed' | 'card_required' | 'already_subscribed' | 'advanced_unavailable' | 'advanced_needs_percia_camera' | 'advanced_signal_undeclared' | 'advanced_required' | 'revision_mismatch' | 'context_limit' | 'signal_rejected' | 'signals_unavailable' | 'event_here' | 'tests_unavailable' | 'test_running' | 'clip_unavailable';
+        code: 'unauthenticated' | 'invalid_api_key' | 'insufficient_scope' | 'not_found' | 'invalid_request' | 'rate_limited' | 'bot_check_failed' | 'conflict' | 'forbidden' | 'internal' | 'instant_disabled' | 'daily_cap' | 'ip_cap' | 'pairing_invalid' | 'camera_in_use' | 'unsupported_type' | 'too_large' | 'too_long' | 'bad_container' | 'bad_codec' | 'bad_part' | 'upload_limit' | 'invalid_url' | 'fetch_failed' | 'in_use' | 'draft_closed' | 'draft_ready' | 'draft_refused' | 'draft_too_long' | 'draft_not_ready' | 'draft_changed' | 'draft_multi_watch' | 'draft_unreadable' | 'clarification_needed' | 'unsupported_not_acknowledged' | 'layer_unconfigured' | 'layer_budget' | 'layer_unavailable' | 'wrong_kind' | 'demo_unavailable' | 'demo_capped' | 'session_frames' | 'session_over' | 'bad_token' | 'judge_failed' | 'camera_limit' | 'goal_not_allowed' | 'agent_limit' | 'nothing_to_publish' | 'agent_in_use' | 'agent_not_published' | 'agent_deploy_unavailable' | 'builder_unavailable' | 'gone' | 'site_limit' | 'ask_unavailable' | 'judge_unavailable' | 'live_unavailable' | 'plan_limit' | 'key_invalid' | 'keys_unavailable' | 'selling_disabled' | 'payment_required' | 'integration_unavailable' | 'reauth_required' | 'deletion_incomplete' | 'code_invalid' | 'code_already_redeemed' | 'card_required' | 'already_subscribed' | 'advanced_unavailable' | 'advanced_needs_percia_camera' | 'advanced_signal_undeclared' | 'advanced_required' | 'revision_mismatch' | 'context_limit' | 'signal_rejected' | 'signals_unavailable' | 'event_here' | 'tests_unavailable' | 'test_running' | 'clip_unavailable';
         /**
          * Name of the offending request field, on validation errors.
          */
@@ -5584,7 +5584,7 @@ export type CreateWatchData = {
 
 export type CreateWatchErrors = {
     /**
-     * Invalid field, or agent_not_published: the agent has no published version.
+     * Invalid field.
      */
     400: Error;
     /**
@@ -5600,7 +5600,7 @@ export type CreateWatchErrors = {
      */
     409: Error;
     /**
-     * where recording is on. `clarification_needed`: nothing was created; the body has `draftId`, `question`, `options` [{label, definition}] and `guidance`. Also `draft_refused` (nothing visible to watch; `unsupported` lists why), `draft_multi_watch`, and `invalid_request` with `error.field` naming a refused retired input (cooldownS, kind, rearmS, recheckS, minConfidence, notWhen, zones, concerns, judgeKey, interpret, runtime).
+     * `agent_deploy_unavailable` (the body has `agentId` or `agentVersion`; nothing was created). Where recording is on: `clarification_needed`: nothing was created; the body has `draftId`, `question`, `options` [{label, definition}] and `guidance`. Also `draft_refused` (nothing visible to watch; `unsupported` lists why), `draft_multi_watch`, and `invalid_request` with `error.field` naming a refused retired input (cooldownS, kind, rearmS, recheckS, minConfidence, notWhen, zones, concerns, judgeKey, interpret, runtime).
      */
     422: {
         draftId?: string;
@@ -6036,6 +6036,7 @@ export type GetWatchResponse = GetWatchResponses[keyof GetWatchResponses];
 
 export type UpdateWatchData = {
     body: {
+        acknowledgeUnsupported?: boolean;
         /**
          * Beta, only where recording is on (422 advanced_unavailable elsewhere): your own conditions. `conditions[]` are Condition objects {condition_id, kind (event|state|measurement), observable, role?: helper, while?/and_not?: {condition_id} or {signal: {signal, op, value}}, window_by?, window?, window_signal?, thresholds?: {..., trend, trend_window_s, trend_min_samples, trend_noise_floor, trend_slope}}. Example, alert if the belt stops while the motor is on: [{condition_id:"belt_stopped", kind:"state", observable:"the belt is not moving", while:{signal:{signal:"motor_running", op:"==", value:true}}}] (declare motor_running in the site's context first, and join the watch to that site with siteId). The source must be a Percia camera. See /docs/advanced.md.
          */
@@ -6089,6 +6090,22 @@ export type UpdateWatchErrors = {
      * Not found.
      */
     404: Error;
+    /**
+     * unsupported_not_acknowledged (part of a new goal cannot be watched), or draft_not_ready (a resume while Percia still has a question about the watch).
+     */
+    409: Error;
+    /**
+     * agent_deploy_unavailable (the body has agentId or agentVersion), clarification_needed, draft_refused or draft_multi_watch about a new goal, or a change this watch cannot take (`error.field`). Nothing changed.
+     */
+    422: Error;
+    /**
+     * rate_limited (too many goal changes), or plan_limit on a resume.
+     */
+    429: Error;
+    /**
+     * The new goal could not be read just now (layer_unavailable, layer_unconfigured, layer_budget). Nothing changed.
+     */
+    503: Error;
 };
 
 export type UpdateWatchError = UpdateWatchErrors[keyof UpdateWatchErrors];
