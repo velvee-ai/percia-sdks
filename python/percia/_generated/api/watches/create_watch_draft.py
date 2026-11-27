@@ -85,14 +85,14 @@ def sync_detailed(
     client: AuthenticatedClient,
     body: CreateWatchDraftBody,
 ) -> Response[Union[CreateWatchDraftResponse201, Error]]:
-    """Start a watch the clarifying way (Percia; 404 unless Percia has it on). Send the plain ask and the
-    camera (`cameraId` of one of your cameras, or a public `sourceUrl`). Percia's intelligence layer
-    reads it and answers with a draft: `status` clarifying (ask the person `question`; `options` are
-    numbered meanings they may pick by number or replace with their own words), ready (conditions
-    understood: create the watch with POST /watches/owned {draftId, sourceUrl}), or refused (nothing
-    visible is left to watch). `unsupported` lists parts that cannot be watched (audio, several cameras,
-    who someone is: `refused` true); when `needsAcknowledgement` is true tell the person, then create
-    with `acknowledgeUnsupported: true`. Nothing is created yet.
+    """Start a watch the clarifying way (Percia). Send the plain ask and the camera (`cameraId` of one of
+    your cameras, or a public `sourceUrl`). Percia's intelligence layer reads it and answers with a
+    draft: `status` clarifying (ask the person `question`; `options` are numbered meanings they may pick
+    by number or replace with their own words), ready (conditions understood: create the watch with POST
+    /watches/owned {draftId, sourceUrl}), or refused (nothing visible is left to watch). `unsupported`
+    lists parts that cannot be watched (audio, several cameras, who someone is: `refused` true); when
+    `needsAcknowledgement` is true tell the person, then create with `acknowledgeUnsupported: true`.
+    Nothing is created yet.
 
     Args:
         body (CreateWatchDraftBody):
@@ -121,14 +121,14 @@ def sync(
     client: AuthenticatedClient,
     body: CreateWatchDraftBody,
 ) -> Optional[Union[CreateWatchDraftResponse201, Error]]:
-    """Start a watch the clarifying way (Percia; 404 unless Percia has it on). Send the plain ask and the
-    camera (`cameraId` of one of your cameras, or a public `sourceUrl`). Percia's intelligence layer
-    reads it and answers with a draft: `status` clarifying (ask the person `question`; `options` are
-    numbered meanings they may pick by number or replace with their own words), ready (conditions
-    understood: create the watch with POST /watches/owned {draftId, sourceUrl}), or refused (nothing
-    visible is left to watch). `unsupported` lists parts that cannot be watched (audio, several cameras,
-    who someone is: `refused` true); when `needsAcknowledgement` is true tell the person, then create
-    with `acknowledgeUnsupported: true`. Nothing is created yet.
+    """Start a watch the clarifying way (Percia). Send the plain ask and the camera (`cameraId` of one of
+    your cameras, or a public `sourceUrl`). Percia's intelligence layer reads it and answers with a
+    draft: `status` clarifying (ask the person `question`; `options` are numbered meanings they may pick
+    by number or replace with their own words), ready (conditions understood: create the watch with POST
+    /watches/owned {draftId, sourceUrl}), or refused (nothing visible is left to watch). `unsupported`
+    lists parts that cannot be watched (audio, several cameras, who someone is: `refused` true); when
+    `needsAcknowledgement` is true tell the person, then create with `acknowledgeUnsupported: true`.
+    Nothing is created yet.
 
     Args:
         body (CreateWatchDraftBody):
@@ -152,14 +152,14 @@ async def asyncio_detailed(
     client: AuthenticatedClient,
     body: CreateWatchDraftBody,
 ) -> Response[Union[CreateWatchDraftResponse201, Error]]:
-    """Start a watch the clarifying way (Percia; 404 unless Percia has it on). Send the plain ask and the
-    camera (`cameraId` of one of your cameras, or a public `sourceUrl`). Percia's intelligence layer
-    reads it and answers with a draft: `status` clarifying (ask the person `question`; `options` are
-    numbered meanings they may pick by number or replace with their own words), ready (conditions
-    understood: create the watch with POST /watches/owned {draftId, sourceUrl}), or refused (nothing
-    visible is left to watch). `unsupported` lists parts that cannot be watched (audio, several cameras,
-    who someone is: `refused` true); when `needsAcknowledgement` is true tell the person, then create
-    with `acknowledgeUnsupported: true`. Nothing is created yet.
+    """Start a watch the clarifying way (Percia). Send the plain ask and the camera (`cameraId` of one of
+    your cameras, or a public `sourceUrl`). Percia's intelligence layer reads it and answers with a
+    draft: `status` clarifying (ask the person `question`; `options` are numbered meanings they may pick
+    by number or replace with their own words), ready (conditions understood: create the watch with POST
+    /watches/owned {draftId, sourceUrl}), or refused (nothing visible is left to watch). `unsupported`
+    lists parts that cannot be watched (audio, several cameras, who someone is: `refused` true); when
+    `needsAcknowledgement` is true tell the person, then create with `acknowledgeUnsupported: true`.
+    Nothing is created yet.
 
     Args:
         body (CreateWatchDraftBody):
@@ -186,14 +186,14 @@ async def asyncio(
     client: AuthenticatedClient,
     body: CreateWatchDraftBody,
 ) -> Optional[Union[CreateWatchDraftResponse201, Error]]:
-    """Start a watch the clarifying way (Percia; 404 unless Percia has it on). Send the plain ask and the
-    camera (`cameraId` of one of your cameras, or a public `sourceUrl`). Percia's intelligence layer
-    reads it and answers with a draft: `status` clarifying (ask the person `question`; `options` are
-    numbered meanings they may pick by number or replace with their own words), ready (conditions
-    understood: create the watch with POST /watches/owned {draftId, sourceUrl}), or refused (nothing
-    visible is left to watch). `unsupported` lists parts that cannot be watched (audio, several cameras,
-    who someone is: `refused` true); when `needsAcknowledgement` is true tell the person, then create
-    with `acknowledgeUnsupported: true`. Nothing is created yet.
+    """Start a watch the clarifying way (Percia). Send the plain ask and the camera (`cameraId` of one of
+    your cameras, or a public `sourceUrl`). Percia's intelligence layer reads it and answers with a
+    draft: `status` clarifying (ask the person `question`; `options` are numbered meanings they may pick
+    by number or replace with their own words), ready (conditions understood: create the watch with POST
+    /watches/owned {draftId, sourceUrl}), or refused (nothing visible is left to watch). `unsupported`
+    lists parts that cannot be watched (audio, several cameras, who someone is: `refused` true); when
+    `needsAcknowledgement` is true tell the person, then create with `acknowledgeUnsupported: true`.
+    Nothing is created yet.
 
     Args:
         body (CreateWatchDraftBody):

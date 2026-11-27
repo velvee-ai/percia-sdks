@@ -1,6 +1,6 @@
 {
   "name": "@percia/cli",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Command line for Percia: watches, events, cameras, alert destinations, REST hooks, local webhook forwarding and MCP setup.",
   "license": "MIT",
   "author": "Velvee, Inc. <support@velvee.ai>",

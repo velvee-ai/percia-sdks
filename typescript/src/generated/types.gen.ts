@@ -3687,41 +3687,6 @@ export type DeleteApiKeyResponses = {
     200: unknown;
 };
 
-export type GetManagedWatchData = {
-    body?: never;
-    path: {
-        token: string;
-    };
-    query?: never;
-    url: '/manage/{token}';
-};
-
-export type GetManagedWatchErrors = {
-    /**
-     * Not signed in.
-     */
-    401: Error;
-    /**
-     * Belongs to another account.
-     */
-    403: Error;
-    /**
-     * Invalid link.
-     */
-    404: Error;
-};
-
-export type GetManagedWatchError = GetManagedWatchErrors[keyof GetManagedWatchErrors];
-
-export type GetManagedWatchResponses = {
-    /**
-     * The watch.
-     */
-    200: Watch;
-};
-
-export type GetManagedWatchResponse = GetManagedWatchResponses[keyof GetManagedWatchResponses];
-
 export type GetAccountData = {
     body?: never;
     path?: never;
@@ -5635,7 +5600,7 @@ export type CreateWatchErrors = {
      */
     409: Error;
     /**
-     * where recording is on. `clarification_needed`: nothing was created; the body has `draftId`, `question`, `options` [{label, definition}] and `guidance`. Also `draft_refused` (nothing visible to watch; `unsupported` lists why), `draft_multi_watch`, and `invalid_request` with `error.field` naming a refused v1-only input (cooldownS, kind, rearmS, recheckS, minConfidence, notWhen, zones, concerns, judgeKey, interpret, runtime).
+     * where recording is on. `clarification_needed`: nothing was created; the body has `draftId`, `question`, `options` [{label, definition}] and `guidance`. Also `draft_refused` (nothing visible to watch; `unsupported` lists why), `draft_multi_watch`, and `invalid_request` with `error.field` naming a refused retired input (cooldownS, kind, rearmS, recheckS, minConfidence, notWhen, zones, concerns, judgeKey, interpret, runtime).
      */
     422: {
         draftId?: string;

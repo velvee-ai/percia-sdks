@@ -86,10 +86,9 @@ def sync_detailed(
 ) -> Response[Union[Error, Watch]]:
     r"""Update a watch. `status: \"active\"` with `testRun: true` starts a 30-minute live test run (events
     are marked test events); `status: \"active\"` alone goes live, also from a running test, with no
-    restart. A new goal is understood again (interpret: false keeps the words as written);
-    interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as
-    reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch;
-    agentVersion alone re-pins; goal detaches the agent.
+    restart. A new `goal` is read again by Percia and the watch restarts on it. agentId (+ agentVersion,
+    null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal
+    detaches the agent.
 
     Args:
         id (str):
@@ -123,10 +122,9 @@ def sync(
 ) -> Optional[Union[Error, Watch]]:
     r"""Update a watch. `status: \"active\"` with `testRun: true` starts a 30-minute live test run (events
     are marked test events); `status: \"active\"` alone goes live, also from a running test, with no
-    restart. A new goal is understood again (interpret: false keeps the words as written);
-    interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as
-    reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch;
-    agentVersion alone re-pins; goal detaches the agent.
+    restart. A new `goal` is read again by Percia and the watch restarts on it. agentId (+ agentVersion,
+    null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal
+    detaches the agent.
 
     Args:
         id (str):
@@ -155,10 +153,9 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, Watch]]:
     r"""Update a watch. `status: \"active\"` with `testRun: true` starts a 30-minute live test run (events
     are marked test events); `status: \"active\"` alone goes live, also from a running test, with no
-    restart. A new goal is understood again (interpret: false keeps the words as written);
-    interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as
-    reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch;
-    agentVersion alone re-pins; goal detaches the agent.
+    restart. A new `goal` is read again by Percia and the watch restarts on it. agentId (+ agentVersion,
+    null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal
+    detaches the agent.
 
     Args:
         id (str):
@@ -190,10 +187,9 @@ async def asyncio(
 ) -> Optional[Union[Error, Watch]]:
     r"""Update a watch. `status: \"active\"` with `testRun: true` starts a 30-minute live test run (events
     are marked test events); `status: \"active\"` alone goes live, also from a running test, with no
-    restart. A new goal is understood again (interpret: false keeps the words as written);
-    interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as
-    reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch;
-    agentVersion alone re-pins; goal detaches the agent.
+    restart. A new `goal` is read again by Percia and the watch restarts on it. agentId (+ agentVersion,
+    null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal
+    detaches the agent.
 
     Args:
         id (str):

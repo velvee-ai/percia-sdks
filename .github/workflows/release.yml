@@ -1,6 +1,8 @@
 name: Release (npm)
-# Written, not run. Uses changesets: merging the "Version packages" PR publishes @percia/sdk and @percia/cli to npm
+# Uses changesets: merging the "Version packages" PR publishes @percia/sdk and @percia/cli to npm
 # with trusted publishing (OIDC) and provenance: no npm token is stored.
+# Off until trusted publishing is set up on npmjs.com for both packages: then set the repository variable NPM_TRUSTED_PUBLISHING to "true".
+# Until then releases are published by hand (the job is skipped, not failed).
 on:
   push:
     branches: [main]
@@ -15,7 +17,7 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    if: github.repository == 'velvee-ai/percia-sdks'
+    if: github.repository == 'velvee-ai/percia-sdks' && vars.NPM_TRUSTED_PUBLISHING == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

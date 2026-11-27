@@ -96,27 +96,22 @@ def sync_detailed(
     client: AuthenticatedClient,
     body: CreateWatchBody,
 ) -> Response[Union[CreateWatchResponse201, CreateWatchResponse422, Error]]:
-    r"""Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-
+    """Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-
     cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an
     NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge)
     to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the
-    latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept
-    Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for
-    phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the
-    goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read
-    `interpretation.gaps` and `untestable` and ask the person those questions. Send `draftId` (a ready
-    draft from POST /watches/draft, with `acknowledgeUnsupported: true` when it left parts out) instead
-    of `goal`; the draft has the conditions. Send `interpret: false` to keep the words exactly as
-    written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10)
-    to give the conditions yourself; not with an agent. With clarifying (when Percia has it on; see GET
-    /config): a create with a `goal` is read by Percia's layer first. A clear goal creates the watch as
-    before. An unclear one creates nothing and answers 422 `clarification_needed` with `draftId`,
+    latest) to deploy a published agent. Percia reads the goal through its intelligence layer (see POST
+    /watches/draft). Send `draftId` (a ready draft from POST /watches/draft, with
+    `acknowledgeUnsupported: true` when it left parts out) instead of `goal`; the draft holds the
+    conditions. A create with a `goal` is read by Percia's layer first. A clear goal creates the watch
+    as before. An unclear one creates nothing and answers 422 `clarification_needed` with `draftId`,
     `question` and `options` (and `guidance`): ask the person, answer with POST
     /watches/draft/{draftId}/answer {text}, then create with {sourceUrl, draftId}; or send a clearer
     goal. Parts that cannot be watched answer 409 `unsupported_not_acknowledged` (tell the person, then
-    repeat with `acknowledgeUnsupported: true`). The old per-watch knobs are refused with 422 naming the
-    field in `error.field`, from the first call: cooldownS, kind, rearmS, recheckS, minConfidence,
-    notWhen, zones, concerns, judgeKey, interpret, and runtime: core.
+    repeat with `acknowledgeUnsupported: true`). Per-watch tuning knobs from older versions are refused
+    with 422 `invalid_request` naming the field in `error.field` (cooldownS, kind, rearmS, recheckS,
+    minConfidence, notWhen, zones, concerns, judgeKey, interpret, runtime): the goal and the draft say
+    everything.
 
     Args:
         body (CreateWatchBody):
@@ -145,27 +140,22 @@ def sync(
     client: AuthenticatedClient,
     body: CreateWatchBody,
 ) -> Optional[Union[CreateWatchResponse201, CreateWatchResponse422, Error]]:
-    r"""Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-
+    """Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-
     cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an
     NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge)
     to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the
-    latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept
-    Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for
-    phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the
-    goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read
-    `interpretation.gaps` and `untestable` and ask the person those questions. Send `draftId` (a ready
-    draft from POST /watches/draft, with `acknowledgeUnsupported: true` when it left parts out) instead
-    of `goal`; the draft has the conditions. Send `interpret: false` to keep the words exactly as
-    written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10)
-    to give the conditions yourself; not with an agent. With clarifying (when Percia has it on; see GET
-    /config): a create with a `goal` is read by Percia's layer first. A clear goal creates the watch as
-    before. An unclear one creates nothing and answers 422 `clarification_needed` with `draftId`,
+    latest) to deploy a published agent. Percia reads the goal through its intelligence layer (see POST
+    /watches/draft). Send `draftId` (a ready draft from POST /watches/draft, with
+    `acknowledgeUnsupported: true` when it left parts out) instead of `goal`; the draft holds the
+    conditions. A create with a `goal` is read by Percia's layer first. A clear goal creates the watch
+    as before. An unclear one creates nothing and answers 422 `clarification_needed` with `draftId`,
     `question` and `options` (and `guidance`): ask the person, answer with POST
     /watches/draft/{draftId}/answer {text}, then create with {sourceUrl, draftId}; or send a clearer
     goal. Parts that cannot be watched answer 409 `unsupported_not_acknowledged` (tell the person, then
-    repeat with `acknowledgeUnsupported: true`). The old per-watch knobs are refused with 422 naming the
-    field in `error.field`, from the first call: cooldownS, kind, rearmS, recheckS, minConfidence,
-    notWhen, zones, concerns, judgeKey, interpret, and runtime: core.
+    repeat with `acknowledgeUnsupported: true`). Per-watch tuning knobs from older versions are refused
+    with 422 `invalid_request` naming the field in `error.field` (cooldownS, kind, rearmS, recheckS,
+    minConfidence, notWhen, zones, concerns, judgeKey, interpret, runtime): the goal and the draft say
+    everything.
 
     Args:
         body (CreateWatchBody):
@@ -189,27 +179,22 @@ async def asyncio_detailed(
     client: AuthenticatedClient,
     body: CreateWatchBody,
 ) -> Response[Union[CreateWatchResponse201, CreateWatchResponse422, Error]]:
-    r"""Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-
+    """Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-
     cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an
     NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge)
     to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the
-    latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept
-    Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for
-    phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the
-    goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read
-    `interpretation.gaps` and `untestable` and ask the person those questions. Send `draftId` (a ready
-    draft from POST /watches/draft, with `acknowledgeUnsupported: true` when it left parts out) instead
-    of `goal`; the draft has the conditions. Send `interpret: false` to keep the words exactly as
-    written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10)
-    to give the conditions yourself; not with an agent. With clarifying (when Percia has it on; see GET
-    /config): a create with a `goal` is read by Percia's layer first. A clear goal creates the watch as
-    before. An unclear one creates nothing and answers 422 `clarification_needed` with `draftId`,
+    latest) to deploy a published agent. Percia reads the goal through its intelligence layer (see POST
+    /watches/draft). Send `draftId` (a ready draft from POST /watches/draft, with
+    `acknowledgeUnsupported: true` when it left parts out) instead of `goal`; the draft holds the
+    conditions. A create with a `goal` is read by Percia's layer first. A clear goal creates the watch
+    as before. An unclear one creates nothing and answers 422 `clarification_needed` with `draftId`,
     `question` and `options` (and `guidance`): ask the person, answer with POST
     /watches/draft/{draftId}/answer {text}, then create with {sourceUrl, draftId}; or send a clearer
     goal. Parts that cannot be watched answer 409 `unsupported_not_acknowledged` (tell the person, then
-    repeat with `acknowledgeUnsupported: true`). The old per-watch knobs are refused with 422 naming the
-    field in `error.field`, from the first call: cooldownS, kind, rearmS, recheckS, minConfidence,
-    notWhen, zones, concerns, judgeKey, interpret, and runtime: core.
+    repeat with `acknowledgeUnsupported: true`). Per-watch tuning knobs from older versions are refused
+    with 422 `invalid_request` naming the field in `error.field` (cooldownS, kind, rearmS, recheckS,
+    minConfidence, notWhen, zones, concerns, judgeKey, interpret, runtime): the goal and the draft say
+    everything.
 
     Args:
         body (CreateWatchBody):
@@ -236,27 +221,22 @@ async def asyncio(
     client: AuthenticatedClient,
     body: CreateWatchBody,
 ) -> Optional[Union[CreateWatchResponse201, CreateWatchResponse422, Error]]:
-    r"""Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-
+    """Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-
     cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an
     NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge)
     to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the
-    latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept
-    Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for
-    phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the
-    goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read
-    `interpretation.gaps` and `untestable` and ask the person those questions. Send `draftId` (a ready
-    draft from POST /watches/draft, with `acknowledgeUnsupported: true` when it left parts out) instead
-    of `goal`; the draft has the conditions. Send `interpret: false` to keep the words exactly as
-    written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10)
-    to give the conditions yourself; not with an agent. With clarifying (when Percia has it on; see GET
-    /config): a create with a `goal` is read by Percia's layer first. A clear goal creates the watch as
-    before. An unclear one creates nothing and answers 422 `clarification_needed` with `draftId`,
+    latest) to deploy a published agent. Percia reads the goal through its intelligence layer (see POST
+    /watches/draft). Send `draftId` (a ready draft from POST /watches/draft, with
+    `acknowledgeUnsupported: true` when it left parts out) instead of `goal`; the draft holds the
+    conditions. A create with a `goal` is read by Percia's layer first. A clear goal creates the watch
+    as before. An unclear one creates nothing and answers 422 `clarification_needed` with `draftId`,
     `question` and `options` (and `guidance`): ask the person, answer with POST
     /watches/draft/{draftId}/answer {text}, then create with {sourceUrl, draftId}; or send a clearer
     goal. Parts that cannot be watched answer 409 `unsupported_not_acknowledged` (tell the person, then
-    repeat with `acknowledgeUnsupported: true`). The old per-watch knobs are refused with 422 naming the
-    field in `error.field`, from the first call: cooldownS, kind, rearmS, recheckS, minConfidence,
-    notWhen, zones, concerns, judgeKey, interpret, and runtime: core.
+    repeat with `acknowledgeUnsupported: true`). Per-watch tuning knobs from older versions are refused
+    with 422 `invalid_request` naming the field in `error.field` (cooldownS, kind, rearmS, recheckS,
+    minConfidence, notWhen, zones, concerns, judgeKey, interpret, runtime): the goal and the draft say
+    everything.
 
     Args:
         body (CreateWatchBody):

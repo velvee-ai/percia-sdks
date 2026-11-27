@@ -1893,7 +1893,7 @@
     },
     "securitySchemes": {
       "bearerAuth": {
-        "description": "API key pk_live_<12 hex>_<secret>. Scopes: watches:read, watches:write, watches:delete, events:read, cameras:read, cameras:write, integrations:read, integrations:write, devices:write, hooks:write (opt-in, for REST hooks), context:write and signals:write (opt-in, advanced features, Percia engine). Each operation lists the scopes it needs in `security` and `x-percia-scopes`; destructive operations (`x-percia-destructive`) also need watches:delete (except removing your own push device or REST hook, which need only devices:write or hooks:write). Session-only, a key is refused: API keys (/keys), claim and manage links (/claim, /manage), billing checkout, portal and card replace (/billing/checkout, /billing/portal, /billing/card/replace, /billing/card/finish; the spend cap PATCH /billing/cap takes watches:write), the account (/me, /auth/*) and finishing a connect link (/integrations/connect/{token}): a person adds every destination.",
+        "description": "API key pk_live_<12 hex>_<secret>. Scopes: watches:read, watches:write, watches:delete, events:read, cameras:read, cameras:write, integrations:read, integrations:write, devices:write, hooks:write (opt-in, for REST hooks), context:write and signals:write (opt-in, advanced features, Percia engine). Each operation lists the scopes it needs in `security` and `x-percia-scopes`; destructive operations (`x-percia-destructive`) also need watches:delete (except removing your own push device or REST hook, which need only devices:write or hooks:write). Session-only, a key is refused: API keys (/keys), billing checkout, portal and card replace (/billing/checkout, /billing/portal, /billing/card/replace, /billing/card/finish; the spend cap PATCH /billing/cap takes watches:write), the account (/me, /auth/*) and finishing a connect link (/integrations/connect/{token}): a person adds every destination.",
         "scheme": "bearer",
         "type": "http"
       },
@@ -8690,72 +8690,6 @@
         "x-percia-destructive": true
       }
     },
-    "/manage/{token}": {
-      "get": {
-        "operationId": "getManagedWatch",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Watch"
-                }
-              }
-            },
-            "description": "The watch."
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "Not signed in."
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "Belongs to another account."
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "Invalid link."
-          }
-        },
-        "security": [
-          {
-            "sessionCookie": []
-          }
-        ],
-        "summary": "Attach an emailed watch to the signed-in account",
-        "tags": [
-          "watches"
-        ]
-      }
-    },
     "/me": {
       "get": {
         "operationId": "getAccount",
@@ -12552,7 +12486,7 @@
             ]
           }
         ],
-        "summary": "Start a watch the clarifying way (Percia; 404 unless Percia has it on). Send the plain ask and the camera (`cameraId` of one of your cameras, or a public `sourceUrl`). Percia's intelligence layer reads it and answers with a draft: `status` clarifying (ask the person `question`; `options` are numbered meanings they may pick by number or replace with their own words), ready (conditions understood: create the watch with POST /watches/owned {draftId, sourceUrl}), or refused (nothing visible is left to watch). `unsupported` lists parts that cannot be watched (audio, several cameras, who someone is: `refused` true); when `needsAcknowledgement` is true tell the person, then create with `acknowledgeUnsupported: true`. Nothing is created yet.",
+        "summary": "Start a watch the clarifying way (Percia). Send the plain ask and the camera (`cameraId` of one of your cameras, or a public `sourceUrl`). Percia's intelligence layer reads it and answers with a draft: `status` clarifying (ask the person `question`; `options` are numbered meanings they may pick by number or replace with their own words), ready (conditions understood: create the watch with POST /watches/owned {draftId, sourceUrl}), or refused (nothing visible is left to watch). `unsupported` lists parts that cannot be watched (audio, several cameras, who someone is: `refused` true); when `needsAcknowledgement` is true tell the person, then create with `acknowledgeUnsupported: true`. Nothing is created yet.",
         "tags": [
           "watches"
         ],
@@ -13438,7 +13372,7 @@
                 }
               }
             },
-            "description": "where recording is on. `clarification_needed`: nothing was created; the body has `draftId`, `question`, `options` [{label, definition}] and `guidance`. Also `draft_refused` (nothing visible to watch; `unsupported` lists why), `draft_multi_watch`, and `invalid_request` with `error.field` naming a refused v1-only input (cooldownS, kind, rearmS, recheckS, minConfidence, notWhen, zones, concerns, judgeKey, interpret, runtime)."
+            "description": "where recording is on. `clarification_needed`: nothing was created; the body has `draftId`, `question`, `options` [{label, definition}] and `guidance`. Also `draft_refused` (nothing visible to watch; `unsupported` lists why), `draft_multi_watch`, and `invalid_request` with `error.field` naming a refused retired input (cooldownS, kind, rearmS, recheckS, minConfidence, notWhen, zones, concerns, judgeKey, interpret, runtime)."
           },
           "429": {
             "content": {
@@ -13468,7 +13402,7 @@
             ]
           }
         ],
-        "summary": "Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge) to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Optional `runtime: \"core\"` runs it on Percia core (Percept Cloud) instead of the default pool: only when Percia has turned core on (otherwise 403), and not for phone cameras, agents or sites (400). Leave it out unless the person asked. Percia understands the goal by itself (see `interpretation` in the answer; POST /watches/interpret previews it): read `interpretation.gaps` and `untestable` and ask the person those questions. Send `draftId` (a ready draft from POST /watches/draft, with `acknowledgeUnsupported: true` when it left parts out) instead of `goal`; the draft has the conditions. Send `interpret: false` to keep the words exactly as written (optionally with `kind`: state or event), or `concerns: [{text, kind, ignore?}]` (1 to 10) to give the conditions yourself; not with an agent. With clarifying (when Percia has it on; see GET /config): a create with a `goal` is read by Percia's layer first. A clear goal creates the watch as before. An unclear one creates nothing and answers 422 `clarification_needed` with `draftId`, `question` and `options` (and `guidance`): ask the person, answer with POST /watches/draft/{draftId}/answer {text}, then create with {sourceUrl, draftId}; or send a clearer goal. Parts that cannot be watched answer 409 `unsupported_not_acknowledged` (tell the person, then repeat with `acknowledgeUnsupported: true`). The old per-watch knobs are refused with 422 naming the field in `error.field`, from the first call: cooldownS, kind, rearmS, recheckS, minConfidence, notWhen, zones, concerns, judgeKey, interpret, and runtime: core.",
+        "summary": "Create a watch as the signed-in user (email or webhook; no Turnstile). sourceUrl may be percia-cam://<cameraId> for one of your own phone or bridge cameras; a private address (192.168.x.x, an NVR) is refused: the person installs the Percia bridge (https://github.com/velvee-ai/percia-bridge) to push that camera. Send `goal`, or `agentId` (+ optional `agentVersion`; omitted = follow the latest) to deploy a published agent. Percia reads the goal through its intelligence layer (see POST /watches/draft). Send `draftId` (a ready draft from POST /watches/draft, with `acknowledgeUnsupported: true` when it left parts out) instead of `goal`; the draft holds the conditions. A create with a `goal` is read by Percia's layer first. A clear goal creates the watch as before. An unclear one creates nothing and answers 422 `clarification_needed` with `draftId`, `question` and `options` (and `guidance`): ask the person, answer with POST /watches/draft/{draftId}/answer {text}, then create with {sourceUrl, draftId}; or send a clearer goal. Parts that cannot be watched answer 409 `unsupported_not_acknowledged` (tell the person, then repeat with `acknowledgeUnsupported: true`). Per-watch tuning knobs from older versions are refused with 422 `invalid_request` naming the field in `error.field` (cooldownS, kind, rearmS, recheckS, minConfidence, notWhen, zones, concerns, judgeKey, interpret, runtime): the goal and the draft say everything.",
         "tags": [
           "watches"
         ],
@@ -14219,7 +14153,7 @@
             ]
           }
         ],
-        "summary": "Update a watch. `status: \"active\"` with `testRun: true` starts a 30-minute live test run (events are marked test events); `status: \"active\"` alone goes live, also from a running test, with no restart. A new goal is understood again (interpret: false keeps the words as written); interpretation: {concerns} stores your own conditions; acknowledge: true marks the interpretation as reviewed. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal detaches the agent.",
+        "summary": "Update a watch. `status: \"active\"` with `testRun: true` starts a 30-minute live test run (events are marked test events); `status: \"active\"` alone goes live, also from a running test, with no restart. A new `goal` is read again by Percia and the watch restarts on it. agentId (+ agentVersion, null = follow latest) deploys an agent and redeploys the watch; agentVersion alone re-pins; goal detaches the agent.",
         "tags": [
           "watches"
         ],
@@ -17963,10 +17897,6 @@
       "name": "billing"
     },
     {
-      "description": "Watches: a camera or video URL plus a plain-language goal. Create, change, pause, delete, and read their events.",
-      "name": "watches"
-    },
-    {
       "description": "Cameras: a phone (pairing link a person opens) or a push camera (WHIP URL and token for a connector on a private network).",
       "name": "cameras"
     },
@@ -17977,6 +17907,10 @@
     {
       "description": "Push devices of the Percia Camera app.",
       "name": "devices"
+    },
+    {
+      "description": "Watches: a camera or video URL plus a plain-language goal. Create, change, pause, delete, and read their events.",
+      "name": "watches"
     },
     {
       "description": "The account-wide event feed, for polling triggers in automation tools.",
