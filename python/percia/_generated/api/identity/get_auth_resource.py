@@ -47,7 +47,7 @@ def sync_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Response[Union[Any, Error]]:
-    """Better Auth endpoints (sign-in, session, ...)
+    """Sign-in, session and OAuth endpoints (GET /auth/oauth2/authorize; see /docs/automation-platforms.md)
 
     Args:
         path (str):
@@ -76,7 +76,7 @@ def sync(
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Optional[Union[Any, Error]]:
-    """Better Auth endpoints (sign-in, session, ...)
+    """Sign-in, session and OAuth endpoints (GET /auth/oauth2/authorize; see /docs/automation-platforms.md)
 
     Args:
         path (str):
@@ -100,7 +100,7 @@ async def asyncio_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Response[Union[Any, Error]]:
-    """Better Auth endpoints (sign-in, session, ...)
+    """Sign-in, session and OAuth endpoints (GET /auth/oauth2/authorize; see /docs/automation-platforms.md)
 
     Args:
         path (str):
@@ -127,7 +127,7 @@ async def asyncio(
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Optional[Union[Any, Error]]:
-    """Better Auth endpoints (sign-in, session, ...)
+    """Sign-in, session and OAuth endpoints (GET /auth/oauth2/authorize; see /docs/automation-platforms.md)
 
     Args:
         path (str):

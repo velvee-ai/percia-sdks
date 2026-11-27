@@ -34,6 +34,12 @@ async def test_async_other_resources(aclient):  # type: ignore[no-untyped-def]
     assert await aclient.request("GET", "/watches/mine")
 
 
+async def test_async_whoami(aclient, server):  # type: ignore[no-untyped-def]
+    server.script("GET", "/whoami", [Json({"userId": "u1", "credential": "session", "scopes": None, "email": "a@b.co"})])
+    who = await aclient.account.whoami()
+    assert (who.user_id, who.credential, who.scopes, who.email) == ("u1", "session", None, "a@b.co")
+
+
 async def test_async_retry_after(aclient, server, sleeps):  # type: ignore[no-untyped-def]
     server.script("GET", "/watches/mine", [Fail(429, retry_after="2"), Json([])])
     assert await aclient.watches.list() == []

@@ -392,6 +392,8 @@ from .get_watch_response_200_runtime import GetWatchResponse200Runtime
 from .get_watch_response_200_site_type_0 import GetWatchResponse200SiteType0
 from .get_watch_response_200_source_type import GetWatchResponse200SourceType
 from .get_watch_response_200_status import GetWatchResponse200Status
+from .get_whoami_response_200 import GetWhoamiResponse200
+from .get_whoami_response_200_credential import GetWhoamiResponse200Credential
 from .hook import Hook
 from .hook_created import HookCreated
 from .hook_created_events_item import HookCreatedEventsItem
@@ -1013,6 +1015,8 @@ __all__ = (
     "GetWatchResponse200SiteType0",
     "GetWatchResponse200SourceType",
     "GetWatchResponse200Status",
+    "GetWhoamiResponse200",
+    "GetWhoamiResponse200Credential",
     "Hook",
     "HookCreated",
     "HookCreatedEventsItem",

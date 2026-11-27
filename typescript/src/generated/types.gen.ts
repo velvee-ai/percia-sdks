@@ -622,7 +622,7 @@ export type Watch = {
     goal?: string;
     id?: string;
     /**
-     * Whether the pool is judging this watch (read-only, additive). `state`: judging (a judge call in the last 10 minutes), waiting_for_change (video arrives and the picture is still, so nothing is judged; a state goal is still looked at about every 5 minutes), no_video, paused (see `reason`), over_budget (the hourly judge limit skipped calls), judge_unavailable, starting, not_running (no container reports) or unknown (core runtime). A confirmed no-alert is `judging` or `waiting_for_change` with a recent lastFrameAt: silence with state not_running or no_video means nothing was watched. `stalled` is true when video flows and a scheduled judge call is 15+ minutes overdue.
+     * Whether the pool is judging this watch (read-only, additive). `state`: judging (a judge call in the last 10 minutes), waiting_for_change (video arrives and the picture is still, so nothing is judged; a state goal is still looked at about every 5 minutes), no_video, paused (see `reason`), over_budget (the hourly judge limit skipped calls), judge_unavailable, starting (also: no frames yet, for up to 4 minutes after the pool started the watch; noVideoSince reads null then), not_running (no container reports) or unknown (core runtime). A confirmed no-alert is `judging` or `waiting_for_change` with a recent lastFrameAt: silence with state not_running or no_video means nothing was watched. `stalled` is true when video flows and a scheduled judge call is 15+ minutes overdue.
      */
     judging?: {
         /**
@@ -5704,7 +5704,7 @@ export type CreateWatchResponses = {
         goal?: string;
         id?: string;
         /**
-         * Whether the pool is judging this watch (read-only, additive). `state`: judging (a judge call in the last 10 minutes), waiting_for_change (video arrives and the picture is still, so nothing is judged; a state goal is still looked at about every 5 minutes), no_video, paused (see `reason`), over_budget (the hourly judge limit skipped calls), judge_unavailable, starting, not_running (no container reports) or unknown (core runtime). A confirmed no-alert is `judging` or `waiting_for_change` with a recent lastFrameAt: silence with state not_running or no_video means nothing was watched. `stalled` is true when video flows and a scheduled judge call is 15+ minutes overdue.
+         * Whether the pool is judging this watch (read-only, additive). `state`: judging (a judge call in the last 10 minutes), waiting_for_change (video arrives and the picture is still, so nothing is judged; a state goal is still looked at about every 5 minutes), no_video, paused (see `reason`), over_budget (the hourly judge limit skipped calls), judge_unavailable, starting (also: no frames yet, for up to 4 minutes after the pool started the watch; noVideoSince reads null then), not_running (no container reports) or unknown (core runtime). A confirmed no-alert is `judging` or `waiting_for_change` with a recent lastFrameAt: silence with state not_running or no_video means nothing was watched. `stalled` is true when video flows and a scheduled judge call is 15+ minutes overdue.
          */
         judging?: {
             /**
@@ -5930,7 +5930,7 @@ export type GetWatchResponses = {
         goal?: string;
         id?: string;
         /**
-         * Whether the pool is judging this watch (read-only, additive). `state`: judging (a judge call in the last 10 minutes), waiting_for_change (video arrives and the picture is still, so nothing is judged; a state goal is still looked at about every 5 minutes), no_video, paused (see `reason`), over_budget (the hourly judge limit skipped calls), judge_unavailable, starting, not_running (no container reports) or unknown (core runtime). A confirmed no-alert is `judging` or `waiting_for_change` with a recent lastFrameAt: silence with state not_running or no_video means nothing was watched. `stalled` is true when video flows and a scheduled judge call is 15+ minutes overdue.
+         * Whether the pool is judging this watch (read-only, additive). `state`: judging (a judge call in the last 10 minutes), waiting_for_change (video arrives and the picture is still, so nothing is judged; a state goal is still looked at about every 5 minutes), no_video, paused (see `reason`), over_budget (the hourly judge limit skipped calls), judge_unavailable, starting (also: no frames yet, for up to 4 minutes after the pool started the watch; noVideoSince reads null then), not_running (no container reports) or unknown (core runtime). A confirmed no-alert is `judging` or `waiting_for_change` with a recent lastFrameAt: silence with state not_running or no_video means nothing was watched. `stalled` is true when video flows and a scheduled judge call is 15+ minutes overdue.
          */
         judging?: {
             /**
@@ -7532,3 +7532,42 @@ export type GetTestRunResponses = {
 };
 
 export type GetTestRunResponse = GetTestRunResponses[keyof GetTestRunResponses];
+
+export type GetWhoamiData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/whoami';
+};
+
+export type GetWhoamiErrors = {
+    /**
+     * Missing, invalid, expired or revoked credential.
+     */
+    401: Error;
+};
+
+export type GetWhoamiError = GetWhoamiErrors[keyof GetWhoamiErrors];
+
+export type GetWhoamiResponses = {
+    /**
+     * Any valid API key, OAuth access token or session, whatever its scopes. A key adds keyName; an OAuth token adds appName and account (the masked address); only a session gets email.
+     */
+    200: {
+        /**
+         * Masked, such as j***@example.com.
+         */
+        account?: string | null;
+        appName?: string | null;
+        credential: 'key' | 'oauth' | 'session';
+        email?: string;
+        keyName?: string;
+        /**
+         * null for a session.
+         */
+        scopes: Array<string> | null;
+        userId: string;
+    };
+};
+
+export type GetWhoamiResponse = GetWhoamiResponses[keyof GetWhoamiResponses];

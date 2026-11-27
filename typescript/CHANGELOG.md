@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.3 (2026-11-27)
+
+- Synced with the Percia API (146 operations): new `GET /api/whoami` (`getWhoami`), which any valid API key, OAuth access token or session passes; OAuth descriptions and the `judging` state text updated. New `client.account.whoami()` and the type `Whoami`. `SDK_VERSION` is 0.3.3.
+
 ## 0.3.2 (2026-11-27)
 
 - Synced with the Percia API after the Percia 2.0-only cleanup (145 operations). Removed from the generated models: `interpret`, `concerns`, `acknowledge`, `interpretation` and `runtime: "core"` on create and update watch (the API refuses them with 422 `invalid_request`; a goal is read by Percia's layer and an unclear one answers 422 `clarification_needed`, answered through the draft routes), `ephemeral` and `expiresAt` on watch reads, and the emailed-manage-link operation `getManagedWatch` (`GET /api/manage/{token}`, now 404). Request and response summaries match the live API text. `SDK_VERSION` is 0.3.2.

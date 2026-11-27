@@ -74,7 +74,8 @@ class GetWatchResponse200:
         judging (Union[Unset, GetWatchResponse200Judging]): Whether the pool is judging this watch (read-only,
             additive). `state`: judging (a judge call in the last 10 minutes), waiting_for_change (video arrives and the
             picture is still, so nothing is judged; a state goal is still looked at about every 5 minutes), no_video, paused
-            (see `reason`), over_budget (the hourly judge limit skipped calls), judge_unavailable, starting, not_running (no
+            (see `reason`), over_budget (the hourly judge limit skipped calls), judge_unavailable, starting (also: no frames
+            yet, for up to 4 minutes after the pool started the watch; noVideoSince reads null then), not_running (no
             container reports) or unknown (core runtime). A confirmed no-alert is `judging` or `waiting_for_change` with a
             recent lastFrameAt: silence with state not_running or no_video means nothing was watched. `stalled` is true when
             video flows and a scheduled judge call is 15+ minutes overdue.

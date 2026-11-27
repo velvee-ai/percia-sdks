@@ -39,6 +39,7 @@ Needed scopes follow the API: `watches:read|write|delete`, `events:read`, `camer
 Camera-minutes are the real limit (10 free every UTC month, then credit minutes, then the card); plan counts are informational. Check before creating a watch:
 
 ```ts
+const me = await percia.account.whoami(); // connection test: any valid key or token
 const billing = await percia.account.billing(); // the same facts as the `billing` block of MCP whoami
 if (!billing.canStartWatches) throw new Error(billing.nextStep ?? "Open the Billing page");
 console.log(billing.planLabel, billing.freeMinutesRemaining, billing.creditMinutes, billing.howCharged);

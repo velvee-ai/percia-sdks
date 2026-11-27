@@ -134,6 +134,26 @@ describe("whoami, doctor, config", () => {
 		expect(j.reachable.find((p: any) => p.scope === "watches:read").granted).toBe(true);
 		expect(r.out).not.toContain("pk_live_test");
 	});
+	it("whoami shows the identity from GET /api/whoami", async () => {
+		e.mock.handlers.set("getWhoami", () => ({ status: 200, body: { userId: "u1", credential: "oauth", scopes: ["watches:read", "events:read"], appName: "Zapier", account: "j***@example.com" } }));
+		const j = JSON.parse((await e.run("whoami", "--json")).out);
+		expect(j.identity).toMatchObject({ userId: "u1", appName: "Zapier" });
+		expect(j.account).toEqual({ id: "u1", masked: "j***@example.com" });
+		const text = (await e.run("whoami")).out;
+		expect(text).toContain("Account:     j***@example.com");
+		expect(text).toContain("App:         Zapier");
+		expect(text).toContain("Granted:     watches:read events:read");
+		expect(e.mock.requests.some((r) => r.operationId === "getAccount")).toBe(false);
+	});
+	it("whoami falls back to /me on a host without GET /api/whoami, and fails on a rejected credential", async () => {
+		e.mock.handlers.set("getWhoami", () => ({ status: 404, body: { error: { code: "not_found", message: "no route" } } }));
+		const old = await e.run("whoami", "--json");
+		expect(old.code, old.err).toBe(0);
+		expect(JSON.parse(old.out).identity).toBeNull();
+		expect(e.mock.requests.some((r) => r.operationId === "getAccount")).toBe(true);
+		e.mock.handlers.set("getWhoami", () => ({ status: 401, body: { error: { code: "invalid_api_key", message: "revoked" } } }));
+		expect((await e.run("whoami")).code).toBe(3);
+	});
 	it("whoami reports missing scopes", async () => {
 		e.env.PERCIA_API_KEY = "pk_ro";
 		e.mock.keys.set("pk_ro", ["watches:read"]);

@@ -6,6 +6,7 @@ import pytest
 from percia import AuthenticationError, InsufficientScopeError, Percia, ValidationError, billing_of, describe_billing
 
 from .conftest import KEY
+from .mock_server import Fail
 
 
 def test_quickstart_flow(client, server):  # type: ignore[no-untyped-def]
@@ -151,6 +152,21 @@ PLAN = {
     "bonusMinutes": 50,
     "payment": {"state": "active", "billingUrl": "https://percia.test/billing"},
 }
+
+
+def test_whoami(client, server):  # type: ignore[no-untyped-def]
+    body = {"userId": "u1", "credential": "key", "scopes": ["watches:read"], "keyName": "ci"}
+    server.on("GET", "/whoami", lambda request: httpx.Response(200, json=body))
+    who = client.account.whoami()
+    assert (who.user_id, who.credential, who.scopes, who.key_name) == ("u1", "key", ["watches:read"], "ci")
+    assert server.requests[-1].url.path == "/api/whoami"
+    assert server.requests[-1].headers["authorization"].startswith("Bearer ")
+
+
+def test_whoami_rejected_credential(client, server):  # type: ignore[no-untyped-def]
+    server.script("GET", "/whoami", [Fail(401, code="invalid_api_key")])
+    with pytest.raises(AuthenticationError):
+        client.account.whoami()
 
 
 def test_billing_block_from_plan(client, server):  # type: ignore[no-untyped-def]

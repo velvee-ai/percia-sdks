@@ -260,6 +260,21 @@ const PLAN = {
 	nextStep: "Add a card for 50 more free minutes.", bonusAvailable: true, bonusMinutes: 50, payment: { state: "active", billingUrl: "https://percia.test/billing" },
 };
 
+describe("whoami", () => {
+	it("account.whoami() calls GET /api/whoami with the credential and returns the identity", async () => {
+		mock.handlers.set("getWhoami", () => ({ status: 200, body: { userId: "u1", credential: "key", scopes: ["watches:read"], keyName: "ci" } }));
+		const who = await make().account.whoami();
+		expect(who).toEqual({ userId: "u1", credential: "key", scopes: ["watches:read"], keyName: "ci" });
+		const req = mock.requests.at(-1)!;
+		expect(req.url.pathname).toBe("/api/whoami");
+		expect(req.headers.get("authorization")).toBe("Bearer pk_live_test");
+	});
+	it("account.whoami() throws AuthenticationError for a bad credential", async () => {
+		mock.script("getWhoami", { status: 401, body: { error: { code: "invalid_api_key", message: "Missing or invalid API key." } } });
+		await expect(make().account.whoami()).rejects.toBeInstanceOf(AuthenticationError);
+	});
+});
+
 describe("billing and device kind (additive)", () => {
 	it("account.billing() maps a plan to the whoami billing block and describeBilling prints it", async () => {
 		mock.handlers.set("getPlan", () => ({ status: 200, body: PLAN }));

@@ -37,6 +37,7 @@ client.watches.delete(watch.id)
 Plan, free minutes and how you are charged (camera-minutes are the real limit: check ``can_start_watches`` before creating a watch):
 
 ```python
+me = client.account.whoami()             # connection test: any valid key or token
 billing = client.account.billing()       # same facts as the `billing` block of MCP whoami
 if not billing.can_start_watches:
     raise SystemExit(billing.next_step or "Open the Billing page")

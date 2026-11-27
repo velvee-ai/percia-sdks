@@ -3051,6 +3051,36 @@
         "token": "{{ _.apiKey }}"
       },
       "metaSortKey": -867
+    },
+    {
+      "_id": "fld_4327e26a53c9b44c",
+      "_type": "request_group",
+      "parentId": "wrk_efbafea825540508",
+      "name": "identity",
+      "description": "",
+      "environment": {},
+      "metaSortKey": -866
+    },
+    {
+      "_id": "req_0dd7ba435fb93b7a",
+      "_type": "request",
+      "parentId": "fld_4327e26a53c9b44c",
+      "name": "Who the credential belongs to (connection test)",
+      "description": "operationId: getWhoami\n\nWho the credential belongs to (connection test)\n\nScopes: (none listed).",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/whoami",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.apiKey }}"
+      },
+      "metaSortKey": -865
     }
   ]
 }

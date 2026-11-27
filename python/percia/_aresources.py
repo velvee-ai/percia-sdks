@@ -29,6 +29,7 @@ from ._generated.api.hooks import delete_hook as _delete_hook
 from ._generated.api.hooks import list_hooks as _list_hooks
 from ._generated.api.hooks import test_hook as _test_hook
 from ._generated.api.identity import get_account as _get_account
+from ._generated.api.identity import get_whoami as _get_whoami
 from ._generated.api.integrations import create_connect_link as _create_connect_link
 from ._generated.api.integrations import delete_integration as _delete_integration
 from ._generated.api.integrations import list_integration_services as _list_integration_services
@@ -364,6 +365,13 @@ class AsyncHooks:
 class AsyncAccount:
     def __init__(self, client: AsyncPercia) -> None:
         self._c = client
+
+    async def whoami(self) -> Any:
+        """Who the credential belongs to (``GET /api/whoami``): a connection test that any valid API key, OAuth token or
+        session passes, whatever its scopes. Returns ``user_id``, ``credential`` (``key``, ``oauth`` or ``session``) and
+        ``scopes`` (``None`` for a session); a key adds ``key_name``, an OAuth token ``app_name`` and ``account`` (the
+        masked address), a session ``email``. A bad credential raises ``AuthenticationError``."""
+        return await self._c._call(_get_whoami)
 
     async def get_me(self) -> Any:
         """The user and their subscription (plain JSON: the API documents no schema for it)."""

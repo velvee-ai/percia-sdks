@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { createClient, describeBilling, PerciaApiError, type Billing } from "@percia/sdk";
+import { createClient, describeBilling, PerciaApiError, type Billing, type Whoami } from "@percia/sdk";
 import { clearCredentials, configPath, loadConfig, mask, saveConfig } from "../config.js";
 import type { Context, GlobalOptions } from "../context.js";
 import { CliError, EXIT } from "../errors.js";
@@ -31,6 +31,27 @@ export async function probeScopes(client: ReturnType<typeof createClient>) {
 		}
 	}
 	return out;
+}
+
+type Account = { id?: string; email?: string; masked?: string; name?: string };
+
+/** Who the credential is: `GET /api/whoami`, or `/me` on a host that does not have that route yet. */
+async function identify(client: ReturnType<typeof createClient>, auth: string): Promise<{ identity: Whoami | null; account: Account | undefined }> {
+	try {
+		const identity = await client.account.whoami();
+		return { identity, account: { id: identity.userId, email: identity.email, masked: identity.account ?? undefined } };
+	} catch (e) {
+		if (!(e instanceof PerciaApiError) || e.status === 401) throw e;
+		if (e.status !== 404) return { identity: null, account: undefined };
+	}
+	try {
+		const me = (await client.account.me()) as { user?: Account } | null;
+		return { identity: null, account: me?.user ?? undefined };
+	} catch (e) {
+		// /me is a session route: an API key is refused, which is expected.
+		if (!(e instanceof PerciaApiError) || e.status === 401 && auth === "oauth") throw e;
+		return { identity: null, account: undefined };
+	}
 }
 
 export function registerAuth(program: Command, { ctx, globals }: Deps) {
@@ -93,14 +114,7 @@ export function registerAuth(program: Command, { ctx, globals }: Deps) {
 			const s = await openSession(ctx, g);
 			const cfg = await loadConfig(ctx);
 			const stored = cfg.credentials?.type === "oauth" && s.source === "config" ? cfg.credentials : undefined;
-			let account: { email?: string; name?: string; id?: string } | undefined;
-			try {
-				const me = (await s.client.account.me()) as { user?: { email?: string; name?: string; id?: string } } | null;
-				account = me?.user ?? undefined;
-			} catch (e) {
-				// /me is a session route: an API key is refused, which is expected.
-				if (!(e instanceof PerciaApiError) || e.status === 401 && s.auth === "oauth") throw e;
-			}
+			const { identity, account } = await identify(s.client, s.auth);
 			const probes = await probeScopes(s.client);
 			const granted = probes.filter((p) => p.granted).map((p) => p.scope);
 			// The plan needs watches:read; a credential without it, or an older host, just shows no billing block.
@@ -115,6 +129,7 @@ export function registerAuth(program: Command, { ctx, globals }: Deps) {
 				auth: s.auth,
 				credentialSource: s.source === "env" ? "PERCIA_API_KEY" : "config file",
 				account: account ?? null,
+				identity,
 				billing,
 				grantedScope: stored?.scope ?? null,
 				reachable: probes.map((p) => ({ scope: p.scope, granted: p.granted })),
@@ -122,8 +137,11 @@ export function registerAuth(program: Command, { ctx, globals }: Deps) {
 			};
 			if (g.json) return json(ctx, result);
 			ctx.stdout(`Host:        ${s.baseUrl}\nAuth:        ${s.auth === "api_key" ? "API key" : "OAuth token"} (${result.credentialSource})\n`);
-			if (account) ctx.stdout(`Account:     ${account.email ?? account.name ?? account.id}\n`);
-			if (stored?.scope) ctx.stdout(`Granted:     ${stored.scope}\n`);
+			if (account) ctx.stdout(`Account:     ${account.email ?? account.masked ?? account.name ?? account.id}\n`);
+			if (identity?.keyName) ctx.stdout(`Key:         ${identity.keyName}\n`);
+			if (identity?.appName) ctx.stdout(`App:         ${identity.appName}\n`);
+			const scopeText = identity?.scopes?.join(" ") || stored?.scope;
+			if (scopeText) ctx.stdout(`Granted:     ${scopeText}\n`);
 			if (billing) ctx.stdout(`\nBilling (percia plan for more):\n${describeBilling(billing).map((l) => `  ${l}`).join("\n")}\n\n`);
 			ctx.stdout(`Verified by calling the API (read-only):\n` + table(probes.map((p) => ({ check: p.scope, result: p.granted === true ? "ok" : p.granted === false ? "no access" : "unavailable" })), [{ key: "check" }, { key: "result" }]));
 			if (granted.length === 0) throw new CliError("This credential can reach none of the read endpoints.", EXIT.AUTH, "Create a key with the scopes you need, or run `percia login`.");

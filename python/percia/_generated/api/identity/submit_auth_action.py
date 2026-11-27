@@ -47,7 +47,8 @@ def sync_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Response[Union[Any, Error]]:
-    """Better Auth endpoints (sign-up, sign-in, sign-out, ...)
+    """Sign-up, sign-in, sign-out and OAuth endpoints (POST /auth/oauth2/token, /auth/oauth2/register,
+    /auth/oauth2/revoke; see /docs/automation-platforms.md)
 
     Args:
         path (str):
@@ -76,7 +77,8 @@ def sync(
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Optional[Union[Any, Error]]:
-    """Better Auth endpoints (sign-up, sign-in, sign-out, ...)
+    """Sign-up, sign-in, sign-out and OAuth endpoints (POST /auth/oauth2/token, /auth/oauth2/register,
+    /auth/oauth2/revoke; see /docs/automation-platforms.md)
 
     Args:
         path (str):
@@ -100,7 +102,8 @@ async def asyncio_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Response[Union[Any, Error]]:
-    """Better Auth endpoints (sign-up, sign-in, sign-out, ...)
+    """Sign-up, sign-in, sign-out and OAuth endpoints (POST /auth/oauth2/token, /auth/oauth2/register,
+    /auth/oauth2/revoke; see /docs/automation-platforms.md)
 
     Args:
         path (str):
@@ -127,7 +130,8 @@ async def asyncio(
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Optional[Union[Any, Error]]:
-    """Better Auth endpoints (sign-up, sign-in, sign-out, ...)
+    """Sign-up, sign-in, sign-out and OAuth endpoints (POST /auth/oauth2/token, /auth/oauth2/register,
+    /auth/oauth2/revoke; see /docs/automation-platforms.md)
 
     Args:
         path (str):

@@ -1647,7 +1647,7 @@
             "type": "string"
           },
           "judging": {
-            "description": "Whether the pool is judging this watch (read-only, additive). `state`: judging (a judge call in the last 10 minutes), waiting_for_change (video arrives and the picture is still, so nothing is judged; a state goal is still looked at about every 5 minutes), no_video, paused (see `reason`), over_budget (the hourly judge limit skipped calls), judge_unavailable, starting, not_running (no container reports) or unknown (core runtime). A confirmed no-alert is `judging` or `waiting_for_change` with a recent lastFrameAt: silence with state not_running or no_video means nothing was watched. `stalled` is true when video flows and a scheduled judge call is 15+ minutes overdue.",
+            "description": "Whether the pool is judging this watch (read-only, additive). `state`: judging (a judge call in the last 10 minutes), waiting_for_change (video arrives and the picture is still, so nothing is judged; a state goal is still looked at about every 5 minutes), no_video, paused (see `reason`), over_budget (the hourly judge limit skipped calls), judge_unavailable, starting (also: no frames yet, for up to 4 minutes after the pool started the watch; noVideoSince reads null then), not_running (no container reports) or unknown (core runtime). A confirmed no-alert is `judging` or `waiting_for_change` with a recent lastFrameAt: silence with state not_running or no_video means nothing was watched. `stalled` is true when video flows and a scheduled judge call is 15+ minutes overdue.",
             "properties": {
               "framesReceived": {
                 "description": "Frames the current container has received.",
@@ -1898,7 +1898,7 @@
         "type": "http"
       },
       "oauth2": {
-        "description": "OAuth 2.1 authorization code with PKCE (S256) and dynamic client registration. An access token is accepted wherever a key is, with the same scopes (`security` lists them under `bearerAuth`).",
+        "description": "OAuth 2.1 authorization code with PKCE (S256) and dynamic client registration. An access token is accepted wherever a key is, with the same scopes (`security` lists them under `bearerAuth`). Access tokens last 1 hour; `offline_access` gives a rotating refresh token. Discovery: /.well-known/oauth-authorization-server. Guide: /docs/automation-platforms.md.",
         "flows": {
           "authorizationCode": {
             "authorizationUrl": "/api/auth/oauth2/authorize",
@@ -3759,7 +3759,7 @@
           }
         },
         "security": [],
-        "summary": "Better Auth endpoints (sign-in, session, ...)",
+        "summary": "Sign-in, session and OAuth endpoints (GET /auth/oauth2/authorize; see /docs/automation-platforms.md)",
         "tags": [
           "identity"
         ]
@@ -3792,7 +3792,7 @@
           }
         },
         "security": [],
-        "summary": "Better Auth endpoints (sign-up, sign-in, sign-out, ...)",
+        "summary": "Sign-up, sign-in, sign-out and OAuth endpoints (POST /auth/oauth2/token, /auth/oauth2/register, /auth/oauth2/revoke; see /docs/automation-platforms.md)",
         "tags": [
           "identity"
         ]
@@ -13029,7 +13029,7 @@
                       "type": "string"
                     },
                     "judging": {
-                      "description": "Whether the pool is judging this watch (read-only, additive). `state`: judging (a judge call in the last 10 minutes), waiting_for_change (video arrives and the picture is still, so nothing is judged; a state goal is still looked at about every 5 minutes), no_video, paused (see `reason`), over_budget (the hourly judge limit skipped calls), judge_unavailable, starting, not_running (no container reports) or unknown (core runtime). A confirmed no-alert is `judging` or `waiting_for_change` with a recent lastFrameAt: silence with state not_running or no_video means nothing was watched. `stalled` is true when video flows and a scheduled judge call is 15+ minutes overdue.",
+                      "description": "Whether the pool is judging this watch (read-only, additive). `state`: judging (a judge call in the last 10 minutes), waiting_for_change (video arrives and the picture is still, so nothing is judged; a state goal is still looked at about every 5 minutes), no_video, paused (see `reason`), over_budget (the hourly judge limit skipped calls), judge_unavailable, starting (also: no frames yet, for up to 4 minutes after the pool started the watch; noVideoSince reads null then), not_running (no container reports) or unknown (core runtime). A confirmed no-alert is `judging` or `waiting_for_change` with a recent lastFrameAt: silence with state not_running or no_video means nothing was watched. `stalled` is true when video flows and a scheduled judge call is 15+ minutes overdue.",
                       "properties": {
                         "framesReceived": {
                           "description": "Frames the current container has received.",
@@ -13631,7 +13631,7 @@
                       "type": "string"
                     },
                     "judging": {
-                      "description": "Whether the pool is judging this watch (read-only, additive). `state`: judging (a judge call in the last 10 minutes), waiting_for_change (video arrives and the picture is still, so nothing is judged; a state goal is still looked at about every 5 minutes), no_video, paused (see `reason`), over_budget (the hourly judge limit skipped calls), judge_unavailable, starting, not_running (no container reports) or unknown (core runtime). A confirmed no-alert is `judging` or `waiting_for_change` with a recent lastFrameAt: silence with state not_running or no_video means nothing was watched. `stalled` is true when video flows and a scheduled judge call is 15+ minutes overdue.",
+                      "description": "Whether the pool is judging this watch (read-only, additive). `state`: judging (a judge call in the last 10 minutes), waiting_for_change (video arrives and the picture is still, so nothing is judged; a state goal is still looked at about every 5 minutes), no_video, paused (see `reason`), over_budget (the hourly judge limit skipped calls), judge_unavailable, starting (also: no frames yet, for up to 4 minutes after the pool started the watch; noVideoSince reads null then), not_running (no container reports) or unknown (core runtime). A confirmed no-alert is `judging` or `waiting_for_change` with a recent lastFrameAt: silence with state not_running or no_video means nothing was watched. `stalled` is true when video flows and a scheduled judge call is 15+ minutes overdue.",
                       "properties": {
                         "framesReceived": {
                           "description": "Frames the current container has received.",
@@ -17874,6 +17874,91 @@
         ],
         "x-percia-scopes": [
           "watches:read"
+        ]
+      }
+    },
+    "/whoami": {
+      "get": {
+        "operationId": "getWhoami",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "account": {
+                      "description": "Masked, such as j***@example.com.",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "appName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "credential": {
+                      "enum": [
+                        "key",
+                        "oauth",
+                        "session"
+                      ]
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "keyName": {
+                      "type": "string"
+                    },
+                    "scopes": {
+                      "description": "null for a session.",
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "userId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "userId",
+                    "credential",
+                    "scopes"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Any valid API key, OAuth access token or session, whatever its scopes. A key adds keyName; an OAuth token adds appName and account (the masked address); only a session gets email."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, invalid, expired or revoked credential."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "summary": "Who the credential belongs to (connection test)",
+        "tags": [
+          "identity"
         ]
       }
     }

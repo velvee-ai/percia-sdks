@@ -1,7 +1,7 @@
 import { createClient as createGeneratedClient, createConfig } from "./generated/client/index.js";
 import type { Client } from "./generated/client/index.js";
 import * as sdk from "./generated/sdk.gen.js";
-import type { Camera, Event, EventPage, Watch } from "./generated/types.gen.js";
+import type { Camera, Event, EventPage, GetWhoamiResponse, Watch } from "./generated/types.gen.js";
 import { NotFoundError, PerciaError, errorFromResponse } from "./errors.js";
 import { billingOf, type Billing, type Plan } from "./billing.js";
 import type { BulkItem, BulkResult, CameraStatus, PushRegistration } from "./push.js";
@@ -10,7 +10,7 @@ import { paginate } from "./pagination.js";
 import { streamEvents, type EventStreamOptions, type StreamDeps } from "./stream.js";
 
 export const DEFAULT_BASE_URL = "https://playground.percia.ai";
-export const SDK_VERSION = "0.3.2";
+export const SDK_VERSION = "0.3.3";
 
 export type TokenSource = string | (() => string | Promise<string>);
 
@@ -48,6 +48,9 @@ export async function unwrap<R extends { data?: unknown; error?: unknown; respon
 
 type Bound<F> = F extends (options: infer O) => infer R ? (options: Omit<NonNullable<O>, "client"> & { client?: Client }) => R : F;
 type BoundSdk = { [K in keyof typeof sdk]: (typeof sdk)[K] };
+
+/** The answer of `GET /api/whoami` (`client.account.whoami()`). */
+export type Whoami = GetWhoamiResponse;
 
 export type ListEventsParams = { watchId?: string; type?: string; since?: string | number | Date; limit?: number; cursor?: string };
 
@@ -325,7 +328,13 @@ class Hooks {
 
 class Account {
 	constructor(private c: PerciaClient) {}
-	/** The signed-in account. Session or OAuth token; API keys are refused by this route. */
+	/**
+	 * Who the credential belongs to (`GET /api/whoami`): a connection test that any valid API key, OAuth token or session passes,
+	 * whatever its scopes. A key adds `keyName`; an OAuth token adds `appName` and `account` (the masked address); only a session
+	 * gets `email`. `scopes` is `null` for a session. A bad credential throws `AuthenticationError`.
+	 */
+	whoami(): Promise<Whoami> { return unwrap(this.c.api.getWhoami({})); }
+	/** The signed-in account. Session or OAuth token; API keys are refused by this route (use `whoami()` to test any credential). */
 	me() { return unwrap(this.c.api.getAccount({})); }
 	/** Plan, free and credit minutes, how the account is charged and the next step. Read `canStartWatches` before creating a watch. */
 	plan() { return unwrap(this.c.api.getPlan({})); }

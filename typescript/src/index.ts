@@ -1,5 +1,5 @@
 export { createClient, PerciaClient, DEFAULT_BASE_URL, SDK_VERSION, normalizeBaseUrl, unwrap } from "./client.js";
-export type { PerciaClientOptions, TokenSource, ListEventsParams, RegisterPushOptions } from "./client.js";
+export type { PerciaClientOptions, TokenSource, ListEventsParams, RegisterPushOptions, Whoami } from "./client.js";
 export { TOKEN_PLACEHOLDER, TOKEN_ENV, buildPublishCommands, publishArgv, redactRegistration, scrubToken } from "./push.js";
 export type { PushRegistration, PublishOptions, PublishCommands, BulkItem, BulkResult, CameraStatus } from "./push.js";
 export { billingOf, describeBilling } from "./billing.js";

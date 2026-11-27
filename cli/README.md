@@ -7,7 +7,7 @@ Install: `npm install -g @percia/cli` (<https://www.npmjs.com/package/@percia/cl
 ```bash
 npm install -g @percia/cli      
 percia login                    # browser sign-in (OAuth 2.1 + PKCE); or: percia login --with-key
-percia whoami                      # account, scopes and billing
+percia whoami                      # who the credential is (GET /api/whoami), scopes and billing
 percia plan                        # free minutes left, credit, how you are charged
 ```
 

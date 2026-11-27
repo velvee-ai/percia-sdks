@@ -6878,6 +6878,60 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "identity",
+      "item": [
+        {
+          "name": "Who the credential belongs to (connection test)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var okCodes = [200];",
+                  "pm.test(\"status is a documented success code (\" + okCodes.join(\"/\") + \")\", function () {",
+                  "  if (okCodes.indexOf(pm.response.code) === -1) throw new Error(\"got \" + pm.response.code);",
+                  "});",
+                  "var body = null;",
+                  "try { body = pm.response.json(); } catch (e) { body = null; }",
+                  "pm.test(\"body is JSON\", function () {",
+                  "  if (body === null) throw new Error(\"response body is not JSON\");",
+                  "});",
+                  "pm.test(\"errors use the shared envelope\", function () {",
+                  "  if (pm.response.code < 400) return;",
+                  "  var e = null; try { e = pm.response.json(); } catch (x) { e = null; }",
+                  "  if (!e || typeof e.message !== \"string\") throw new Error(\"missing message\");",
+                  "  if (e.error && typeof e.error.code !== \"string\") throw new Error(\"missing error.code\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/whoami",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "whoami"
+              ]
+            },
+            "description": "operationId: getWhoami\n\nWho the credential belongs to (connection test)\n\nScopes: (none listed)."
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }
