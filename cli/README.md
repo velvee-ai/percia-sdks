@@ -2,10 +2,10 @@
 
 The `percia` command line, built on [`@percia/sdk`](../typescript). Node 20+.
 
-> Not published yet. From this repository: `pnpm install && pnpm --filter @percia/sdk build && pnpm --filter @percia/cli build`, then `node cli/dist/bin.js --help`.
+Install: `npm install -g @percia/cli` (<https://www.npmjs.com/package/@percia/cli>).
 
 ```bash
-npm install -g @percia/cli      # once published (not on npm yet)
+npm install -g @percia/cli      
 percia login                    # browser sign-in (OAuth 2.1 + PKCE); or: percia login --with-key
 percia whoami                      # account, scopes and billing
 percia plan                        # free minutes left, credit, how you are charged

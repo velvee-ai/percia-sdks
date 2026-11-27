@@ -5,7 +5,7 @@
 | `percia-smoke.yml` | Daily (and manual) check of `GET /api/events` for the last 24 hours: fails on any `deliveryStatus: "failed"` event, and on zero events when `require_events` is true. Needs secret `PERCIA_API_KEY` (scope `events:read`). |
 | `percia-pr-check.yml` | In a pull request: create a watch, send a signed `test-delivery` to your test receiver, **always delete the watch** (`if: always()`). Needs `watches:write` + `watches:delete`, and variables `PERCIA_TEST_WEBHOOK_URL`, `PERCIA_TEST_SOURCE_URL`. |
 
-Both use `curl` and `jq` (preinstalled on `ubuntu-latest`) so they work today. `percia-smoke.yml` also holds a commented job that does the same with the `percia` CLI (`npx @percia/cli whoami --json`, `events list --json`); **the CLI is not on npm yet**, enable it once it is published.
+Both use `curl` and `jq` (preinstalled on `ubuntu-latest`) so they work today. `percia-smoke.yml` also holds a commented job that does the same with the `percia` CLI (`npx @percia/cli whoami --json`, `events list --json`); the CLI is on npm, so you can enable it.
 
 Notes
 - `GET /api/events` is the account-wide feed. Check that your host serves it first: `curl $BASE/api/openapi.json | jq '.paths|has("/events")'` first.

@@ -4,7 +4,15 @@ Official SDKs, CLI and OpenAPI spec for the [Percia](https://www.percia.ai) API.
 
 Everything here is generated from one OpenAPI document (`spec/openapi.json`, the same one served at <https://playground.percia.ai/api/openapi.json>) plus a small hand-written layer per language.
 
-> **Not on npm or PyPI yet.** `@percia/sdk`, `@percia/cli` and `percia` are not published; build or install them from this repository (see each package's README).
+**Install**
+
+```bash
+npm install @percia/sdk      # TypeScript / JavaScript client
+npm install -g @percia/cli   # the `percia` command line
+pip install percia           # Python client
+```
+
+Packages: [`@percia/sdk`](https://www.npmjs.com/package/@percia/sdk) · [`@percia/cli`](https://www.npmjs.com/package/@percia/cli) · [`percia`](https://pypi.org/project/percia/)
 
 | Directory | What | Package |
 |---|---|---|

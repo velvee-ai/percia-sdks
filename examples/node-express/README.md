@@ -8,7 +8,7 @@ npm test                 # offline: 25 tests (20 shared vectors + 5 HTTP tests)
 ```
 
 Files: `verify.mjs` (zero-dependency verifier, copy it), `server.mjs` (Express app, `express.raw` so the body stays untouched).
-With the SDK the verifier is one call: `import { verifyWebhookSignature } from "@percia/sdk"` (not on npm yet).
+With the SDK the verifier is one call: `import { verifyWebhookSignature } from "@percia/sdk"`.
 
 ## How it verifies
 

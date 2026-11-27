@@ -9,7 +9,7 @@ Python client for the [Percia](https://percia.ai) API: create watches on cameras
 * `verify_webhook_signature` / `verify_and_parse` for `Percia-Signature`.
 * `client.events.stream(...)`: follow the dev event feed (`GET /api/events/stream`, SSE) for local development and tests; reconnects with `Last-Event-ID`, honours `Retry-After`, dedupes on `eventId` (`async for` on `AsyncPercia`). Items: `Open`, `Event` (`.event` dict, `.data` the exact JSON string), `Resync`, `End`, `Reconnect`, `Ping`. Not a delivery path. See `docs/local-development.md`.
 
-Not on PyPI yet: install from this repository (`pip install ./python`).
+Install: `pip install percia` (<https://pypi.org/project/percia/>).
 
 ## Quick start
 

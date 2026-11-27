@@ -2,7 +2,7 @@
 
 TypeScript SDK for the [Percia](https://percia.ai) API. Typed, fetch-only (Node 20+, Cloudflare Workers, Deno, Bun, browsers), ESM and CJS.
 
-> Not on npm yet. Until it is published, build it from this repository (`pnpm --filter @percia/sdk build`).
+Install: `npm install @percia/sdk` (<https://www.npmjs.com/package/@percia/sdk>).
 
 ```bash
 npm install @percia/sdk
