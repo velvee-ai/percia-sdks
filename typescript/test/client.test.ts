@@ -185,7 +185,11 @@ describe("retries", () => {
 		expect(mock.requests).toHaveLength(0);
 	});
 	it("times out a hung request", async () => {
-		const c = createClient({ apiKey: "k", baseUrl: "https://percia.test", maxRetries: 0, timeoutMs: 20, fetch: ((req: Request) => new Promise((_, rej) => req.signal.addEventListener("abort", () => rej(req.signal.reason)))) as typeof fetch });
+		const c = createClient({ apiKey: "k", baseUrl: "https://percia.test", maxRetries: 0, timeoutMs: 20, fetch: ((req: Request) => new Promise((_, rej) => {
+			// A dependent AbortSignal is only weakly held by its source: keep the request alive with a pending timer, or newer Node versions may collect it before the abort fires.
+			const keep = setTimeout(() => void req.url, 60_000);
+			req.signal.addEventListener("abort", () => (clearTimeout(keep), rej(req.signal.reason)));
+		})) as typeof fetch });
 		await expect(c.watches.list()).rejects.toMatchObject({ name: "PerciaTimeoutError" });
 	});
 });
