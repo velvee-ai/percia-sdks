@@ -93,7 +93,7 @@ export type Agent = {
 };
 
 /**
- * Up to 10 concerns plus a request budget. A zone is a polygon of 3 to 12 [x, y] points, each 0..1 (fractions of the frame).
+ * Up to 10 concerns plus a request budget. A watch runs at most 8 concerns, without zones, excludeZones, minConfidence, rearmS, recheckS, cooldownS or a non-default budget (422 agent_deploy_unavailable on deploy). A zone is a polygon of 3 to 12 [x, y] points, each 0..1 (fractions of the frame).
  */
 export type AgentConfig = {
     /**
@@ -261,7 +261,7 @@ export type Entity = {
  */
 export type Error = {
     error: {
-        code: 'unauthenticated' | 'invalid_api_key' | 'insufficient_scope' | 'not_found' | 'invalid_request' | 'rate_limited' | 'bot_check_failed' | 'conflict' | 'forbidden' | 'internal' | 'instant_disabled' | 'daily_cap' | 'ip_cap' | 'pairing_invalid' | 'camera_in_use' | 'unsupported_type' | 'too_large' | 'too_long' | 'bad_container' | 'bad_codec' | 'bad_part' | 'upload_limit' | 'invalid_url' | 'fetch_failed' | 'in_use' | 'draft_closed' | 'draft_ready' | 'draft_refused' | 'draft_too_long' | 'draft_not_ready' | 'draft_changed' | 'draft_multi_watch' | 'draft_unreadable' | 'clarification_needed' | 'unsupported_not_acknowledged' | 'layer_unconfigured' | 'layer_budget' | 'layer_unavailable' | 'wrong_kind' | 'demo_unavailable' | 'demo_capped' | 'session_frames' | 'session_over' | 'bad_token' | 'judge_failed' | 'camera_limit' | 'goal_not_allowed' | 'agent_limit' | 'nothing_to_publish' | 'agent_in_use' | 'agent_not_published' | 'agent_deploy_unavailable' | 'builder_unavailable' | 'gone' | 'site_limit' | 'ask_unavailable' | 'judge_unavailable' | 'live_unavailable' | 'plan_limit' | 'key_invalid' | 'keys_unavailable' | 'selling_disabled' | 'payment_required' | 'integration_unavailable' | 'reauth_required' | 'deletion_incomplete' | 'code_invalid' | 'code_already_redeemed' | 'card_required' | 'already_subscribed' | 'advanced_unavailable' | 'advanced_needs_percia_camera' | 'advanced_signal_undeclared' | 'advanced_required' | 'revision_mismatch' | 'context_limit' | 'signal_rejected' | 'signals_unavailable' | 'event_here' | 'tests_unavailable' | 'test_running' | 'clip_unavailable';
+        code: 'unauthenticated' | 'invalid_api_key' | 'insufficient_scope' | 'not_found' | 'invalid_request' | 'rate_limited' | 'bot_check_failed' | 'conflict' | 'forbidden' | 'internal' | 'instant_disabled' | 'daily_cap' | 'ip_cap' | 'pairing_invalid' | 'camera_in_use' | 'unsupported_type' | 'too_large' | 'too_long' | 'bad_container' | 'bad_codec' | 'bad_part' | 'upload_limit' | 'invalid_url' | 'fetch_failed' | 'in_use' | 'draft_closed' | 'draft_ready' | 'draft_refused' | 'draft_too_long' | 'draft_not_ready' | 'draft_changed' | 'draft_multi_watch' | 'draft_unreadable' | 'clarification_needed' | 'unsupported_not_acknowledged' | 'layer_unconfigured' | 'layer_budget' | 'layer_unavailable' | 'wrong_kind' | 'demo_unavailable' | 'demo_capped' | 'session_frames' | 'session_over' | 'bad_token' | 'judge_failed' | 'camera_limit' | 'goal_not_allowed' | 'agent_limit' | 'nothing_to_publish' | 'agent_in_use' | 'agent_not_published' | 'agent_deploy_unavailable' | 'builder_unavailable' | 'gone' | 'site_limit' | 'ask_unavailable' | 'judge_unavailable' | 'live_unavailable' | 'plan_limit' | 'key_invalid' | 'keys_unavailable' | 'selling_disabled' | 'payment_required' | 'integration_unavailable' | 'reauth_required' | 'deletion_incomplete' | 'code_invalid' | 'code_already_redeemed' | 'code_fully_claimed' | 'card_required' | 'already_subscribed' | 'advanced_unavailable' | 'advanced_needs_percia_camera' | 'advanced_signal_undeclared' | 'advanced_required' | 'revision_mismatch' | 'context_limit' | 'signal_rejected' | 'signals_unavailable' | 'event_here' | 'tests_unavailable' | 'test_running' | 'clip_unavailable';
         /**
          * Name of the offending request field, on validation errors.
          */
@@ -1198,6 +1198,10 @@ export type PublishAgentErrors = {
      * nothing_to_publish: the draft equals the published config.
      */
     409: Error;
+    /**
+     * agent_deploy_unavailable: a watch follows the latest version and could not run this one (`error.field` names the setting). Nothing was published.
+     */
+    422: Error;
 };
 
 export type PublishAgentError = PublishAgentErrors[keyof PublishAgentErrors];
@@ -1669,7 +1673,7 @@ export type RedeemCreditCodeErrors = {
      */
     404: Error;
     /**
-     * code_already_redeemed.
+     * code_already_redeemed or code_fully_claimed.
      */
     409: Error;
     /**
@@ -5584,7 +5588,7 @@ export type CreateWatchData = {
 
 export type CreateWatchErrors = {
     /**
-     * Invalid field.
+     * Invalid field, or agent_not_published: the agent has no published version.
      */
     400: Error;
     /**
@@ -5600,7 +5604,7 @@ export type CreateWatchErrors = {
      */
     409: Error;
     /**
-     * `agent_deploy_unavailable` (the body has `agentId` or `agentVersion`; nothing was created). Where recording is on: `clarification_needed`: nothing was created; the body has `draftId`, `question`, `options` [{label, definition}] and `guidance`. Also `draft_refused` (nothing visible to watch; `unsupported` lists why), `draft_multi_watch`, and `invalid_request` with `error.field` naming a refused retired input (cooldownS, kind, rearmS, recheckS, minConfidence, notWhen, zones, concerns, judgeKey, interpret, runtime).
+     * `agent_deploy_unavailable` (the agent version cannot run on a watch; `error.field` names why; nothing was created). Where recording is on: `clarification_needed`: nothing was created; the body has `draftId`, `question`, `options` [{label, definition}] and `guidance`. Also `draft_refused` (nothing visible to watch; `unsupported` lists why), `draft_multi_watch`, and `invalid_request` with `error.field` naming a refused retired input (cooldownS, kind, rearmS, recheckS, minConfidence, notWhen, zones, concerns, judgeKey, interpret, runtime).
      */
     422: {
         draftId?: string;
@@ -6095,7 +6099,7 @@ export type UpdateWatchErrors = {
      */
     409: Error;
     /**
-     * agent_deploy_unavailable (the body has agentId or agentVersion), clarification_needed, draft_refused or draft_multi_watch about a new goal, or a change this watch cannot take (`error.field`). Nothing changed.
+     * agent_deploy_unavailable (the watch cannot run that agent version), clarification_needed, draft_refused or draft_multi_watch about a new goal, or a change this watch cannot take (`error.field`). Nothing changed.
      */
     422: Error;
     /**

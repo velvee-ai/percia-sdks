@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.5 (2026-11-27)
+
+- `percia watches create --help` describes `--agent` / `--agent-version` as available again (the API deploys a published agent). Built against `@percia/sdk` 0.3.5.
+
 ## 0.3.4 (2026-11-27)
 
 - `percia watches create --help` says that `--agent` / `--agent-version` are not available (the API answers 422 `agent_deploy_unavailable`). Built against `@percia/sdk` 0.3.4.

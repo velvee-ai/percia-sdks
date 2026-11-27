@@ -24,6 +24,7 @@ class ErrorErrorCode(str, Enum):
     CLARIFICATION_NEEDED = "clarification_needed"
     CLIP_UNAVAILABLE = "clip_unavailable"
     CODE_ALREADY_REDEEMED = "code_already_redeemed"
+    CODE_FULLY_CLAIMED = "code_fully_claimed"
     CODE_INVALID = "code_invalid"
     CONFLICT = "conflict"
     CONTEXT_LIMIT = "context_limit"

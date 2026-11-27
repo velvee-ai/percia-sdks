@@ -113,9 +113,10 @@ def sync_detailed(
     the answer in `goal`), 409 `unsupported_not_acknowledged` (leave that part out, or add
     `acknowledgeUnsupported: true`), 422 `draft_refused` or `draft_multi_watch`, 503
     `layer_unavailable`, `layer_unconfigured` or `layer_budget`, 429 `rate_limited`. Earlier events are
-    not rewritten. On a watch made with `advanced` conditions the goal only renames it. Deploying or re-
-    pinning an agent (`agentId`, `agentVersion`) is not available: 422 `agent_deploy_unavailable`,
-    nothing changes.
+    not rewritten. On a watch made with `advanced` conditions the goal only renames it. `agentId` (+
+    `agentVersion`, null = follow latest) deploys an agent and the watch restarts on its concerns;
+    `agentVersion` alone re-pins; a new `goal` detaches the agent. A version the watch cannot run
+    answers 422 `agent_deploy_unavailable` naming the setting in `error.field`, and changes nothing.
 
     Args:
         id (str):
@@ -156,9 +157,10 @@ def sync(
     the answer in `goal`), 409 `unsupported_not_acknowledged` (leave that part out, or add
     `acknowledgeUnsupported: true`), 422 `draft_refused` or `draft_multi_watch`, 503
     `layer_unavailable`, `layer_unconfigured` or `layer_budget`, 429 `rate_limited`. Earlier events are
-    not rewritten. On a watch made with `advanced` conditions the goal only renames it. Deploying or re-
-    pinning an agent (`agentId`, `agentVersion`) is not available: 422 `agent_deploy_unavailable`,
-    nothing changes.
+    not rewritten. On a watch made with `advanced` conditions the goal only renames it. `agentId` (+
+    `agentVersion`, null = follow latest) deploys an agent and the watch restarts on its concerns;
+    `agentVersion` alone re-pins; a new `goal` detaches the agent. A version the watch cannot run
+    answers 422 `agent_deploy_unavailable` naming the setting in `error.field`, and changes nothing.
 
     Args:
         id (str):
@@ -194,9 +196,10 @@ async def asyncio_detailed(
     the answer in `goal`), 409 `unsupported_not_acknowledged` (leave that part out, or add
     `acknowledgeUnsupported: true`), 422 `draft_refused` or `draft_multi_watch`, 503
     `layer_unavailable`, `layer_unconfigured` or `layer_budget`, 429 `rate_limited`. Earlier events are
-    not rewritten. On a watch made with `advanced` conditions the goal only renames it. Deploying or re-
-    pinning an agent (`agentId`, `agentVersion`) is not available: 422 `agent_deploy_unavailable`,
-    nothing changes.
+    not rewritten. On a watch made with `advanced` conditions the goal only renames it. `agentId` (+
+    `agentVersion`, null = follow latest) deploys an agent and the watch restarts on its concerns;
+    `agentVersion` alone re-pins; a new `goal` detaches the agent. A version the watch cannot run
+    answers 422 `agent_deploy_unavailable` naming the setting in `error.field`, and changes nothing.
 
     Args:
         id (str):
@@ -235,9 +238,10 @@ async def asyncio(
     the answer in `goal`), 409 `unsupported_not_acknowledged` (leave that part out, or add
     `acknowledgeUnsupported: true`), 422 `draft_refused` or `draft_multi_watch`, 503
     `layer_unavailable`, `layer_unconfigured` or `layer_budget`, 429 `rate_limited`. Earlier events are
-    not rewritten. On a watch made with `advanced` conditions the goal only renames it. Deploying or re-
-    pinning an agent (`agentId`, `agentVersion`) is not available: 422 `agent_deploy_unavailable`,
-    nothing changes.
+    not rewritten. On a watch made with `advanced` conditions the goal only renames it. `agentId` (+
+    `agentVersion`, null = follow latest) deploys an agent and the watch restarts on its concerns;
+    `agentVersion` alone re-pins; a new `goal` detaches the agent. A version the watch cannot run
+    answers 422 `agent_deploy_unavailable` naming the setting in `error.field`, and changes nothing.
 
     Args:
         id (str):

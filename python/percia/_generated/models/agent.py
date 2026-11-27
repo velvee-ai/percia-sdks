@@ -28,8 +28,10 @@ class Agent:
     """
     Attributes:
         deployment_count (Union[Unset, int]):
-        draft (Union[Unset, AgentConfig]): Up to 10 concerns plus a request budget. A zone is a polygon of 3 to 12 [x,
-            y] points, each 0..1 (fractions of the frame).
+        draft (Union[Unset, AgentConfig]): Up to 10 concerns plus a request budget. A watch runs at most 8 concerns,
+            without zones, excludeZones, minConfidence, rearmS, recheckS, cooldownS or a non-default budget (422
+            agent_deploy_unavailable on deploy). A zone is a polygon of 3 to 12 [x, y] points, each 0..1 (fractions of the
+            frame).
         draft_changed (Union[Unset, bool]): True before the first publish, or when the draft differs from the published
             config.
         id (Union[Unset, str]):

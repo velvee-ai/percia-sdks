@@ -94,8 +94,9 @@ def sync_detailed(
     minutes and before the card). A code is shown to its owner once: pass it in the body, never in a
     URL. Needs a card on file while billing is on sale: without one it answers 402 card_required with
     addCardUrl (the Billing page; only a person can add a card) and the code is not checked or used.
-    Unknown, disabled, expired and used-up codes all answer 404 code_invalid; the same person redeeming
-    twice is 409 code_already_redeemed; too many tries is 429 rate_limited with Retry-After.
+    Unknown, disabled and expired codes all answer 404 code_invalid; a code with no redemption left is
+    409 code_fully_claimed; the same person redeeming twice is 409 code_already_redeemed; too many tries
+    is 429 rate_limited with Retry-After.
 
     Args:
         body (RedeemCreditCodeBody):
@@ -128,8 +129,9 @@ def sync(
     minutes and before the card). A code is shown to its owner once: pass it in the body, never in a
     URL. Needs a card on file while billing is on sale: without one it answers 402 card_required with
     addCardUrl (the Billing page; only a person can add a card) and the code is not checked or used.
-    Unknown, disabled, expired and used-up codes all answer 404 code_invalid; the same person redeeming
-    twice is 409 code_already_redeemed; too many tries is 429 rate_limited with Retry-After.
+    Unknown, disabled and expired codes all answer 404 code_invalid; a code with no redemption left is
+    409 code_fully_claimed; the same person redeeming twice is 409 code_already_redeemed; too many tries
+    is 429 rate_limited with Retry-After.
 
     Args:
         body (RedeemCreditCodeBody):
@@ -157,8 +159,9 @@ async def asyncio_detailed(
     minutes and before the card). A code is shown to its owner once: pass it in the body, never in a
     URL. Needs a card on file while billing is on sale: without one it answers 402 card_required with
     addCardUrl (the Billing page; only a person can add a card) and the code is not checked or used.
-    Unknown, disabled, expired and used-up codes all answer 404 code_invalid; the same person redeeming
-    twice is 409 code_already_redeemed; too many tries is 429 rate_limited with Retry-After.
+    Unknown, disabled and expired codes all answer 404 code_invalid; a code with no redemption left is
+    409 code_fully_claimed; the same person redeeming twice is 409 code_already_redeemed; too many tries
+    is 429 rate_limited with Retry-After.
 
     Args:
         body (RedeemCreditCodeBody):
@@ -189,8 +192,9 @@ async def asyncio(
     minutes and before the card). A code is shown to its owner once: pass it in the body, never in a
     URL. Needs a card on file while billing is on sale: without one it answers 402 card_required with
     addCardUrl (the Billing page; only a person can add a card) and the code is not checked or used.
-    Unknown, disabled, expired and used-up codes all answer 404 code_invalid; the same person redeeming
-    twice is 409 code_already_redeemed; too many tries is 429 rate_limited with Retry-After.
+    Unknown, disabled and expired codes all answer 404 code_invalid; a code with no redemption left is
+    409 code_fully_claimed; the same person redeeming twice is 409 code_already_redeemed; too many tries
+    is 429 rate_limited with Retry-After.
 
     Args:
         body (RedeemCreditCodeBody):

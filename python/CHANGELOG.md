@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.5 (2026-11-27)
+
+- Synced with the Percia API (146 operations). Deploying a published agent to a watch (`agentId`, `agentVersion`) works again: its concerns are what the watch judges, and a version a watch cannot run answers 422 `agent_deploy_unavailable`, also from `POST /api/agents/{id}/publish` when a watch follows the latest. Create can answer 400 `agent_not_published`. Redeeming a used-up code answers 409 `code_fully_claimed` (new error code).
+
 ## 0.3.4 (2026-11-27)
 
 - Synced with the Percia API (146 operations). `PATCH /api/watches/{id}` takes `acknowledgeUnsupported`; a new `goal` is read by Percia before anything changes, so the update can fail with 409 `unsupported_not_acknowledged`, 422 `clarification_needed` / `draft_refused` / `draft_multi_watch`, 429 `rate_limited` or 503 `layer_*`, and then nothing changes. Deploying an agent to a watch (`agentId`, `agentVersion`) is switched off: 422 `agent_deploy_unavailable` (new error code).

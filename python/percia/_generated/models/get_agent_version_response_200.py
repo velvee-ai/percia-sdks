@@ -25,8 +25,10 @@ T = TypeVar("T", bound="GetAgentVersionResponse200")
 class GetAgentVersionResponse200:
     """
     Attributes:
-        config (Union[Unset, AgentConfig]): Up to 10 concerns plus a request budget. A zone is a polygon of 3 to 12 [x,
-            y] points, each 0..1 (fractions of the frame).
+        config (Union[Unset, AgentConfig]): Up to 10 concerns plus a request budget. A watch runs at most 8 concerns,
+            without zones, excludeZones, minConfidence, rearmS, recheckS, cooldownS or a non-default budget (422
+            agent_deploy_unavailable on deploy). A zone is a polygon of 3 to 12 [x, y] points, each 0..1 (fractions of the
+            frame).
         created_at (Union[Unset, datetime.datetime]):
         note (Union[None, Unset, str]):
         version (Union[Unset, int]):
