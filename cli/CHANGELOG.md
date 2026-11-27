@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.3.0 (unreleased)
+## 0.3.1 (2026-11-27)
+
+- Package metadata only (no API or behaviour change): author Velvee, Inc. <support@velvee.ai>, homepage https://www.percia.ai, repository, bugs, license MIT.
+
+## 0.3.0 (2026-11-27)
 
 - `percia listen` follows `GET /api/events/stream` (SSE with fetch streaming) instead of polling `GET /api/events`: `--forward-to <url>` (alias `--forward`), `--watch`, `--concern`, `--type`, `--secret-env NAME`, `--secret-file PATH` (default `PERCIA_WEBHOOK_SECRET`; no `--secret <value>` any more), `--backlog N`, `--print` (JSON lines on stdout), `--replay <eventId>` (replaces `--replay <n>`), `--allow-remote`. Each event is POSTed with the exact data string, `content-type`, `Percia-Signature` and `x-percia-event-id` / `x-percia-delivery-id`, and a compact line is printed (type, short ids, local status, latency). Reconnects with `Last-Event-ID` and backoff, honours `Retry-After`, dedupes on `eventId`, backfills once after `resync`, explains 401/403/429/connection refused, never prints the key or the secret, exits 0 on Ctrl-C. `--interval` is gone.
 

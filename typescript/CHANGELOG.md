@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.3.0 (unreleased)
+## 0.3.1 (2026-11-27)
+
+- Package metadata only (no API or behaviour change): author Velvee, Inc. <support@velvee.ai>, homepage https://www.percia.ai, repository, bugs, license MIT. `SDK_VERSION` is 0.3.1.
+
+## 0.3.0 (2026-11-27)
 
 - `events.stream({ watchId, concernId, type, backlog, since, signal, maxReconnects, idleTimeoutMs })`: async iterator over the developer event feed (`GET /api/events/stream`, SSE, fetch streaming). Yields `open`, `event` (with `cursor`, the parsed `event` and the exact `data` string), `resync`, `end`, `reconnect`, `ping`. Reconnects with `Last-Event-ID`, exponential backoff with jitter, `Retry-After` on 429, an idle timeout, dedupe on `eventId`; throws typed errors for 401/403/404/400; ends without an error when `signal` aborts. Also exported: `streamEvents`, `parseSse` and the types `EventStreamOptions`, `StreamItem`, `StreamedEvent`. `verifyWebhookSignature` and `signWebhook` are unchanged.
 - Billing (additive, optional in types): `account.billing()` returns the `billing` block of MCP `whoami` from `GET /api/plan`; new `billingOf(plan)`, `describeBilling(billing)` and the types `Plan`, `Billing`. `account.plan()` now has every billing field in its type (`label`, `freeMinutesLeft`, `creditMinutes`, `howCharged`, `nextStep`, `canStartWatches`, `blockReason`, `bonusAvailable`, ...).

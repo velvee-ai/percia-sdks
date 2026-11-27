@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.3.0 (unreleased)
+## 0.3.1 (2026-11-27)
+
+- Package metadata only (no API or behaviour change): author Velvee, Inc. <support@velvee.ai>, homepage https://www.percia.ai, repository, bugs, license MIT.
+
+## 0.3.0 (2026-11-27)
 
 - `events.stream(watch_id=, concern_id=, type=, backlog=, since=, max_reconnects=, idle_timeout=)`: iterator (sync) and async iterator (`AsyncPercia`) over the developer event feed (`GET /api/events/stream`, SSE). Yields `Open`, `Event` (`cursor`, parsed `event`, the exact `data` string), `Resync`, `End`, `Reconnect`, `Ping`. Reconnects with `Last-Event-ID`, backoff with jitter, `Retry-After` on 429, a read-timeout idle detector, dedupe on `eventId`; raises typed errors for 401/403/404/400 (no retry). `verify_webhook_signature` is unchanged.
 

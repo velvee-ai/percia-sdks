@@ -1,14 +1,16 @@
 {
   "name": "@percia/cli",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Command line for Percia: watches, events, cameras, alert destinations, REST hooks, local webhook forwarding and MCP setup.",
   "license": "MIT",
+  "author": "Velvee, Inc. <support@velvee.ai>",
   "type": "module",
   "bin": { "percia": "./dist/bin.js" },
   "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
   "engines": { "node": ">=20" },
   "repository": { "type": "git", "url": "git+https://github.com/velvee-ai/percia-sdks.git", "directory": "cli" },
-  "homepage": "https://github.com/velvee-ai/percia-sdks/tree/main/cli#readme",
+  "homepage": "https://www.percia.ai",
+  "bugs": { "url": "https://github.com/velvee-ai/percia-sdks/issues", "email": "support@velvee.ai" },
   "keywords": ["percia", "cli", "webhooks", "camera", "mcp"],
   "publishConfig": { "access": "public", "provenance": true },
   "scripts": {

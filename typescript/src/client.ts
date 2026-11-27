@@ -10,7 +10,7 @@ import { paginate } from "./pagination.js";
 import { streamEvents, type EventStreamOptions, type StreamDeps } from "./stream.js";
 
 export const DEFAULT_BASE_URL = "https://playground.percia.ai";
-export const SDK_VERSION = "0.3.0";
+export const SDK_VERSION = "0.3.1";
 
 export type TokenSource = string | (() => string | Promise<string>);
 

@@ -1,8 +1,9 @@
 {
   "name": "@percia/sdk",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "TypeScript SDK for the Percia API: typed client, retries, pagination and webhook signature verification. Fetch only; runs on Node 20+, Cloudflare Workers, Deno, Bun and browsers.",
   "license": "MIT",
+  "author": "Velvee, Inc. <support@velvee.ai>",
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.cjs",
@@ -22,7 +23,8 @@
   "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
   "engines": { "node": ">=20" },
   "repository": { "type": "git", "url": "git+https://github.com/velvee-ai/percia-sdks.git", "directory": "typescript" },
-  "homepage": "https://github.com/velvee-ai/percia-sdks/tree/main/typescript#readme",
+  "homepage": "https://www.percia.ai",
+  "bugs": { "url": "https://github.com/velvee-ai/percia-sdks/issues", "email": "support@velvee.ai" },
   "keywords": ["percia", "sdk", "api", "webhooks", "camera"],
   "publishConfig": { "access": "public", "provenance": true },
   "scripts": {
